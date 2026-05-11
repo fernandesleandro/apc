@@ -414,3 +414,43 @@ display:block;
 }
 
 }
+
+
+@media(max-width:980px){
+
+.navbar{
+flex-direction:row !important;
+justify-content:space-between !important;
+align-items:center !important;
+}
+
+.logo h1{
+display:none !important;
+}
+
+.logo img{
+width:68px !important;
+}
+
+.menu-toggle{
+font-size:34px !important;
+margin-left:auto;
+}
+
+.mobile-menu{
+width:72% !important;
+gap:28px !important;
+}
+
+.mobile-menu a{
+font-size:28px !important;
+}
+
+.close-menu{
+font-size:52px !important;
+top:18px !important;
+right:22px !important;
+}
+
+}
+
