@@ -26,9 +26,29 @@
 <a href="empreendimentos.html">Empreendimentos</a>
 <a href="obra.html">Acompanhe</a>
 <a href="contato.html">Contato</a>
+
 </nav>
 
+<div class="menu-toggle" onclick="openMenu()">☰</div>
+
 </div>
+
+<div class="overlay-menu" id="overlay" onclick="closeMenu()"></div>
+
+<div class="mobile-menu" id="mobileMenu">
+
+<div class="close-menu" onclick="closeMenu()">×</div>
+
+<a href="index.html">Home</a>
+<a href="empresa.html">Empresa</a>
+<a href="lancamentos.html">Lançamentos</a>
+<a href="imoveis.html">Imóveis</a>
+<a href="empreendimentos.html">Empreendimentos</a>
+<a href="obra.html">Acompanhe</a>
+<a href="contato.html">Contato</a>
+
+</div>
+
 </header>
 
 
@@ -67,5 +87,19 @@
 <a class="whatsapp" href="https://wa.me/5561999999999">💬</a>
 
 
+
+<script>
+function openMenu(){
+document.getElementById('mobileMenu').classList.add('active');
+document.getElementById('overlay').classList.add('active');
+}
+
+function closeMenu(){
+document.getElementById('mobileMenu').classList.remove('active');
+document.getElementById('overlay').classList.remove('active');
+}
+</script>
+
 </body>
+
 </html>
