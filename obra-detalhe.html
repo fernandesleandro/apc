@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +8,32 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/glightbox.min.css">
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.css" />
+    <style>
+        .fancybox__container {
+            --fancybox-bg: rgba(0, 0, 0, .95);
+        }
+
+        .fancybox__image {
+            max-width: 95vw !important;
+            max-height: 85vh !important;
+            object-fit: contain !important;
+        }
+
+        @media(max-width:768px) {
+            .fancybox__image {
+                max-width: 100vw !important;
+                max-height: 75vh !important;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
     <header class="navbar">
@@ -19,7 +42,7 @@
                 <img src="logo.png" alt="AP Construções Logo" class="logo-img">
                 <div class="logo-text"><span>CONSTRUÇÕES</span></div>
             </a>
-            
+
             <button class="menu-toggle" aria-label="Abrir Menu">
                 <span></span>
                 <span></span>
@@ -36,7 +59,8 @@
         </div>
     </header>
 
-    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80') center/cover no-repeat;">
+    <section class="detail-hero"
+        style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80') center/cover no-repeat;">
         <div class="detail-hero-overlay">
             <div class="container">
                 <span class="section-tag" style="color: var(--accent-blue);">Lançamento Exclusivo</span>
@@ -66,25 +90,35 @@
         <div class="detail-desc">
             <span class="section-tag">Conceito Inteligente</span>
             <h2>O amanhã do morar urbano, hoje.</h2>
-            <p>Inspirado nos conceitos arquitetônicos mais modernos de otimização de espaço e alta conectividade, o Residencial Niemeyer Concept traz studios inteligentes com acabamentos nobres, áreas comuns repletas de serviços compartilhados, lavanderia pay-per-use, espaço fitness panorâmico e coworking integrado.</p>
-            <p>O empreendimento une a icônica inspiração das linhas de Brasília ao conforto de um projeto feito para quem valoriza tempo, bem-estar e sofisticação.</p>
-            <a href="contato.html" class="btn btn-filled">Garantir Unidade <i class="fas fa-chevron-right" style="margin-left:5px;"></i></a>
+            <p>Inspirado nos conceitos arquitetônicos mais modernos de otimização de espaço e alta conectividade, o
+                Residencial Niemeyer Concept traz studios inteligentes com acabamentos nobres, áreas comuns repletas de
+                serviços compartilhados, lavanderia pay-per-use, espaço fitness panorâmico e coworking integrado.</p>
+            <p>O empreendimento une a icônica inspiração das linhas de Brasília ao conforto de um projeto feito para
+                quem valoriza tempo, bem-estar e sofisticação.</p>
+            <a href="contato.html" class="btn btn-filled">Garantir Unidade <i class="fas fa-chevron-right"
+                    style="margin-left:5px;"></i></a>
         </div>
-        
+
         <div class="showcase-gallery">
             <div class="gallery-img-item gallery-img-large">
-                <a href="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80" class="glightbox" data-gallery="gallery1">
-                    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80" alt="Interior Living">
+                <a href="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80"
+                    data-fancybox="galeria">
+                    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80"
+                        alt="Interior Living">
                 </a>
             </div>
             <div class="gallery-img-item">
-                <a href="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=800&q=80" class="glightbox" data-gallery="gallery1">
-                    <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=800&q=80" alt="Residencial Fachada">
+                <a href="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=800&q=80"
+                    data-fancybox="galeria">
+                    <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=800&q=80"
+                        alt="Residencial Fachada">
                 </a>
             </div>
             <div class="gallery-img-item">
-                <a href="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80" class="glightbox" data-gallery="gallery1">
-                    <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80" alt="Varanda Gourmet Vista">
+                <a href="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80"
+                    data-fancybox="galeria">
+                    <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80"
+                        alt="Varanda Gourmet Vista">
                 </a>
             </div>
         </div>
@@ -95,16 +129,18 @@
             <div class="planta-header">
                 <span class="section-tag tag-light">Implantações e Plantas</span>
                 <h2 class="section-title title-light">Distribuição de Espaços</h2>
-                <p>Veja como cada metro quadrado foi planejado cirurgicamente para maximizar o seu conforto e iluminação natural.</p>
+                <p>Veja como cada metro quadrado foi planejado cirurgicamente para maximizar o seu conforto e iluminação
+                    natural.</p>
             </div>
-            
+
             <div class="planta-wrapper">
                 <div class="planta-img-box">
                     <img src="planta.svg" alt="Planta Arquitetônica do Imóvel" style="width:100%; height:auto;">
                 </div>
                 <div class="planta-details-card">
                     <h3>Studio Loft Concept</h3>
-                    <p>Planta otimizada com aproveitamento inteligente, cozinha linear gourmet e total integração com a varanda.</p>
+                    <p>Planta otimizada com aproveitamento inteligente, cozinha linear gourmet e total integração com a
+                        varanda.</p>
                     <ul class="spec-list">
                         <li><i class="fas fa-th-large"></i> 45m² de Área Privativa</li>
                         <li><i class="fas fa-bed"></i> Suíte Integrada Modulável</li>
@@ -116,15 +152,17 @@
         </div>
     </section>
 
-    
+
     <footer class="main-footer">
         <div class="container footer-top-grid">
             <div class="footer-brand">
                 <div class="logo-container" style="margin-bottom: 20px; display:flex; align-items:center;">
                     <img src="logo.png" alt="AP Construções" style="height: 50px;">
-                    <span style="color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:1px; display:flex; flex-direction:column; line-height:1.1;"><span>CONSTRUÇÕES</span></span>
+                    <span
+                        style="color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:1px; display:flex; flex-direction:column; line-height:1.1;"><span>CONSTRUÇÕES</span></span>
                 </div>
-                <p>Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.</p>
+                <p>Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos
+                    ecossistemas inteligentes alinhados com o futuro do morar e do investir.</p>
             </div>
             <div class="footer-nav-col">
                 <!--h4>Navegação</h4>
@@ -153,7 +191,9 @@
             </div>
         </div>
         <div class="container footer-bottom-divider">
-            <p class="footer-legal-text">© 2026 AP Construções. Todos os direitos reservados. Projetos e construções executados em conformidade técnica estrita com as diretrizes e normas regulamentadoras vigentes no território nacional. Incorporações registradas sob a égide da Lei Federal nº 4.591/64.</p>
+            <p class="footer-legal-text">© 2026 AP Construções. Todos os direitos reservados. Projetos e construções
+                executados em conformidade técnica estrita com as diretrizes e normas regulamentadoras vigentes no
+                território nacional. Incorporações registradas sob a égide da Lei Federal nº 4.591/64.</p>
             <div class="footer-social-links">
                 <a href="#" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                 <a href="#" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -163,41 +203,24 @@
     </footer>
 
     <!-- Botão Flutuante do WhatsApp -->
-    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank"
+        aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.querySelector('.menu-toggle');
-            const navMenu = document.querySelector('.nav-menu');
-            
-            if (toggleBtn && navMenu) {
-                toggleBtn.addEventListener('click', function() {
-                    toggleBtn.classList.toggle('active');
-                    navMenu.classList.toggle('active');
-                });
-                
-                const navLinks = document.querySelectorAll('.nav-link');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        toggleBtn.classList.remove('active');
-                        navMenu.classList.remove('active');
-                    });
-                });
-            }
+        Fancybox.bind("[data-fancybox='galeria']", {
+            Toolbar: true,
+            Images: { zoom: false },
+            dragToClose: true,
+            animated: true
         });
     </script>
-
-<script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/glightbox.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const lightbox = GLightbox({
-                selector: '.glightbox'
-            });
-        });
-    </script>
-
 </body>
+
 </html>
