@@ -15,9 +15,16 @@
     <header class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo-container">
-                <img src="logo.svg" alt="AP Construções" class="logo-img">
-                <span class="logo-text">AP <span class="accent-text">CONSTRUÇÕES</span></span>
+                <img src="logo.png" alt="AP Construções Logo" class="logo-img">
+                <div class="logo-text">AP <span>CONSTRUÇÕES</span></div>
             </a>
+            
+            <button class="menu-toggle" aria-label="Abrir Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
             <nav class="nav-menu">
                 <a href="index.html" class="nav-link">Início</a>
                 <a href="sobre.html" class="nav-link">Sobre Nós</a>
@@ -28,11 +35,10 @@
         </div>
     </header>
 
-    <section class="detail-hero">
-        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=800&amp;q=80?auto=format&fit=crop&w=1920&q=80" alt="Niemeyer Concept Sky Tower" class="detail-hero-img">
+    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80') center/cover no-repeat;">
         <div class="detail-hero-overlay">
             <div class="container">
-                <span class="section-tag" style="color: var(--primary-blue)">Lançamento Exclusivo</span>
+                <span class="section-tag" style="color: var(--accent-blue);">Lançamento Exclusivo</span>
                 <h1>Residencial Niemeyer Concept</h1>
             </div>
         </div>
@@ -61,7 +67,7 @@
             <h2>O amanhã do morar urbano, hoje.</h2>
             <p>Inspirado nos conceitos arquitetônicos mais modernos de otimização de espaço e alta conectividade, o Residencial Niemeyer Concept traz studios inteligentes com acabamentos nobres, áreas comuns repletas de serviços compartilhados, lavanderia pay-per-use, espaço fitness panorâmico e coworking integrado.</p>
             <p>O empreendimento une a icônica inspiração das linhas de Brasília ao conforto de um projeto feito para quem valoriza tempo, bem-estar e sofisticação.</p>
-            <a href="contato.html" class="btn btn-filled">Garantir Unidade <i class="fas fa-chevron-right"></i></a>
+            <a href="contato.html" class="btn btn-filled">Garantir Unidade <i class="fas fa-chevron-right" style="margin-left:5px;"></i></a>
         </div>
         
         <div class="showcase-gallery">
@@ -69,10 +75,10 @@
                 <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80" alt="Interior Living">
             </div>
             <div class="gallery-img-item">
-                <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=400&q=80" alt="Banheiro Suíte">
+                <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=800&q=80" alt="Residencial Fachada">
             </div>
             <div class="gallery-img-item">
-                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=400&q=80" alt="Varanda Vista">
+                <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80" alt="Varanda Gourmet Vista">
             </div>
         </div>
     </section>
@@ -96,7 +102,7 @@
                         <li><i class="fas fa-th-large"></i> 45m² de Área Privativa</li>
                         <li><i class="fas fa-bed"></i> Suíte Integrada Modulável</li>
                         <li><i class="fas fa-compress-alt"></i> Janelas de Piso ao Teto</li>
-                        <li><i class="fas fa-snowflake"></i> Infraestrutura para Ar Condicionado Split</li>
+                        <li><i class="fas fa-snowflake"></i> Infraestrutura para Ar Condicionado</li>
                     </ul>
                 </div>
             </div>
@@ -107,7 +113,10 @@
     <footer class="main-footer">
         <div class="container footer-top-grid">
             <div class="footer-brand">
-                <h3>AP <span class="accent-text">CONSTRUÇÕES</span></h3>
+                <div class="logo-container" style="margin-bottom: 20px; display:flex; align-items:center; gap:12px;">
+                    <img src="logo.png" alt="AP Construções" style="height: 50px;">
+                    <span style="color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:1px; display:flex; flex-direction:column; line-height:1.1;">AP <span>CONSTRUÇÕES</span></span>
+                </div>
                 <p>Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.</p>
             </div>
             <div class="footer-nav-col">
@@ -146,10 +155,33 @@
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Action -->
+    <!-- Botão Flutuante do WhatsApp -->
     <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+                
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        toggleBtn.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    });
+                });
+            }
+        });
+    </script>
 
 
 </body>

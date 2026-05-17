@@ -15,9 +15,16 @@
     <header class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo-container">
-                <img src="logo.svg" alt="AP Construções" class="logo-img">
-                <span class="logo-text">AP <span class="accent-text">CONSTRUÇÕES</span></span>
+                <img src="logo.png" alt="AP Construções Logo" class="logo-img">
+                <div class="logo-text">AP <span>CONSTRUÇÕES</span></div>
             </a>
+            
+            <button class="menu-toggle" aria-label="Abrir Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
             <nav class="nav-menu">
                 <a href="index.html" class="nav-link">Início</a>
                 <a href="sobre.html" class="nav-link">Sobre Nós</a>
@@ -28,7 +35,7 @@
         </div>
     </header>
 
-    <section class="page-banner">
+    <section class="page-banner" style="background: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('https://images.unsplash.com/photo-1506526618585-64213cbdf79f?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;">
         <div class="container">
             <h1>Canais de Atendimento</h1>
             <p>Agende uma reunião em nossa sede corporativa.</p>
@@ -87,8 +94,9 @@
                 </div>
             </div>
 
-            <div class="map-box">
-                <iframe width="100%" height="100%" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=SCS%20Qd.%2002%20Bl.%20D%20Ed.%20Oscar%20Niemeyer,%20Brasilia&t=&z=16&ie=UTF8&iwloc=&output=embed"></iframe>
+            <!-- Mapa dinâmico via Google Maps Iframe -->
+            <div class="map-box" style="position: relative;">
+                <iframe width="100%" height="100%" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=Edificio%20Oscar%20Niemeyer%20Brasilia&t=&z=15&ie=UTF8&iwloc=&output=embed"></iframe>
             </div>
         </div>
     </section>
@@ -97,7 +105,10 @@
     <footer class="main-footer">
         <div class="container footer-top-grid">
             <div class="footer-brand">
-                <h3>AP <span class="accent-text">CONSTRUÇÕES</span></h3>
+                <div class="logo-container" style="margin-bottom: 20px; display:flex; align-items:center; gap:12px;">
+                    <img src="logo.png" alt="AP Construções" style="height: 50px;">
+                    <span style="color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:1px; display:flex; flex-direction:column; line-height:1.1;">AP <span>CONSTRUÇÕES</span></span>
+                </div>
                 <p>Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.</p>
             </div>
             <div class="footer-nav-col">
@@ -136,10 +147,33 @@
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Action -->
+    <!-- Botão Flutuante do WhatsApp -->
     <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+                
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        toggleBtn.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    });
+                });
+            }
+        });
+    </script>
 
 
 </body>

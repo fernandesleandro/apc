@@ -15,9 +15,16 @@
     <header class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo-container">
-                <img src="logo.svg" alt="AP Construções" class="logo-img">
-                <span class="logo-text">AP <span class="accent-text">CONSTRUÇÕES</span></span>
+                <img src="logo.png" alt="AP Construções Logo" class="logo-img">
+                <div class="logo-text"><span>CONSTRUÇÕES</span></div>
             </a>
+            
+            <button class="menu-toggle" aria-label="Abrir Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
             <nav class="nav-menu">
                 <a href="index.html" class="nav-link active">Início</a>
                 <a href="sobre.html" class="nav-link">Sobre Nós</a>
@@ -28,12 +35,12 @@
         </div>
     </header>
 
-    <section class="hero">
+    <section class="hero" style="background: linear-gradient(rgba(0, 17, 44, 0.7), rgba(0, 7, 20, 0.88)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;">
         <div class="container">
             <h1 class="hero-title">CONSTRUÍMOS <br><span class="highlight-blue">SEUS SONHOS</span></h1>
             <p class="hero-subtitle">Engenharia de precisão e arquitetura de alto padrão sob medida para as suas maiores aspirações corporativas e residenciais.</p>
             <div class="hero-buttons">
-                <a href="contato.html" class="btn btn-filled">Fale Conosco <i class="fas fa-arrow-right"></i></a>
+                <a href="contato.html" class="btn btn-filled">Fale Conosco <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
                 <a href="#obras" class="btn btn-outline-white">Ver Portfólio</a>
             </div>
         </div>
@@ -41,7 +48,7 @@
 
     <section id="servicos" class="services-section">
         <div class="container">
-            <span class="section-tag tag-light">Soluções Completas</span>
+            <span class="section-tag">Soluções Completas</span>
             <h2 class="section-title title-light">Nossa Atuação</h2>
             <div class="services-grid">
                 <div class="service-card">
@@ -67,13 +74,13 @@
         <div class="container">
             <span class="section-tag">Destaques</span>
             <h2 class="section-title">Nossas Obras</h2>
-            <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 40px;">Conheça lançamentos inspirados nas melhores tendências globais de design urbano.</p>
+            <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 40px; font-size: 1.1rem;">Conheça lançamentos inspirados nas melhores tendências globais de design urbano.</p>
             
             <div class="projects-grid">
                 <a href="obra-detalhe.html" class="project-card">
                     <div class="project-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80" alt="Residência Niemeyer Concept" class="project-img">
-                        <span class="project-badge">Destaque</span>
+                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residencial Niemeyer Concept" class="project-img">
+                        <span class="project-badge">Lançamento</span>
                     </div>
                     <div class="project-info">
                         <h4>Residencial Niemeyer Concept</h4>
@@ -83,7 +90,7 @@
                 
                 <div class="project-card">
                     <div class="project-img-wrapper">
-                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" alt="Edifício Corporativo" class="project-img">
+                        <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80" alt="Corporate Premium Square" class="project-img">
                     </div>
                     <div class="project-info">
                         <h4>Corporate Premium Square</h4>
@@ -98,7 +105,10 @@
     <footer class="main-footer">
         <div class="container footer-top-grid">
             <div class="footer-brand">
-                <h3>AP <span class="accent-text">CONSTRUÇÕES</span></h3>
+                <div class="logo-container" style="margin-bottom: 20px; display:flex; align-items:center; gap:12px;">
+                    <img src="logo.png" alt="AP Construções" style="height: 50px;">
+                    <span style="color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:1px; display:flex; flex-direction:column; line-height:1.1;">AP <span>CONSTRUÇÕES</span></span>
+                </div>
                 <p>Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.</p>
             </div>
             <div class="footer-nav-col">
@@ -137,10 +147,33 @@
         </div>
     </footer>
 
-    <!-- Floating WhatsApp Action -->
+    <!-- Botão Flutuante do WhatsApp -->
     <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+                
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        toggleBtn.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    });
+                });
+            }
+        });
+    </script>
 
 
 </body>
