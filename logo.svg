@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00459e" />
+      <stop offset="50%" stop-color="#0073ff" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="darkBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#001a47" />
+      <stop offset="100%" stop-color="#003380" />
+    </linearGradient>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#94a3b8" />
+      <stop offset="50%" stop-color="#cbd5e1" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+  </defs>
+  <path d="M 80 290 Q 300 270 520 290" fill="none" stroke="url(#blueGrad)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 270 60 L 105 285 L 145 285 L 270 115 Z" fill="url(#blueGrad)" />
+  <path d="M 270 60 L 410 120 L 315 120 L 270 60 Z" fill="url(#darkBlueGrad)" />
+  <path d="M 315 120 C 440 120, 520 140, 500 210 C 480 280, 360 260, 315 260 L 350 220 C 380 220, 440 220, 445 185 C 450 155, 390 155, 335 155 Z" fill="url(#darkBlueGrad)" />
+  <path d="M 270 60 L 380 285 L 340 285 L 270 115 Z" fill="url(#blueGrad)" />
+  <path d="M 195 210 L 210 200 L 225 210 L 225 280 L 195 280 Z" fill="url(#silverGrad)" />
+  <path d="M 230 140 L 255 125 L 280 140 L 280 280 L 230 280 Z" fill="url(#blueGrad)" />
+  <path d="M 285 200 L 300 195 L 315 205 L 315 280 L 285 280 Z" fill="url(#silverGrad)" />
+</svg>
