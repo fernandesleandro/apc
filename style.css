@@ -201,6 +201,14 @@ a { text-decoration: none; color: inherit; }
     .btn { width: 100%; }
     
     .planta-wrapper { padding: 30px; }
+    .detail-hero-overlay,
+    .detail-main-grid,
+    .detail-nav-summary .container,
+    .planta-section .container {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+    
     .form-row { grid-template-columns: 1fr; }
     
     .whatsapp-float { width: 55px; height: 55px; font-size: 28px; bottom: 20px; right: 20px; }
