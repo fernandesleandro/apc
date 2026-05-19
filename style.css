@@ -87,7 +87,7 @@ a { text-decoration: none; color: inherit; }
 
 .detail-main-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; padding: 100px 0; align-items: center; }
 .detail-desc h2 { font-size: 2.4rem; margin-bottom: 24px; color: var(--bg-dark); }
-.detail-desc p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 30px; line-height: 1.8; }
+.detail-desc p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 30px; line-height: 1.8; text-align: justify; text-justify: inter-word; hyphens: auto; }
 
 .showcase-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .gallery-img-item { border-radius: 8px; overflow: hidden; height: 220px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
