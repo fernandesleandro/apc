@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= page.title %></title>
+    <meta name="description" content="<%= page.description %>">
+    <link rel="canonical" href="<%= requestUrl %>">
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:description" content="<%= page.description %>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= requestUrl %>">
+    <meta property="og:locale" content="pt_BR">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <%- include('includes/header', { nav, active }) %>
+    <section class="page-banner" style="background: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;">
+        <div class="container">
+            <h1><%= page.hero.title %></h1>
+            <p><%= page.hero.subtitle %></p>
+        </div>
+    </section>
+    <section class="container" style="padding: 100px 24px; max-width: 850px; text-align: center;">
+        <span class="section-tag" style="text-align: center;">Visão Corporativa</span>
+        <h2 class="section-title">Solidez e Visão de Futuro</h2>
+        <p style="color: var(--text-muted); font-size:1.15rem; text-align:justify; line-height: 1.8;"><%= content %></p>
+    </section>
+    <% if (page.id === 'home' && projects && projects.length) { %>
+    <section id="obras" class="projects-section">
+        <div class="container">
+            <span class="section-tag">Destaques</span>
+            <h2 class="section-title">Nossas Obras</h2>
+            <div class="projects-grid">
+                <% projects.forEach(project => { %>
+                <a href="<%= project.href %>" class="project-card">
+                    <div class="project-img-wrapper">
+                        <img loading="lazy" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
+                    </div>
+                    <div class="project-info">
+                        <h4><%= project.title %></h4>
+                        <p><%= project.description %></p>
+                    </div>
+                </a>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+    <% } %>
+    <%- include('includes/footer', { footer }) %>
+    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

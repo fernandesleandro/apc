@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= page.title %></title>
+    <meta name="description" content="<%= page.description %>">
+    <link rel="canonical" href="<%= requestUrl %>">
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:description" content="<%= page.description %>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= requestUrl %>">
+    <meta property="og:locale" content="pt_BR">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <%- include('includes/header', { nav, active }) %>
+
+    <section class="page-banner" style="background: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;">
+        <div class="container">
+            <h1><%= page.hero.title %></h1>
+            <p><%= page.hero.subtitle %></p>
+        </div>
+    </section>
+
+    <section class="container contact-layout">
+        <div class="form-wrapper">
+            <h2>Fale com um Especialista</h2>
+            <form action="#" onsubmit="event.preventDefault(); alert('Mensagem enviada com sucesso!');">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" placeholder="Seu nome completo" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>E-mail Corporativo</label>
+                        <input type="email" placeholder="seu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone / WhatsApp</label>
+                        <input type="tel" placeholder="(61) 2195-8300" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Como podemos ajudar no seu projeto?</label>
+                    <textarea rows="5" placeholder="Descreva sua necessidade..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-filled" style="width:100%;">Enviar Mensagem <i class="fas fa-paper-plane" style="margin-left:8px;"></i></button>
+            </form>
+        </div>
+
+        <div class="info-sidebar">
+            <div class="info-card">
+                <h3>Informações de Contato</h3>
+                <div class="info-row">
+                    <i class="fas fa-phone-alt"></i>
+                    <div>
+                        <h4>Telefone Central</h4>
+                        <p>(61) 2195-8300</p>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <i class="fab fa-whatsapp"></i>
+                    <div>
+                        <h4>WhatsApp Comercial</h4>
+                        <p>(61) 2195-8300</p>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h4>Endereço Corporativo</h4>
+                        <p>SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-box" style="position: relative; width: 100%; height: 400px; border-radius: 8px; overflow: hidden; margin-top: 20px;">
+                <iframe width="100%" height="100%" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=Edificio%20Oscar%20Niemeyer%20Brasilia&t=&z=15&ie=UTF8&iwloc=&output=embed"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <%- include('includes/footer', { footer }) %>
+
+    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', function() {
+                        toggleBtn.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "apc",
+  "version": "1.0.0",
+  "description": "Este projeto adiciona uma área administrativa e conteúdo dinâmico ao site AP Construções. Ele usa Node.js com Express e um banco de dados NoSQL leve (`lowdb`) para armazenar configurações do site e cabeçalho/rodapé.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fernandesleandro/apc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fernandesleandro/apc/issues"
+  },
+  "homepage": "https://github.com/fernandesleandro/apc#readme",
+  "dependencies": {
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "lowdb": "^7.0.1"
+  }
+}

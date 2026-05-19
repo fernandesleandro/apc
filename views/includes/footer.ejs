@@ -1,0 +1,39 @@
+<footer class="main-footer">
+    <div class="container footer-top-grid">
+        <div class="footer-brand">
+            <div class="logo-container" style="margin-bottom: 20px; display:flex; align-items:center;">
+                <img src="/logo.png" alt="AP Construções" style="height: 50px;">
+                <span style="color:#fff; font-weight:800; font-size:1.2rem; letter-spacing:1px; display:flex; flex-direction:column; line-height:1.1;"><span>CONSTRUÇÕES</span></span>
+            </div>
+            <p><%= footer.description %></p>
+        </div>
+        <div class="footer-nav-col">
+            <h4>Navegação</h4>
+            <ul>
+                <% footer.links.forEach(link => { %>
+                <li><a href="<%= link.url %>"><%= link.title %></a></li>
+                <% }) %>
+            </ul>
+        </div>
+        <div class="footer-contact-col">
+            <h4>Sede Corporativa</h4>
+            <% footer.contact.forEach(item => { %>
+            <div class="footer-contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                    <h4><%= item.label %></h4>
+                    <p><%= item.value %></p>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+    <div class="container footer-bottom-divider">
+        <p class="footer-legal-text">© 2026 <%= footer.company %>. Todos os direitos reservados. Projetos e construções executados em conformidade técnica estrita com as diretrizes e normas regulamentadoras vigentes no território nacional.</p>
+        <div class="footer-social-links">
+            <a href="#" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+    </div>
+</footer>

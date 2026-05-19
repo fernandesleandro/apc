@@ -1,0 +1,18 @@
+<header class="navbar">
+    <div class="container nav-container">
+        <a href="/" class="logo-container">
+            <img src="/logo.png" alt="AP Construções" class="logo-img">
+            <div class="logo-text"><span>CONSTRUÇÕES</span></div>
+        </a>
+        <button class="menu-toggle" aria-label="Abrir Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="nav-menu">
+            <% nav.forEach(item => { %>
+                <a href="<%= item.url %>" class="nav-link <%= active === item.url ? 'active' : '' %>"><%= item.title %></a>
+            <% }) %>
+        </nav>
+    </div>
+</header>

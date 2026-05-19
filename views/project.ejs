@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= page.title %></title>
+    <meta name="description" content="<%= page.description %>">
+    <link rel="canonical" href="<%= requestUrl %>">
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:description" content="<%= page.description %>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= requestUrl %>">
+    <meta property="og:locale" content="pt_BR">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.css" />
+</head>
+<body>
+    <%- include('includes/header', { nav, active }) %>
+
+    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('<%= detailData.heroImage || 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80' %>') center/cover no-repeat;">
+        <div class="detail-hero-overlay">
+            <div class="container">
+                <% if (detailData.detailTag) { %>
+                    <span class="section-tag" style="color: var(--accent-blue);"><%= detailData.detailTag %></span>
+                <% } %>
+                <h1><%= page.hero.title %></h1>
+                <p style="margin-top: 16px; color: #cbd5e1;"><%= page.hero.subtitle %></p>
+            </div>
+        </div>
+    </section>
+
+    <% if (detailData.summaryItems && detailData.summaryItems.length) { %>
+    <div class="detail-nav-summary">
+        <div class="container summary-flex">
+            <% detailData.summaryItems.forEach(item => { %>
+                <div class="summary-item">
+                    <h5><%= item.label %></h5>
+                    <p><%= item.value %></p>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+    <% } %>
+
+    <section class="container detail-main-grid">
+        <div class="detail-desc">
+            <span class="section-tag">Detalhes do Projeto</span>
+            <h2><%= page.hero.subtitle %></h2>
+            <p><%= content %></p>
+            <a href="/contato" class="btn btn-filled">Solicitar Informações <i class="fas fa-chevron-right" style="margin-left:5px;"></i></a>
+        </div>
+        <div class="showcase-gallery">
+            <% if (detailData.galleryImages && detailData.galleryImages.length) { %>
+                <% detailData.galleryImages.forEach((image, index) => { %>
+                    <div class="gallery-img-item <%= index === 0 ? 'gallery-img-large' : '' %>">
+                        <a href="<%= image.src %>" data-fancybox="galeria" data-caption="<%= image.alt %>">
+                            <img loading="lazy" src="<%= image.src %>" alt="<%= image.alt %>">
+                        </a>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="gallery-img-item gallery-img-large">
+                    <img loading="lazy" src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80" alt="<%= page.hero.title %>">
+                </div>
+            <% } %>
+        </div>
+    </section>
+
+    <% if (detailData.plantaImage) { %>
+    <section class="planta-section">
+        <div class="container">
+            <div class="planta-header">
+                <span class="section-tag tag-light">Implantações e Plantas</span>
+                <h2 class="section-title title-light"><%= detailData.plantaTitle %></h2>
+                <p><%= detailData.plantaSubtitle %></p>
+            </div>
+
+            <div class="planta-wrapper">
+                <div class="planta-img-box">
+                    <img src="<%= detailData.plantaImage %>" alt="Planta Arquitetônica do Imóvel" style="width:100%; height:auto;">
+                </div>
+                <div class="planta-details-card">
+                    <h3><%= page.hero.title %></h3>
+                    <p><%= detailData.plantaDescription %></p>
+                    <ul class="spec-list">
+                        <% detailData.plantaHighlights.forEach(item => { %>
+                            <li><i class="fas fa-check-circle"></i> <%= item %></li>
+                        <% }) %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <%- include('includes/footer', { footer }) %>
+
+    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.js"></script>
+    <script>
+        Fancybox.bind("[data-fancybox='galeria']", {
+            Toolbar: true,
+            Images: { zoom: false },
+            dragToClose: true,
+            animated: true
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', function() {
+                        toggleBtn.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

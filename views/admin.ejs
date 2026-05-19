@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração | AP Construções</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-panel { padding: 40px 24px; background: #f8fafc; min-height: 100vh; }
+        .admin-card { background: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.08); padding: 30px; margin-bottom: 24px; }
+        .admin-card h2 { margin-bottom: 20px; }
+        .admin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .admin-grid input, .admin-grid textarea { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; }
+        .admin-grid label { display: block; margin-bottom: 8px; font-weight: 700; }
+        .textarea-full { grid-column: 1 / -1; }
+        .btn-admin { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 26px; border-radius: 8px; background: var(--accent-blue); color: #fff; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="admin-panel">
+        <div class="admin-card">
+            <h1>Área Administrativa</h1>
+            <p>Edite o menu, rodapé e descrições das páginas. As informações ficam gravadas em um banco NoSQL leve e em arquivos de texto separados.</p>
+        </div>
+        <form action="/admin/save" method="POST">
+            <div class="admin-card">
+                <h2>Menu de Navegação</h2>
+                <div class="admin-grid">
+                    <% nav.forEach((item, index) => { %>
+                    <div>
+                        <label>Texto do link <%= index + 1 %></label>
+                        <input type="text" name="nav[<%= index %>][title]" value="<%= item.title %>">
+                    </div>
+                    <div>
+                        <label>URL do link <%= index + 1 %></label>
+                        <input type="text" name="nav[<%= index %>][url]" value="<%= item.url %>">
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <div class="admin-card">
+                <h2>Rodapé</h2>
+                <div class="admin-grid">
+                    <div class="textarea-full">
+                        <label>Empresa</label>
+                        <input type="text" name="footerCompany" value="<%= footer.company %>">
+                    </div>
+                    <div class="textarea-full">
+                        <label>Descrição do Rodapé</label>
+                        <textarea name="footerDescription" rows="4"><%= footer.description %></textarea>
+                    </div>
+                    <% footer.links.forEach((link, index) => { %>
+                    <div>
+                        <label>Link <%= index + 1 %> - Texto</label>
+                        <input type="text" name="footerLinks[<%= index %>][title]" value="<%= link.title %>">
+                    </div>
+                    <div>
+                        <label>Link <%= index + 1 %> - URL</label>
+                        <input type="text" name="footerLinks[<%= index %>][url]" value="<%= link.url %>">
+                    </div>
+                    <% }) %>
+                    <% footer.contact.forEach((contact, index) => { %>
+                    <div>
+                        <label>Contato <%= index + 1 %> - Rótulo</label>
+                        <input type="text" name="contactItems[<%= index %>][label]" value="<%= contact.label %>">
+                    </div>
+                    <div>
+                        <label>Contato <%= index + 1 %> - Valor</label>
+                        <input type="text" name="contactItems[<%= index %>][value]" value="<%= contact.value %>">
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <div class="admin-card">
+                <h2>Descrições das Páginas</h2>
+                <% pages.forEach(page => { %>
+                <div class="admin-grid">
+                    <div class="textarea-full">
+                        <label><%= page.title %> (arquivo: <%= page.id %>.txt)</label>
+                        <textarea class="textarea-full" name="desc_<%= page.id %>" rows="6"><%= descriptions[page.id] %></textarea>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <button class="btn-admin" type="submit"><i class="fas fa-save"></i>Salvar Alterações</button>
+        </form>
+    </div>
+</body>
+</html>
