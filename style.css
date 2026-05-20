@@ -30,9 +30,10 @@ a { text-decoration: none; color: inherit; }
 .navbar { background-color: var(--bg-dark); padding: 15px 0; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .nav-container { display: flex; justify-content: space-between; align-items: center; position: relative; }
 .logo-container { display: flex; align-items: center; z-index: 1001; }
-.logo-img { height: 60px; width: auto; object-fit: contain; } /* Adjusted for APC3.png */
+.logo-img { height: 60px; width: auto; object-fit: contain; filter: brightness(0) invert(1); }
+.logo-container img { filter: brightness(0) invert(1); }
 .logo-text { color: var(--text-white); font-weight: 800; font-size: 1.3rem; letter-spacing: 1px; display: flex; flex-direction: column; line-height: 1.1; }
-.logo-text span { font-weight: 400; font-size: 1.4rem; color: #94a3b8; letter-spacing: 2px; }
+.logo-text span { font-weight: 400; font-size: 1.4rem; color: var(--text-white); letter-spacing: 2px; }
 
 .nav-menu { display: flex; gap: 30px; align-items: center; }
 .nav-link { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: var(--transition); padding: 6px 0; position: relative; }
