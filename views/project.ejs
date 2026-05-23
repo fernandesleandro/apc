@@ -21,12 +21,13 @@
 <body>
     <%- include('includes/header', { nav, active }) %>
 
-    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('<%= detailData.heroImage || 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80' %>') center/cover no-repeat;">
+    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('<%= (detailData.galleryImages && detailData.galleryImages[0] && detailData.galleryImages[0].src) || detailData.heroImage || "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80" %>') center/cover no-repeat;">
         <div class="detail-hero-overlay">
             <div class="container">
                 <% if (detailData.detailTag) { %>
                     <span class="section-tag" style="color: var(--accent-blue);"><%= detailData.detailTag %></span>
                 <% } %>
+                     <% /* removed inline hero SVG icon per user request */ %>
                 <h1><%= page.hero.title %></h1>
                 <p style="margin-top: 16px; color: #cbd5e1;"><%= page.hero.subtitle %></p>
             </div>
@@ -36,13 +37,25 @@
     <% if (detailData.summaryItems && detailData.summaryItems.length) { %>
     <div class="detail-nav-summary">
         <div class="container summary-flex">
-            <% detailData.summaryItems.forEach(item => { %>
-                <div class="summary-item">
-                    <h5><%= item.label %></h5>
-                    <p><%= item.value %></p>
-                </div>
-            <% }) %>
-        </div>
+                <% detailData.summaryItems.forEach(item => { 
+                    const label = (item.label || '').toLowerCase();
+                    let iconClass = 'fas fa-info-circle';
+                    if (label.includes('metr') || label.includes('m²') || label.includes('m2')) iconClass = 'fas fa-ruler-combined';
+                    else if (label.includes('tipolog') || label.includes('tipologia') || label.includes('tipologia')) iconClass = 'fas fa-th-large';
+                    else if (label.includes('sig') || label.includes('end') || label.includes('logradouro') || label.includes('endereço') || label.includes('endereco') || label.includes('local')) iconClass = 'fas fa-map-marker-alt';
+                    else if (label.includes('constru') || label.includes('construção') || label.includes('construcao') || label.includes('área de construção')) iconClass = 'fas fa-vector-square';
+                    else if (label.includes('terreno')) iconClass = 'fas fa-map';
+                    else if (label.includes('unidades') || label.includes('unidade')) iconClass = 'fas fa-building';
+                    else if (label.includes('vagas') || label.includes('garagem')) iconClass = 'fas fa-parking';
+                    else if (label.includes('perfil')) iconClass = 'fas fa-user';
+                %>
+                    <div class="summary-item">
+                        <i class="<%= iconClass %> summary-icon" aria-hidden="true"></i>
+                        <h5><%= item.label %></h5>
+                        <p><%= item.value %></p>
+                    </div>
+                <% }) %>
+            </div>
     </div>
     <% } %>
 
@@ -50,7 +63,7 @@
         <div class="detail-desc">
             <span class="section-tag">Detalhes do Projeto</span>
             <h2><%= page.hero.subtitle %></h2>
-            <p><%= content %></p>
+            <p><%= page.description %></p>
             <a href="/contato" class="btn btn-filled">Solicitar Informações <i class="fas fa-chevron-right" style="margin-left:5px;"></i></a>
         </div>
         <div class="showcase-gallery">
@@ -70,28 +83,101 @@
         </div>
     </section>
 
-    <% if (detailData.plantaImage) { %>
+    <% if ((detailData.plantaGallery && detailData.plantaGallery.length) || detailData.plantaImage) { %>
     <section class="planta-section">
         <div class="container">
             <div class="planta-header">
                 <span class="section-tag tag-light">Implantações e Plantas</span>
-                <h2 class="section-title title-light"><%= detailData.plantaTitle %></h2>
-                <p><%= detailData.plantaSubtitle %></p>
+                <h2 class="section-title title-light"><%= detailData.plantaTitle || '' %></h2>
+                <p><%= detailData.plantaSubtitle || '' %></p>
             </div>
 
             <div class="planta-wrapper">
                 <div class="planta-img-box">
-                    <img src="<%= detailData.plantaImage %>" alt="Planta Arquitetônica do Imóvel" style="width:100%; height:auto;">
+                    <% if (detailData.plantaGallery && detailData.plantaGallery.length) { %>
+                        <% detailData.plantaGallery.forEach((pimg, idx) => { %>
+                            <% if (idx === 0) { %>
+                                <div class="planta-item">
+                                    <a href="<%= pimg.src %>" data-fancybox="plantas" data-caption="<%= pimg.alt %>">
+                                        <img src="<%= pimg.src %>" alt="<%= pimg.alt %>" style="width:100%; height:auto; border-radius:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                    </a>
+                                    <p style="margin-top:10px; font-size:0.9rem; color: #64748b; text-align:center; font-style: italic;">— <%= pimg.alt %> (Clique para ver mais) —</p>
+                                </div>
+                            <% } else { %>
+                                <a href="<%= pimg.src %>" data-fancybox="plantas" data-caption="<%= pimg.alt %>" style="display: none;"></a>
+                            <% } %>
+                        <% }) %>
+                    <% } else if (detailData.plantaImage) { %>
+                        <a href="<%= detailData.plantaImage %>" data-fancybox="plantas">
+                            <img src="<%= detailData.plantaImage %>" alt="Planta Arquitetônica do Imóvel" style="width:100%; height:auto; border-radius:8px;">
+                        </a>
+                    <% } %>
                 </div>
                 <div class="planta-details-card">
-                    <h3><%= page.hero.title %></h3>
+                    <h3 style="letter-spacing: 1px;"><%= detailData.plantaTitle || page.hero.title %></h3>
                     <p><%= detailData.plantaDescription %></p>
                     <ul class="spec-list">
-                        <% detailData.plantaHighlights.forEach(item => { %>
-                            <li><i class="fas fa-check-circle"></i> <%= item %></li>
+                        <% (detailData.plantaHighlights || []).forEach(item => {
+                            const text = (item || '').toLowerCase();
+                            let icon = 'fas fa-check-circle';
+                            if (text.includes('área') || text.includes('metr') || text.includes('m²') || text.includes('m2')) icon = 'fas fa-ruler-combined';
+                            else if (text.includes('suíte') || text.includes('suite') || text.includes('quarto') || text.includes('sala')) icon = 'fas fa-door-open';
+                            else if (text.includes('janela') || text.includes('vidro') || text.includes('piso') || text.includes('teto')) icon = 'fas fa-window-maximize';
+                            else if (text.includes('cozinha') || text.includes('gourmet')) icon = 'fas fa-utensils';
+                            else if (text.includes('varanda') || text.includes('vista') || text.includes('panorâmica')) icon = 'fas fa-mountain';
+                            else if (text.includes('ar condicionado') || text.includes('infraestrutura')) icon = 'fas fa-snowflake';
+                            else if (text.includes('sala') && text.includes('comercial')) icon = 'fas fa-building';
+                            else if (text.includes('loja')) icon = 'fas fa-store';
+                            else if (text.includes('vaga') || text.includes('garagem') || text.includes('parque')) icon = 'fas fa-car';
+                            else if (text.includes('pavimento') || text.includes('piso')) icon = 'fas fa-layer-group';
+                            else if (text.includes('fachada') || text.includes('segurança') || text.includes('proteção')) icon = 'fas fa-shield-alt';
+                            else if (text.includes('cabeamento') || text.includes('dados') || text.includes('rede')) icon = 'fas fa-network-wired';
+                            else if (text.includes('salão')) icon = 'fas fa-th-large';
+                        %>
+                            <li><i class="<%= icon %>"></i> <%= item %></li>
                         <% }) %>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <% if (detailData.commonAreas && detailData.commonAreas.length) { %>
+    <section class="common-areas-section">
+        <div class="container">
+            <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+                <span class="section-tag">Conforto & Lazer</span>
+                <h2 class="section-title">Áreas Comuns do Empreendimento</h2>
+            </div>
+            <div class="common-grid">
+                <% detailData.commonAreas.forEach(area => { %>
+                    <div class="common-item">
+                        <i class="<%= area.icon %>"></i>
+                        <span><%= area.label %></span>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <% if (detailData.location) { %>
+    <section class="location-section">
+        <div class="container">
+            <div class="section-header" style="max-width: 700px;">
+                <span class="section-tag"><%= detailData.location.title %></span>
+                <h2 class="section-title" style="margin-bottom: 20px;">Estilo de Vida e Comodidade</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem;"><%= detailData.location.description %></p>
+            </div>
+            <div class="location-grid">
+                <% detailData.location.features.forEach(feat => { %>
+                    <div class="location-card">
+                        <div class="location-icon-circle"><i class="<%= feat.icon %>"></i></div>
+                        <h4><%= feat.label %></h4>
+                        <p><%= feat.value %></p>
+                    </div>
+                <% }) %>
             </div>
         </div>
     </section>
@@ -105,7 +191,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.js"></script>
     <script>
-        Fancybox.bind("[data-fancybox='galeria']", {
+        Fancybox.bind("[data-fancybox='galeria'], [data-fancybox='plantas']", {
             Toolbar: true,
             Images: { zoom: false },
             dragToClose: true,

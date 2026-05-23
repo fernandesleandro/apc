@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= page.title %></title>
+    <meta name="description" content="<%= page.description %>">
+    <link rel="canonical" href="<%= requestUrl %>">
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:description" content="<%= page.description %>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= requestUrl %>">
+    <meta property="og:locale" content="pt_BR">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "AP Construções",
+      "description": "Empresa de engenharia e construção de alto padrão em Brasília, especializada em obras residenciais, reformas corporativas e projetos de arquitetura.",
+      "url": "https://www.apconstrucoes.com.br/index.html",
+      "telephone": "+55 61 2195-8300",
+      "email": "contato@apconstrucoes.com.br",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301",
+        "addressLocality": "Brasília",
+        "addressRegion": "DF",
+        "postalCode": "",
+        "addressCountry": "BR"
+      }
+    }
+    </script>
+</head>
+<body>
+
+    <%- include('includes/header', { nav, active }) %>
+
+    <section class="page-banner" style="background: linear-gradient(rgba(0, 17, 44, 0.7), rgba(0, 7, 20, 0.88)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;">
+        <div class="container">
+            <h1><%= page.hero.title %></h1>
+            <p><%= page.hero.subtitle %></p>
+        </div>
+    </section>
+
+    <section class="container" style="padding: 80px 24px; max-width:1000px;">
+        <div style="text-align: center; margin-bottom: 50px;">
+            <span class="section-tag">Quem Somos</span>
+            <h2 class="section-title">Solidez e Visão de Futuro</h2>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 30px;">
+            <% page.content.historia.forEach(paragrafo => { %>
+                <p style="color: var(--text-muted); font-size:1.1rem; text-align:justify; line-height: 1.8;"><%- paragrafo %></p>
+            <% }) %>
+        </div>
+    </section>
+
+    <section style="background-color: var(--bg-gray); padding: 80px 0;">
+        <div class="container">
+            <div class="services-grid" style="margin-top: 0;">
+                <% page.content.pilares.forEach(pilar => { %>
+                    <div class="service-card" style="background: #fff; border: 1px solid var(--border-color); text-align: center;">
+                        <div class="service-icon" style="color: var(--primary-blue);"><i class="fas <%= pilar.icon %>"></i></div>
+                        <h3 style="color: var(--bg-dark);"><%= pilar.label %></h3>
+                        <p style="color: var(--text-muted);"><%= pilar.text %></p>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <section class="container" style="padding: 80px 24px;">
+        <div class="detail-main-grid" style="align-items: center;">
+            <div>
+                <span class="section-tag">Nossa Essência</span>
+                <h2 class="section-title">Por que escolher a AP Construções?</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Trabalhamos com um ecossistema de inteligência construtiva que garante que cada detalhe, do alicerce ao acabamento fino, seja executado com perfeição.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <ul class="spec-list">
+                        <li style="color: var(--text-dark); font-size: 0.95rem;"><i class="fas fa-shield-alt"></i> Solidez Financeira</li>
+                        <li style="color: var(--text-dark); font-size: 0.95rem;"><i class="fas fa-file-contract"></i> Transparência Contratual</li>
+                        <li style="color: var(--text-dark); font-size: 0.95rem;"><i class="fas fa-award"></i> Certificação PBQP-H</li>
+                    </ul>
+                    <ul class="spec-list">
+                        <li style="color: var(--text-dark); font-size: 0.95rem;"><i class="fas fa-hard-hat"></i> Vistoria Personalizada</li>
+                        <li style="color: var(--text-dark); font-size: 0.95rem;"><i class="fas fa-tools"></i> Garantia de 5 Anos</li>
+                        <li style="color: var(--text-dark); font-size: 0.95rem;"><i class="fas fa-user-check"></i> Equipe de Manutenção</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=800&q=80" alt="Engenharia de Precisão" style="width:100%; display:block;">
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 80px 0; background-color: #fff;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 50px;">
+                <span class="section-tag">Diferenciais de Entrega</span>
+                <h2 class="section-title">Nosso Compromisso Pós-Obra</h2>
+            </div>
+            <div class="services-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                <div style="padding: 20px;">
+                    <h4 style="color: var(--primary-blue); margin-bottom: 10px;"><i class="fas fa-search"></i> Vistoria Acompanhada</h4>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Antes da entrega das chaves, nossa engenharia realiza a vistoria pessoalmente com você, garantindo que cada detalhe esteja conforme o memorial e suas expectativas.</p>
+                </div>
+                <div style="padding: 20px;">
+                    <h4 style="color: var(--primary-blue); margin-bottom: 10px;"><i class="fas fa-book"></i> Manual Digital</h4>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Entregamos um guia completo com informações sobre manutenção, instalações, acabamentos e todas as plantas técnicas do seu imóvel.</p>
+                </div>
+                <div style="padding: 20px;">
+                    <h4 style="color: var(--primary-blue); margin-bottom: 10px;"><i class="fas fa-user-shield"></i> Suporte Especializado</h4>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Disponibilizamos uma equipe qualificada para reparos eventuais, mantendo o padrão de qualidade AP mesmo após a entrega das chaves.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <%- include('includes/footer', { footer }) %>
+
+    <!-- Botão Flutuante do WhatsApp -->
+    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    toggleBtn.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+                
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        toggleBtn.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    });
+                });
+            }
+        });
+    </script>
+
+
+</body>
+</html>

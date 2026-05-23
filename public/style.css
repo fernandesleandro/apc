@@ -29,9 +29,9 @@ a { text-decoration: none; color: inherit; }
 /* Navigation */
 .navbar { background-color: var(--bg-dark); padding: 15px 0; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .nav-container { display: flex; justify-content: space-between; align-items: center; position: relative; }
-.logo-container { display: flex; align-items: center; z-index: 1001; }
-.logo-img { height: 60px; width: auto; object-fit: contain; } /* Adjusted for APC3.png */
-.logo-text { color: var(--text-white); font-weight: 800; font-size: 1.3rem; letter-spacing: 1px; display: flex; flex-direction: column; line-height: 1.1; }
+    .logo-container { display: flex; align-items: center; z-index: 1001; }
+    .logo-img { height: 60px; width: auto; object-fit: contain; filter: brightness(1.25) contrast(1.08); } /* Lighten logo for better visibility */
+    .logo-text { color: var(--text-white); font-weight: 800; font-size: 1.3rem; letter-spacing: 1px; display: flex; flex-direction: column; line-height: 1.1; }
 .logo-text span { font-weight: 400; font-size: 1.4rem; color: #94a3b8; letter-spacing: 2px; }
 
 .nav-menu { display: flex; gap: 30px; align-items: center; }
@@ -79,11 +79,24 @@ a { text-decoration: none; color: inherit; }
 .detail-hero { height: 65vh; position: relative; overflow: hidden; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
 .detail-hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, var(--bg-darker) 15%, transparent 100%); display: flex; align-items: flex-end; padding-bottom: 60px; color: #fff; }
 .detail-hero-overlay h1 { font-size: 3.8rem; font-weight: 800; margin-bottom: 10px; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); }
+.detail-hero-overlay p { font-size: 0.88rem; color: #cbd5e1; margin-top: 8px; }
+
+/* card icon in project listing */
+.card-icon { width: 56px; height: 56px; display: inline-block; vertical-align: middle; margin-right: 12px; }
+
+/* detail page icon (hero) */
+.detail-page-icon { width: 80px; height: 80px; margin-bottom: 12px; display: block; fill: var(--accent-blue); }
+
+/* utility to match user-provided SVG class */
+.fill-primary { fill: var(--accent-blue); }
 
 .detail-nav-summary { background: var(--bg-gray); padding: 30px 0; border-bottom: 1px solid var(--border-color); }
-.summary-flex { display: flex; justify-content: space-around; text-align: center; }
-.summary-item h5 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-.summary-item p { font-size: 1.6rem; font-weight: 700; color: var(--bg-dark); }
+.summary-flex { display: flex; justify-content: space-around; text-align: center; align-items: center; gap: 18px; }
+.summary-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .summary-item .summary-icon { width: 60px; display: block; margin-bottom: 6px; fill: var(--accent-blue); }
+    .summary-item .summary-icon.fa { width: auto; height: auto; font-size: 26px; color: var(--accent-blue); }
+    .summary-item h5 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .summary-item p { font-size: 0.9rem; font-weight: 600; color: var(--bg-dark); }
 
 .detail-main-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; padding: 100px 0; align-items: start; }
 .detail-desc h2 { font-size: 2.4rem; margin-bottom: 24px; color: var(--bg-dark); }
@@ -105,6 +118,28 @@ a { text-decoration: none; color: inherit; }
 .spec-list { list-style: none; }
 .spec-list li { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 1.05rem; color: #e2e8f0; }
 .spec-list i { color: var(--accent-blue); font-size: 1.3rem; }
+
+/* Novas Seções: Áreas Comuns e Localização */
+.common-areas-section { padding: 100px 0; background: #ffffff; }
+.common-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 30px; margin-top: 40px; }
+.common-item { text-align: center; padding: 30px 20px; border-radius: 8px; background: var(--bg-gray); transition: var(--transition); border: 1px solid transparent; }
+.common-item:hover { border-color: var(--accent-blue); transform: translateY(-5px); background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+.common-item i { font-size: 2rem; color: var(--accent-blue); margin-bottom: 15px; display: block; }
+.common-item span { font-weight: 600; color: var(--bg-dark); font-size: 0.95rem; }
+
+.location-section { padding: 100px 0; background: var(--bg-gray); border-top: 1px solid var(--border-color); }
+.location-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 30px; margin-top: 50px; }
+.location-card { background: #fff; padding: 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); transition: var(--transition); }
+.location-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+.location-icon-circle { width: 60px; height: 60px; background: rgba(0, 115, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+.location-icon-circle i { font-size: 1.5rem; color: var(--accent-blue); }
+.location-card h4 { font-size: 1.2rem; margin-bottom: 10px; color: var(--bg-dark); }
+.location-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+
+@media (max-width: 768px) {
+    .common-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .location-grid { grid-template-columns: 1fr; }
+}
 
 /* Contact and Forms */
 .page-banner { background: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center; padding: 120px 0; color: #fff; text-align: center; }
@@ -212,4 +247,10 @@ a { text-decoration: none; color: inherit; }
     .form-row { grid-template-columns: 1fr; }
     
     .whatsapp-float { width: 55px; height: 55px; font-size: 28px; bottom: 20px; right: 20px; }
+}
+
+/* Correção para garantir que os ícones do Font Awesome apareçam */
+.footer-contact-item i.fas {
+    font-family: "Font Awesome 6 Free" !important; /* Garante que a fonte correta seja usada */
+    font-weight: 900 !important; /* Necessário para ícones Solid (fas) do Font Awesome 6 */
 }

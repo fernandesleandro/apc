@@ -2,12 +2,10 @@ const express = require('express');
 const path = require('path');
 const { Low } = require('lowdb');
 const { JSONFile } = require('lowdb/node');
-const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const dbFile = path.join(__dirname, 'data', 'db.json');
-const descriptionsDir = path.join(__dirname, 'data', 'descriptions');
+const dbFile = path.join(__dirname, 'data', 'database.json');
 
 const adapter = new JSONFile(dbFile);
 const db = new Low(adapter, {});
@@ -36,152 +34,134 @@ const defaultData = {
       { title: 'Obras', url: '/obras' },
       { title: 'Contato', url: '/contato' }
     ],
-    contact: [
-      { label: 'Telefone Central', value: '(61) 2195-8300' },
-      { label: 'WhatsApp Comercial', value: '(61) 2195-8300' },
-      { label: 'Endereço Corporativo', value: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
+    contact: [      
+      { icon: 'fas fa-phone-alt', label: 'Telefone Central', value: '(61) 2195-8300' },
+      { icon: 'fas fa-envelope', label: 'E-mail', value: 'contato@apconstrucoes.com.br' },
+      { icon: 'fas fa-map-marker-alt', label: 'Endereço Corporativo', value: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
+      
     ]
   },
   pages: [
-    { id: 'home', title: 'AP Construções | Excelência Construtiva', description: 'AP Construções entrega projetos residenciais e corporativos de alto padrão em Brasília, com execução técnica, design sofisticado e atendimento personalizado.', hero: { title: 'SOLIDEZ, INOVAÇÃO E EXCELÊNCIA EM CADA OBRA', subtitle: 'Engenharia de precisão e arquitetura de alto padrão sob medida para as suas maiores aspirações corporativas e residenciais.' } },
-    { id: 'sobre', title: 'Sobre Nós | AP Construções', description: 'Conheça a AP Construções: engenharia civil, projetos de alto padrão e reformas corporativas com foco em qualidade técnica e inovação em Brasília.', hero: { title: 'Nossa História', subtitle: 'Construindo com ética, transparência e alto padrão em Brasília.' } },
+    { 
+      id: 'home', 
+      title: 'AP Construções | Excelência Construtiva', 
+      description: 'AP Construções entrega projetos residenciais e corporativos de alto padrão em Brasília, com execução técnica, design sofisticado e atendimento personalizado.', 
+      hero: { title: 'SOLIDEZ, INOVAÇÃO E EXCELÊNCIA EM CADA OBRA', subtitle: 'Engenharia de precisão e arquitetura de alto padrão sob medida para as suas maiores aspirações corporativas e residenciais.' } 
+    },
+    { 
+      id: 'sobre', 
+      title: 'Sobre Nós | AP Construções', 
+      description: 'Sediada no icônico Edifício Oscar Niemeyer, a AP Construções combina gestão de obra, projeto arquitetônico e planejamento técnico para entregar cronogramas confiáveis.', 
+      hero: { title: 'Nossa História', subtitle: 'Excelência técnica e compromisso com a inovação no mercado de Brasília.' },
+      content: {
+        historia: ["A AP Construções consolida sua atuação no mercado da engenharia e construção civil unindo inovação, conhecimento técnico e experiência acumulada ao longo de décadas."],
+        pilares: [{ label: "Missão", icon: "fa-bullseye", text: "Trabalhar de forma ética e competente." }]
+      }
+    },
     { id: 'contato', title: 'Contato | AP Construções', description: 'Fale com a AP Construções para projetos residenciais de alto padrão, reformas corporativas e consultoria de engenharia em Brasília.', hero: { title: 'Canais de Atendimento', subtitle: 'Agende uma reunião em nossa sede corporativa.' } },
-    { id: 'obra-detalhe', title: 'Residencial Niemeyer Concept | AP Construções', description: 'Residencial Niemeyer Concept é um lançamento em Brasília com studios premium, espaços compartilhados e projetos arquitetônicos modernos para investidores e moradores exigentes.', hero: { title: 'Residencial Niemeyer Concept', subtitle: 'Lançamento exclusivo com studios inteligentes e áreas comuns premium.' } },
-    { id: 'corporate-premium-square', title: 'Corporate Premium Square | AP Construções', description: 'Corporate Premium Square: edifício corporativo de alto padrão no Setor Comercial Sul, projetado para empresas que buscam desempenho, localização estratégica e design executivo.', hero: { title: 'Corporate Premium Square', subtitle: 'Edifício corporativo premium no Setor Comercial Sul.' } }
+    { id: 'monumental', title: 'Monumental Center | AP Construções', description: 'Monumental Center é um lançamento em Brasília com studios premium, espaços compartilhados e projetos arquitetônicos modernos para investidores e moradores exigentes.', hero: { title: 'Monumental Center', subtitle: 'Lançamento exclusivo com studios inteligentes e áreas comuns premium.' } },
+    { id: 'cosmopolitan', title: 'Cosmopolitan | AP Construções', description: 'Cosmopolitan: edifício corporativo de alto padrão no Setor Comercial Sul, projetado para empresas que buscam desempenho, localização estratégica e design executivo.', hero: { title: 'Cosmopolitan', subtitle: 'Edifício corporativo premium no Setor Comercial Sul.' } }
   ],
   projects: [
-    { id: 'residencial-niemeyer', title: 'Residencial Niemeyer Concept', description: 'Studios & Suites Premium - Clique para ver Fotos e Planta', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80', href: '/obra-detalhe', badge: 'Lançamento' },
-    { id: 'corporate-premium-square', title: 'Corporate Premium Square', description: 'Modernidade empresarial no coração do Setor Comercial Sul.', image: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80', href: '/corporate-premium-square' }
+    { id: 'residencial-niemeyer', title: 'Monumental Center', description: 'Studios & Suites Premium - Clique para ver Fotos e Planta', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80', href: '/monumental', badge: 'Lançamento' },
+    { id: 'cosmopolitan', title: 'Cosmopolitan', description: 'Modernidade empresarial no coração do Setor Comercial Sul.', image: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80', href: '/cosmopolitan' }
   ]
-};
-
-const projectExtras = {
-  'obra-detalhe': {
-    heroImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
-    detailTag: 'Lançamento Exclusivo',
-    summaryItems: [
-      { label: 'Metragem', value: '32m² a 65m²' },
-      { label: 'Tipologia', value: 'Studios & Suítes' },
-      { label: 'Localização', value: 'Asa Sul / SCS' }
-    ],
-    galleryImages: [
-      { src: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80', alt: 'Interior Living' },
-      { src: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=1200&q=80', alt: 'Residencial Fachada' },
-      { src: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80', alt: 'Ambiente Moderno' },
-      { src: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80', alt: 'Varanda Gourmet Vista' }
-    ],
-    plantaTitle: 'Distribuição de Espaços',
-    plantaSubtitle: 'Veja como cada metro quadrado foi planejado cirurgicamente para maximizar o seu conforto e iluminação natural.',
-    plantaImage: '/planta.svg',
-    plantaDescription: 'Planta otimizada com aproveitamento inteligente, cozinha linear gourmet e total integração com a varanda.',
-    plantaHighlights: [
-      '45m² de Área Privativa',
-      'Suíte Integrada Modulável',
-      'Janelas de Piso ao Teto',
-      'Cozinha Linear Gourmet',
-      'Varanda com Vista Panorâmica',
-      'Infraestrutura para Ar Condicionado'
-    ]
-  },
-  'corporate-premium-square': {
-    heroImage: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80',
-    detailTag: 'Espaço Corporativo',
-    summaryItems: [
-      { label: 'Metragem', value: '160m² a 320m²' },
-      { label: 'Perfil', value: 'Alto Padrão' },
-      { label: 'Localização', value: 'Setor Comercial Sul' }
-    ],
-    galleryImages: [
-      { src: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80', alt: 'Corporate Fachada' },
-      { src: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80', alt: 'Coworking Moderno' },
-      { src: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=1200&q=80', alt: 'Lobby Executivo' },
-      { src: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80', alt: 'Salas Flexíveis' }
-    ],
-    plantaTitle: 'Distribuição de Espaços',
-    plantaSubtitle: 'Plantas corporativas criadas para flexibilidade, eficiência e integração tecnológica.',
-    plantaImage: '/planta.svg',
-    plantaDescription: 'Layout corporativo com lobby executivo, salas modulares e infraestrutura de alto desempenho.',
-    plantaHighlights: [
-      'Lobby Executivo Premium',
-      'Salas Modulares de Alto Padrão',
-      'Fachada com Vidro Esmaltado',
-      'Auditório e Sala de Reuniões',
-      'Infraestrutura para Data Center',
-      'Estacionamento com Controle de Acesso'
-    ]
-  }
 };
 
 async function ensureDatabase() {
   await db.read();
   if (!db.data || !db.data.pages) {
     db.data = defaultData;
+    // ensure galleries container exists for local gallery management
+    db.data.galleries = db.data.galleries || {};
     await db.write();
   }
-}
-
-function readDescription(pageId) {
-  const filePath = path.join(descriptionsDir, `${pageId}.txt`);
-  if (fs.existsSync(filePath)) {
-    return fs.readFileSync(filePath, 'utf8');
-  }
-  return '';
-}
-
-function writeDescription(pageId, content) {
-  const filePath = path.join(descriptionsDir, `${pageId}.txt`);
-  fs.writeFileSync(filePath, content, 'utf8');
 }
 
 app.get('/', async (req, res) => {
   await ensureDatabase();
   const page = db.data.pages.find(p => p.id === 'home');
-  const content = readDescription('home');
-  res.render('home', { page, content, nav: db.data.nav, footer: db.data.footer, projects: db.data.projects || [], active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  res.render('home', { page, nav: db.data.nav, footer: db.data.footer, projects: db.data.projects || [], active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
 });
 
 app.get('/sobre', async (req, res) => {
   await ensureDatabase();
   const page = db.data.pages.find(p => p.id === 'sobre');
-  const content = readDescription('sobre');
-  res.render('page', { page, content, nav: db.data.nav, footer: db.data.footer, projects: db.data.projects || [], active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  res.render('sobre', { page, nav: db.data.nav, footer: db.data.footer, projects: db.data.projects || [], detailData: {}, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
 });
 
 app.get('/contato', async (req, res) => {
   await ensureDatabase();
   const page = db.data.pages.find(p => p.id === 'contato');
-  const content = readDescription('contato');
-  res.render('contato', { page, content, nav: db.data.nav, footer: db.data.footer, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  res.render('contato', { page, nav: db.data.nav, footer: db.data.footer, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
 });
 
 app.get('/obras', async (req, res) => {
   await ensureDatabase();
-  res.render('obras', { nav: db.data.nav, footer: db.data.footer, projects: db.data.projects || [], active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  res.render('obras', { nav: db.data.nav, footer: db.data.footer, projects: db.data.projects || [], active: '/obras', requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
 });
 
-app.get('/obra-detalhe', async (req, res) => {
+// Generic route to serve project details under /obras/:slug
+app.get('/obras/:slug', async (req, res) => {
   await ensureDatabase();
-  const page = db.data.pages.find(p => p.id === 'obra-detalhe');
-  const content = readDescription('obra-detalhe');
-  const detailData = projectExtras[page.id] || {};
-  res.render('project', { page, content, nav: db.data.nav, footer: db.data.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  const slug = req.params.slug;
+  // try to find a page matching this slug
+  const page = db.data.pages.find(p => p.id === slug);
+  if (!page) {
+    // fallback: if slug maps to a project id, try mapping
+    const proj = (db.data.projects || []).find(pr => pr.id === slug);
+    if (proj) {
+      // try to map to a page with same id or to a known detail page
+      const mappedPage = db.data.pages.find(p => p.id === proj.id) || db.data.pages.find(p => p.id === 'monumental');
+      if (mappedPage) {
+        // Puxa os dados diretamente do banco de dados (campo 'details')
+        const detailData = JSON.parse(JSON.stringify(mappedPage.details || {}));
+        
+        // Fallback para Hero Image
+        detailData.heroImage = detailData.heroImage || (mappedPage.hero && mappedPage.hero.image);
+
+        // Injeta a galeria de fotos principal
+        if (db.data.galleries && db.data.galleries[proj.id]) {
+          detailData.galleryImages = db.data.galleries[proj.id];
+          if (!detailData.heroImage && detailData.galleryImages.length) detailData.heroImage = detailData.galleryImages[0].src;
+        }
+        return res.render('project', { page: mappedPage, nav: db.data.nav, footer: db.data.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+      }
+    }
+    return res.status(404).send('Página não encontrada');
+  }
+
+  // Puxa os dados diretamente do banco de dados (campo 'details')
+  const detailData = JSON.parse(JSON.stringify(page.details || {}));
+  
+  detailData.heroImage = detailData.heroImage || (page.hero && page.hero.image);
+
+  // determine gallery key: prefer a matching project id when the slug is a page
+  let galleryKey = slug;
+  if (db.data.projects && Array.isArray(db.data.projects)) {
+    const mappedProj = db.data.projects.find(pr => pr.href && (pr.href === `/obras/${slug}` || pr.href === `/${slug}` || pr.href.endsWith(`/${slug}`)));
+    if (mappedProj) galleryKey = mappedProj.id;
+  }
+  if (db.data.galleries && db.data.galleries[galleryKey]) {
+    detailData.galleryImages = db.data.galleries[galleryKey];
+    if (!detailData.heroImage && detailData.galleryImages.length) {
+      detailData.heroImage = detailData.galleryImages[0].src;
+    }
+  }
+  res.render('project', { page, nav: db.data.nav, footer: db.data.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
 });
 
-app.get('/corporate-premium-square', async (req, res) => {
-  await ensureDatabase();
-  const page = db.data.pages.find(p => p.id === 'corporate-premium-square');
-  const content = readDescription('corporate-premium-square');
-  const detailData = projectExtras[page.id] || {};
-  res.render('project', { page, content, nav: db.data.nav, footer: db.data.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
-});
+// Legacy routes; use /obras/:slug instead
+app.get('/monumental', (req, res) => res.redirect('/obras/monumental'));
+app.get('/cosmopolitan', (req, res) => res.redirect('/obras/cosmopolitan'));
 
 app.get('/admin', async (req, res) => {
   await ensureDatabase();
-  const descriptions = {};
-  for (const page of db.data.pages) {
-    descriptions[page.id] = readDescription(page.id);
-  }
-  res.render('admin', { nav: db.data.nav, footer: db.data.footer, pages: db.data.pages, descriptions });
+  res.render('admin', { 
+    nav: db.data.nav, 
+    footer: db.data.footer, 
+    pages: db.data.pages 
+  });
 });
 
 app.post('/admin/save', async (req, res) => {
@@ -206,13 +186,6 @@ app.post('/admin/save', async (req, res) => {
     db.data.footer.contact = Array.isArray(contactItems)
       ? contactItems
       : [contactItems];
-  }
-
-  for (const page of db.data.pages) {
-    const desc = req.body[`desc_${page.id}`];
-    if (typeof desc === 'string') {
-      writeDescription(page.id, desc);
-    }
   }
 
   await db.write();

@@ -1,0 +1,252 @@
+{
+  "nav": [
+    {
+      "title": "Início",
+      "url": "/"
+    },
+    {
+      "title": "Sobre Nós",
+      "url": "/sobre"
+    },
+    {
+      "title": "Serviços",
+      "url": "/#servicos"
+    },
+    {
+      "title": "Obras",
+      "url": "/obras"
+    },
+    {
+      "title": "Contato",
+      "url": "/contato"
+    }
+  ],
+  "footer": {
+    "company": "AP Construções",
+    "description": "Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.",
+    "links": [
+      {
+        "title": "Início",
+        "url": "/"
+      },
+      {
+        "title": "Sobre Nós",
+        "url": "/sobre"
+      },
+      {
+        "title": "Serviços",
+        "url": "/#servicos"
+      },
+      {
+        "title": "Obras",
+        "url": "/obras"
+      },
+      {
+        "title": "Contato",
+        "url": "/contato"
+      }
+    ],
+    "contact": [      
+      {
+        "icon": "fas fa-phone-alt",
+        "label": "",
+        "value": "(61) 2195-8300"
+      },
+      {
+        "icon": "fas fa-envelope",
+        "label": "",
+        "value": "contato@apconstrucoes.com.br"
+      },
+      {
+        "icon": "fas fa-map-marker-alt",
+        "label": "",
+        "value": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "id": "home",
+      "title": "AP Construções | Excelência Construtiva",
+      "description": "AP Construções entrega projetos residenciais e corporativos de alto padrão em Brasília, com execução técnica, design sofisticado e atendimento personalizado.",
+      "hero": {
+        "title": "SOLIDEZ, INOVAÇÃO E EXCELÊNCIA EM CADA OBRA",
+        "subtitle": "Entregamos projetos com rigor técnico e compromisso com resultados duradouros."
+      }
+    },
+    {
+      "id": "sobre",
+      "title": "Sobre Nós | AP Construções",
+      "description": "Sediada no icônico Edifício Oscar Niemeyer, a AP Construções combina gestão de obra, projeto arquitetônico e planejamento técnico para entregar cronogramas confiáveis, orçamentos realistas e uma experiência de cliente superior em cada etapa.",
+      "hero": {
+        "title": "Nossa História",
+        "subtitle": "Excelência técnica e compromisso com a inovação no mercado de Brasília."
+      },
+      "content": {
+        "historia": [
+          "A AP Construções consolida sua atuação no mercado da engenharia e construção civil unindo inovação, conhecimento técnico e experiência acumulada ao longo de décadas. Parte dessa trajetória foi construída em conjunto com a Porto BSB Engenharia, empresa fundada em 2002.",
+          "Nossa história é sustentada por profissionais com ampla experiência no mercado de Brasília, participando da execução e desenvolvimento de diversos empreendimentos ao longo dos anos.",
+          "A filosofia da AP Construções é aliar soluções inovadoras ao mais alto padrão de qualidade, excelência na execução e responsabilidade em cada entrega.",
+          "Investimos continuamente na formação dos nossos profissionais, no aprimoramento de processos e na abraçando novas tecnologias, mantendo o foco em desempenho, solidez e confiança."
+        ],
+        "pilares": [
+          { "label": "Missão", "icon": "fa-bullseye", "text": "Trabalhar de forma ética e competente, transformando projetos complexos em realidades tangíveis, investindo em tecnologia e pessoas." },
+          { "label": "Visão", "icon": "fa-eye", "text": "Ser a referência máxima em solidez e excelência construtiva em Brasília." },
+          { "label": "Valores", "icon": "fa-gem", "text": "Rigor técnico (PBQP-H), transparência total e compromisso com a segurança jurídica." }
+        ]
+      }
+    },
+    {
+      "id": "contato",
+      "title": "Contato | AP Construções",
+      "description": "Fale com a AP Construções para projetos residenciais de alto padrão, reformas corporativas e consultoria de engenharia em Brasília.",
+      "hero": {
+        "title": "Canais de Atendimento",
+        "subtitle": "Agende uma reunião em nossa sede corporativa."
+      }
+    },
+    {
+      "id": "monumental",
+      "title": "Monumental Center | AP Construções",
+      "description": "Monumental Center ",
+      "hero": {
+        "title": "Monumental Center",
+        "subtitle": "Edifício comercial multiusuário de uso misto leve (predominância comercial + apoio varejista)"
+      },
+      "details": {
+        "detailTag": "Lançamento Exclusivo",
+        "summaryItems": [
+          { "label": "Endereço", "value": "SHIN CA 02 Lote B - Lago Norte / DF" },
+          { "label": "Área de Construção", "value": "13.889,35 m²" },
+          { "label": "Área do Terreno", "value": " 1.875,00 m²" },
+          { "label": "Unidades", "value": "198 salas,  2 lojas" },
+          { "label": "Vagas de Garagem", "value": "222 vagas de garagem" }
+        ],
+        "plantaTitle": "Distribuição de Espaços",
+        "plantaSubtitle": "Planejado cirurgicamente para maximizar conforto e iluminação.",
+        "plantaGallery": [
+          { "src": "/images/planta/monumental/planta1.png", "alt": "Planta Unidade Tipo A" },
+          { "src": "/images/planta/monumental/planta2.png", "alt": "Planta Unidade Tipo B" }
+        ],
+        "plantaDescription": "Planta otimizada com cozinha linear gourmet e integração total.",
+        "plantaHighlights": ["48m² Privativos", "Suíte Modulável", "Janelas Piso-Teto", "Varanda Panorâmica"],
+        "commonAreas": [
+          { "label": "Rooftop Lounge", "icon": "fas fa-sun" },
+          { "label": "Academia Premium", "icon": "fas fa-dumbbell" },
+          { "label": "Espaço Gourmet", "icon": "fas fa-utensils" },
+          { "label": "Coworking Integrado", "icon": "fas fa-laptop-house" },
+          { "label": "Piscina Aquecida", "icon": "fas fa-swimmer" },
+          { "label": "Lavanderia Coletiva", "icon": "fas fa-tshirt" }
+        ],
+        "location": {
+          "title": "Localização Estratégica",
+          "description": "Localizado em uma região valorizada e com áreas comuns que oferecem conforto e comodidade aos moradores.",
+          "features": [
+            { "label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental e Metrô", "icon": "fas fa-route" },
+            { "label": "Hospitais", "value": "Próximo aos principais centros de saúde", "icon": "fas fa-hospital-symbol" },
+            { "label": "Educação", "value": "Cercado por instituições de ensino renomadas", "icon": "fas fa-graduation-cap" },
+            { "label": "Arte e Cultura", "value": "Próximo a museus, teatros e centros culturais", "icon": "fas fa-palette" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cosmopolitan",
+      "title": "Cosmopolitan | AP Construções",
+      "description": "Cosmopolitan: edifício corporativo de alto padrão no Setor Comercial Sul, projetado para empresas que buscam desempenho, localização estratégica e design executivo.",
+      "hero": {
+        "title": "Cosmopolitan",
+        "subtitle": "Edifício corporativo premium no Setor Comercial Sul.",
+        "image": "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80"
+      },
+      "details": {
+        "detailTag": "Espaço Corporativo",
+        "summaryItems": [
+          { "label": "Metragem", "value": "Apto's de 1 e 2 quartos de 30 a 100 m²" },
+          { "label": "Localização", "value": "Rua das Paineiras, Lote 3 – NORTE (ÁGUAS CLARAS) - Taguatinga – DF" }
+        ],
+        "plantaTitle": "Distribuição de Espaços",
+        "plantaGallery": [
+          { "src": "/images/planta/cosmopolitan/planta1.png", "alt": "Pavimento Corporativo" },
+          { "src": "/images/planta/cosmopolitan/planta2.png", "alt": "Layout de Escritórios" }
+        ],
+        "plantaDescription": "Layout corporativo com lobby executivo, salas modulares e infraestrutura de alto desempenho.",
+        "plantaHighlights": ["Lobby Executivo Premium", "Infraestrutura para Data Center"]
+      }
+    },
+    {
+      "id": "barao-maua",
+      "title": "Barão Mauá | AP Construções",
+      "description": "Barão Mauá — projeto comercial com salas, lojas e amplas vagas de garagem.",
+      "hero": {
+        "title": "Barão Mauá",
+        "subtitle": "Ficha Técnica: SIG Quadra 04 Lote 25 - Brasília / DF"
+      },
+      "details": {
+        "detailTag": "Ficha Técnica",
+        "summaryItems": [
+          { "label": "Endereço", "value": "SIG Quadra 04 Lote 25 - Brasília / DF" },
+          { "label": "Área de Construção", "value": "15.076,68 m²" },
+          { "label": "Área do Terreno", "value": "3.000,00 m²" },
+          { "label": "Unidades", "value": "108 salas, 02 lojas, 02 salões" },
+          { "label": "Vagas de Garagem", "value": "376 (132 vinculadas + 244 autônomas)" }
+        ],
+        "plantaTitle": "Composição Técnica",
+        "plantaGallery": [
+          { "src": "/images/planta/barao-maua/planta1.png", "alt": "Planta Comercial Nível 1" },
+          { "src": "/images/planta/barao-maua/planta2.png", "alt": "Implantação Geral" }
+        ],
+        "plantaDescription": "O Barão de Mauá foi edificado sobre um terreno de 3.000m², otimizando cada espaço para gerar valor comercial.",
+        "plantaHighlights": [
+          "108 salas comerciais modernas",
+          "02 lojas e 02 grandes salões",
+          "376 vagas (132 vinculadas / 244 autônomas)",
+          "Área total: 15.076,68 m²"
+        ]
+      }
+    }
+  ],
+  "projects": [
+    {
+      "id": "monumental",
+      "title": "Monumental Center",
+      "description": "Empreendimento comercial corporativo multiusuário de uso misto leve",
+      "image": "/images/gallery/monumental/monumental.jpg",
+      "href": "/obras/monumental",
+      "badge": "Lançamento"
+    },
+    {
+      "id": "cosmopolitan",
+      "title": "Cosmopolitan",
+      "description": "Modernidade empresarial no coração do Setor Comercial Sul.",
+      "image": "/images/gallery/cosmopolitan/cosmopolitan.png",
+      "href": "/obras/cosmopolitan"
+    }
+    ,
+    {
+      "id": "barao-maua",
+      "title": "Barão Mauá",
+      "description": "Projeto comercial com 108 salas, 2 lojas, 2 salões e 376 vagas de garagem.",
+      "image": "/images/gallery/barao-maua/aerea1.png",
+      "href": "/obras/barao-maua"
+    }
+  ],
+  "galleries": {
+    "monumental": [
+      { "src": "/images/gallery/monumental/monumental.jpg", "alt": "Monumental Center" },
+      { "src": "/images/gallery/monumental/piscina.jpg", "alt": "Piscina" },
+      { "src": "/images/gallery/monumental/salao.jpg", "alt": "Salão" }
+    ],
+    "cosmopolitan": [
+      { "src": "/images/gallery/cosmopolitan/cosmopolitan.jpg", "alt": "Salão" },
+      { "src": "/images/gallery/cosmopolitan/piscina.jpg", "alt": "Piscina" },
+      { "src": "/images/gallery/cosmopolitan/gourmet.jpg", "alt": "Area Gourmet"  },
+      { "src": "/images/gallery/cosmopolitan/quadra.jpg", "alt": "Academia" }
+    ]
+    ,
+    "barao-maua": [
+      { "src": "/images/gallery/barao-maua/aerea1.png", "alt": "Vista Aérea 1" },
+      { "src": "/images/gallery/barao-maua/aerea2.png", "alt": "Vista Aérea 2" }
+    ]
+  }
+}

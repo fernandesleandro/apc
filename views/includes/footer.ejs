@@ -17,11 +17,16 @@
         </div>
         <div class="footer-contact-col">
             <h4>Sede Corporativa</h4>
-            <% footer.contact.forEach(item => { %>
+            <% footer.contact.forEach(item => { 
+                let iconClass = item.icon || 'fas fa-info-circle';
+                // Identificação e validação dos ícones específicos conforme solicitado
+                if (iconClass.includes('map-marker')) iconClass = 'fas fa-map-marker-alt';
+                else if (iconClass.includes('phone')) iconClass = 'fas fa-phone-alt';
+                else if (iconClass.includes('envelope')) iconClass = 'fas fa-envelope';
+            %>
             <div class="footer-contact-item">
-                <i class="fas fa-map-marker-alt"></i>
-                <div>
-                    <h4><%= item.label %></h4>
+                <i class="<%= iconClass %>"></i>
+                <div>                    
                     <p><%= item.value %></p>
                 </div>
             </div>
