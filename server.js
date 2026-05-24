@@ -74,10 +74,30 @@ async function ensureDatabase() {
       } catch (e) {
         console.error('Erro ao carregar database.json:', e);
       }
-    } else {
     }
   }
 }
+
+// --- AJUSTE CONEXÃO SERVERLESS (VERCEL) ---
+let isConnected = false;
+async function connectToDatabase() {
+  if (isConnected) return;
+  try {
+    await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+    isConnected = true;
+    console.log('Conectado ao MongoDB com sucesso!');
+    await ensureDatabase();
+  } catch (err) {
+    console.error('Erro ao conectar ao MongoDB:', err.message);
+  }
+}
+
+// Middleware para conectar ao banco antes de processar qualquer rota
+app.use(async (req, res, next) => {
+  await connectToDatabase();
+  next();
+});
+// ------------------------------------------
 
 app.get('/', async (req, res) => {
   const settings = await Setting.findOne();
@@ -190,18 +210,13 @@ app.post('/admin/save', async (req, res) => {
   res.redirect('/admin');
 });
 
-(async () => {
-  try {
-    await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
-    console.log('Conectado ao MongoDB com sucesso!');
-    
-    await ensureDatabase();
+// --- INICIALIZAÇÃO ADAPTADA ---
+// Só inicia o servidor com escuta de porta caso NÃO esteja na Vercel (produção)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+  });
+}
 
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando em http://localhost:${PORT}`);
-    });
-  } catch (err) {
-    console.error('Erro fatal: Não foi possível conectar ao MongoDB.', err.message);
-    process.exit(1);
-  }
-})();
+// Exporta o aplicativo Express para que a Vercel gerencie o roteamento Serverless
+module.exports = app;
