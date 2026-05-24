@@ -24,7 +24,7 @@
     <div class="admin-panel">
         <div class="admin-card">
             <h1>Área Administrativa</h1>
-            <p>Edite o menu, rodapé e descrições das páginas. As informações ficam gravadas em um banco NoSQL leve e em arquivos de texto separados.</p>
+            <p>Gerencie o menu, rodapé e descrições de SEO das páginas diretamente no MongoDB. As mudanças são aplicadas instantaneamente.</p>
         </div>
         <form action="/admin/save" method="POST">
             <div class="admin-card">
@@ -80,8 +80,8 @@
                 <% pages.forEach(page => { %>
                 <div class="admin-grid">
                     <div class="textarea-full">
-                        <label><%= page.title %> (arquivo: <%= page.id %>.txt)</label>
-                        <textarea class="textarea-full" name="desc_<%= page.id %>" rows="6"><%= descriptions[page.id] %></textarea>
+                        <label>Descrição SEO: <%= page.title %></label>
+                        <textarea class="textarea-full" name="pageDescriptions[<%= page.id %>]" rows="6"><%= page.description %></textarea>
                     </div>
                 </div>
                 <% }) %>

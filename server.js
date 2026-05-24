@@ -164,7 +164,7 @@ app.get('/admin', async (req, res) => {
 });
 
 app.post('/admin/save', async (req, res) => {
-  const { nav, footerCompany, footerDescription, footerLinks, contactItems } = req.body;
+  const { nav, footerCompany, footerDescription, footerLinks, contactItems, pageDescriptions } = req.body;
 
   const update = {
     nav: Array.isArray(nav) ? nav : [nav],
@@ -179,6 +179,13 @@ app.post('/admin/save', async (req, res) => {
   };
 
   await Setting.findOneAndUpdate({}, update, { upsert: true });
+
+  // Atualizar as descrições das páginas no MongoDB
+  if (pageDescriptions) {
+    for (const [id, description] of Object.entries(pageDescriptions)) {
+      await Page.updateOne({ id }, { $set: { description } });
+    }
+  }
 
   res.redirect('/admin');
 });
