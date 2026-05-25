@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Projeto | AP Construções</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f8fafc;
+            padding: 40px 20px;
+        }
+        .edit-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            color: #1a202c;
+        }
+        .back-btn {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .back-btn:hover {
+            background: #cbd5e0;
+        }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            font-size: 1.2rem;
+            color: #1a202c;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-save {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #38a169;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e0;
+        }
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+            display: block;
+        }
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+            display: block;
+        }
+        .image-preview {
+            width: 200px;
+            height: 150px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-top: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            body {
+                padding: 20px 10px;
+            }
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <div class="header">
+            <h1>Editar Projeto: <%= project.title %></h1>
+            <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="editForm">
+            <!-- INFORMAÇÕES BÁSICAS -->
+            <div class="form-card">
+                <div class="section">
+                    <h2>Informações do Projeto</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Título</label>
+                            <input type="text" id="title" name="title" value="<%= project.title %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="id">ID (identificador)</label>
+                            <input type="text" id="id" name="id" value="<%= project.id %>" disabled>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row full">
+                        <label for="description">Descrição</label>
+                        <textarea id="description" name="description" required><%= project.description %></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="badge">Badge/Etiqueta</label>
+                            <input type="text" id="badge" name="badge" value="<%= project.badge || '' %>" placeholder="ex: Lançamento">
+                        </div>
+                        <div class="form-group">
+                            <label for="href">URL do Projeto</label>
+                            <input type="text" id="href" name="href" value="<%= project.href %>" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row full">
+                        <label>Imagem de Capa (Galeria de Projetos)</label>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="image" style="font-size: 0.85rem; color: #64748b;">URL da Imagem</label>
+                                    <input type="text" id="image" name="image" value="<%= project.image %>" placeholder="https://exemplo.com/imagem.jpg">
+                                </div>
+                                <div class="form-group">
+                                    <label for="imageFile" style="font-size: 0.85rem; color: #64748b;">Fazer Upload</label>
+                                    <input type="file" id="imageFile" name="imageFile" accept="image/*">
+                                </div>
+                            </div>
+                            
+                            <div id="previewWrapper" style="position: relative; display: inline-block; width: fit-content;">
+                                <img src="<%= project.image || '' %>" alt="Preview" class="image-preview" style="<%= !project.image ? 'display: none;' : '' %>" onerror="this.style.display='none'">
+                                <button type="button" id="removeImageBtn" class="btn btn-danger btn-small" style="position: absolute; top: 15px; right: 5px; padding: 5px 8px; <%= !project.image ? 'display: none;' : '' %>" onclick="clearImage()">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar Alterações</button>
+                <a href="/admin/dashboard" class="btn-cancel" style="text-decoration: none; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/admin/save-project/<%= project.id %>', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                const messageDiv = document.getElementById('message');
+
+                if (result.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
+                    setTimeout(() => {
+                        window.location.href = '/admin/dashboard';
+                    }, 2000);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + result.message;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                const messageDiv = document.getElementById('message');
+                messageDiv.className = 'message error';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao salvar alterações';
+            }
+        });
+
+        function clearImage() {
+            document.getElementById('image').value = '';
+            document.getElementById('imageFile').value = '';
+            const preview = document.querySelector('.image-preview');
+            const btn = document.getElementById('removeImageBtn');
+            if (preview) preview.style.display = 'none';
+            if (btn) btn.style.display = 'none';
+        }
+
+        // Preview local para upload de arquivo
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.querySelector('.image-preview');
+                    const btn = document.getElementById('removeImageBtn');
+                    if (preview) {
+                        preview.src = event.target.result;
+                        preview.style.display = 'block';
+                    }
+                    if (btn) btn.style.display = 'block';
+                    // Limpa o campo de URL se estiver subindo um arquivo novo
+                    document.getElementById('image').value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Atualizar preview de imagem via URL em tempo real
+        document.getElementById('image').addEventListener('input', function() {
+            const preview = document.querySelector('.image-preview');
+            const btn = document.getElementById('removeImageBtn');
+            if (preview) {
+                preview.src = this.value;
+                preview.style.display = this.value ? 'block' : 'none';
+            }
+            if (btn) btn.style.display = this.value ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

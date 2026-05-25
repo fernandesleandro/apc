@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Página | AP Construções</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f8fafc;
+            padding: 40px 20px;
+        }
+        .edit-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            color: #1a202c;
+        }
+        .back-btn {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .back-btn:hover {
+            background: #cbd5e0;
+        }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            font-size: 1.2rem;
+            color: #1a202c;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-save {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #38a169;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e0;
+        }
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+            display: block;
+        }
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+            display: block;
+        }
+        .hero-section, .details-section {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            body {
+                padding: 20px 10px;
+            }
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <div class="header">
+            <h1>Editar: <%= page.title %></h1>
+            <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="editForm">
+            <!-- INFORMAÇÕES BÁSICAS -->
+            <div class="form-card">
+                <div class="section">
+                    <h2>Informações Básicas</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Título da Página</label>
+                            <input type="text" id="title" name="title" value="<%= page.title %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="id">ID (identificador único)</label>
+                            <input type="text" id="id" name="id" value="<%= page.id %>" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group form-row full">
+                        <label for="description">Descrição (Meta Description)</label>
+                        <textarea id="description" name="description" required><%= page.description %></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HERO SECTION -->
+            <div class="form-card">
+                <div class="section hero-section">
+                    <h2>Hero Section (Banner)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="heroTitle">Título do Hero</label>
+                            <input type="text" id="heroTitle" name="hero[title]" 
+                                value="<%= page.hero && page.hero.title ? page.hero.title : '' %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="heroSubtitle">Subtítulo do Hero</label>
+                            <input type="text" id="heroSubtitle" name="hero[subtitle]" 
+                                value="<%= page.hero && page.hero.subtitle ? page.hero.subtitle : '' %>">
+                        </div>
+                    </div>
+                    <div class="form-group form-row full">
+                        <label for="heroImage">URL da Imagem do Hero</label>
+                        <input type="text" id="heroImage" name="hero[image]" 
+                            value="<%= page.hero && page.hero.image ? page.hero.image : '' %>" 
+                            placeholder="https://exemplo.com/imagem.jpg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTEÚDO -->
+            <% if (page.content) { %>
+            <div class="form-card">
+                <div class="section">
+                    <h2>Conteúdo</h2>
+                    <% if (page.content.historia && Array.isArray(page.content.historia)) { %>
+                        <h3 style="font-size: 1rem; margin-top: 15px; margin-bottom: 10px;">História</h3>
+                        <% page.content.historia.forEach((item, index) => { %>
+                            <div class="form-group form-row full">
+                                <label>Parágrafo <%= index + 1 %></label>
+                                <textarea name="content[historia][<%= index %>]"><%= item %></textarea>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                    <% if (page.content.pilares && Array.isArray(page.content.pilares)) { %>
+                        <h3 style="font-size: 1rem; margin-top: 15px; margin-bottom: 10px;">Pilares</h3>
+                        <% page.content.pilares.forEach((pilar, index) => { %>
+                            <div style="background: #f0f4f8; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Label <%= index + 1 %></label>
+                                        <input type="text" name="content[pilares][<%= index %>][label]" value="<%= pilar.label %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Ícone</label>
+                                        <input type="text" name="content[pilares][<%= index %>][icon]" value="<%= pilar.icon %>" 
+                                            placeholder="fa-bullseye">
+                                    </div>
+                                </div>
+                                <div class="form-group form-row full">
+                                    <label>Texto</label>
+                                    <textarea name="content[pilares][<%= index %>][text]"><%= pilar.text %></textarea>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- DETALHES DO PROJETO -->
+            <% if (page.details) { %>
+            <div class="form-card">
+                <div class="section details-section">
+                    <h2>Detalhes do Projeto</h2>
+                    <div class="form-group">
+                        <label for="detailTag">Tag/Badge</label>
+                        <input type="text" id="detailTag" name="details[detailTag]" 
+                            value="<%= page.details.detailTag || '' %>">
+                    </div>
+
+                    <% if (page.details.summaryItems && Array.isArray(page.details.summaryItems)) { %>
+                        <h3 style="font-size: 1rem; margin-top: 15px; margin-bottom: 10px;">Itens do Resumo</h3>
+                        <% page.details.summaryItems.forEach((item, index) => { %>
+                            <div style="background: white; padding: 12px; border-radius: 4px; margin-bottom: 10px;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Label <%= index + 1 %></label>
+                                        <input type="text" name="details[summaryItems][<%= index %>][label]" value="<%= item.label %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Valor</label>
+                                        <input type="text" name="details[summaryItems][<%= index %>][value]" value="<%= item.value %>">
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+
+                    <div class="form-group form-row full">
+                        <label for="plantaTitle">Título da Planta</label>
+                        <input type="text" id="plantaTitle" name="details[plantaTitle]" 
+                            value="<%= page.details.plantaTitle || '' %>">
+                    </div>
+                    <div class="form-group form-row full">
+                        <label for="plantaSubtitle">Subtítulo da Planta</label>
+                        <input type="text" id="plantaSubtitle" name="details[plantaSubtitle]" 
+                            value="<%= page.details.plantaSubtitle || '' %>">
+                    </div>
+                    <div class="form-group form-row full">
+                        <label for="plantaDescription">Descrição da Planta</label>
+                        <textarea id="plantaDescription" name="details[plantaDescription]"><%= page.details.plantaDescription || '' %></textarea>
+                    </div>
+
+                    <% if (page.details.plantaHighlights && Array.isArray(page.details.plantaHighlights)) { %>
+                        <h3 style="font-size: 1rem; margin-top: 15px; margin-bottom: 10px;">Destaques da Planta</h3>
+                        <% page.details.plantaHighlights.forEach((highlight, index) => { %>
+                            <div class="form-group form-row full">
+                                <input type="text" name="details[plantaHighlights][<%= index %>]" value="<%= highlight %>">
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+            <% } %>
+
+            <div class="btn-group">
+                <button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar Alterações</button>
+                <a href="/admin/dashboard" class="btn-cancel" style="text-decoration: none; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i> Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (key.includes('[')) {
+                    const match = key.match(/^([^\[]+)\[([^\]]+)\](?:\[(\d+)\])?(?:\[([^\]]+)\])?/);
+                    if (match) {
+                        const [, mainKey, subKey, index, subSubKey] = match;
+                        if (!data[mainKey]) data[mainKey] = {};
+                        if (index !== undefined) {
+                            if (!data[mainKey][subKey]) data[mainKey][subKey] = [];
+                            if (subSubKey !== undefined) {
+                                if (!data[mainKey][subKey][index]) data[mainKey][subKey][index] = {};
+                                data[mainKey][subKey][index][subSubKey] = value;
+                            } else {
+                                data[mainKey][subKey][index] = value;
+                            }
+                        } else {
+                            data[mainKey][subKey] = value;
+                        }
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            try {
+                const response = await fetch('/admin/save-page/<%= page.id %>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                const messageDiv = document.getElementById('message');
+
+                if (result.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
+                    setTimeout(() => {
+                        window.location.href = '/admin/dashboard';
+                    }, 2000);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + result.message;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                const messageDiv = document.getElementById('message');
+                messageDiv.className = 'message error';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao salvar alterações';
+            }
+        });
+    </script>
+</body>
+</html>
