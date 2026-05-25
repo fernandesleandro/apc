@@ -6,6 +6,7 @@ const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 const app = express();
 
@@ -65,6 +66,7 @@ const Gallery = mongoose.model('Gallery', new mongoose.Schema({
 const Admin = mongoose.model('Admin', AdminSchema);
 
 const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ap_construcoes';
 
 // ===== MIDDLEWARE =====
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -72,9 +74,14 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.set('trust proxy', 1);
 
 // ===== SESSION CONFIGURATION =====
 app.use(session({
+  store: MongoStore.create({
+    mongoUrl: MONGO_URI,
+    collectionName: 'sessions'
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
@@ -99,9 +106,6 @@ const isNotAuthenticated = (req, res, next) => {
   }
   next();
 };
-
-// Optional MongoDB connection (for future use)
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ap_construcoes';
 
 // Simplified database initialization function
 async function ensureDatabase() {
@@ -188,7 +192,10 @@ app.post('/admin/login', isNotAuthenticated, async (req, res) => {
     }
 
     req.session.admin = { id: admin._id, username: admin.username };
-    res.redirect('/admin/dashboard');
+    req.session.save((err) => {
+      if (err) console.error('Erro ao salvar sessão:', err);
+      res.redirect('/admin/dashboard');
+    });
   } catch (error) {
     console.error('Erro ao fazer login:', error);
     res.redirect('/admin/login?error=server');
