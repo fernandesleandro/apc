@@ -494,7 +494,7 @@
             color: white;
             flex: 1;
             min-width: 150px;
-            display: none;
+            display: inline-block;
         }
 
         .btn-upload:hover {
@@ -503,7 +503,7 @@
         }
 
         .btn-upload.active {
-            display: block;
+            display: inline-block;
         }
 
         .btn-danger {
@@ -576,8 +576,8 @@
         }
     </style>
 </head>
-<body>
-    <div class="edit-container">
+<body style="background-color: #001a4d !important; background: #001a4d !important;">
+    <div class="edit-container" style="background-color: #001a4d !important;">
         <!-- HEADER -->
         <div class="page-header">
             <div>
@@ -773,7 +773,7 @@
                 </div>
 
                 <div class="btn-group">
-                    <button type="button" id="uploadGalleryBtn" class="btn-upload"><i class="fas fa-check"></i> Upload de Imagens</button>
+                    <button type="button" id="uploadGalleryBtn" class="btn-upload" style="display: inline-block !important;"><i class="fas fa-check"></i> Upload de Imagens</button>
                     <button type="button" id="saveGalleryBtn" class="btn-primary"><i class="fas fa-save"></i> Salvar Galeria</button>
                 </div>
             </div>
@@ -820,6 +820,53 @@
             setTimeout(() => {
                 container.style.display = 'none';
             }, 5000);
+        }
+
+        function setUploadStatus(preview, text, statusClass) {
+            const statusEl = preview.querySelector('.upload-status');
+            if (!statusEl) return;
+            statusEl.textContent = text;
+            statusEl.className = `upload-status ${statusClass}`;
+        }
+
+        function setUploadProgress(preview, percent) {
+            const progressEl = preview.querySelector('.progress-bar');
+            const progressContainer = preview.querySelector('.progress-bar-container');
+            if (!progressEl || !progressContainer) return;
+            progressContainer.classList.add('active');
+            progressEl.style.width = `${Math.round(percent)}%`;
+        }
+
+        function uploadFileWithProgress(url, formData, onProgress) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', url);
+
+                xhr.onload = () => {
+                    let data;
+                    try {
+                        data = xhr.responseText ? JSON.parse(xhr.responseText) : {};
+                    } catch (parseError) {
+                        data = { success: false, message: 'Resposta inválida do servidor' };
+                    }
+
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(data);
+                    } else {
+                        const message = data && data.message ? data.message : `Erro de upload: ${xhr.status} ${xhr.statusText}`;
+                        reject(new Error(message));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error('Falha na requisição de upload'));
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable && onProgress) {
+                        onProgress((event.loaded / event.total) * 100);
+                    }
+                };
+
+                xhr.send(formData);
+            });
         }
 
         // ===== DRAG & DROP GENÉRICO =====
@@ -877,7 +924,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
-                        <div class="upload-status"></div>
+                        <div class="upload-status loading">Pronto para upload</div>
                         <div class="progress-bar-container">
                             <div class="progress-bar"></div>
                         </div>
@@ -922,6 +969,9 @@
         // ===== FORM: INFORMAÇÕES BÁSICAS =====
         document.getElementById('basicInfoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
 
             const formData = new FormData();
             formData.append('title', document.getElementById('title').value);
@@ -930,7 +980,6 @@
             formData.append('badge', document.getElementById('badge').value);
             formData.append('href', document.getElementById('href').value);
 
-            // Se houver arquivo de imagem principal
             if (selectedFilesMain.length > 0) {
                 formData.append('imageFile', selectedFilesMain[0]);
             }
@@ -947,8 +996,6 @@
                     showMessage(data.message, 'success');
                     selectedFilesMain.length = 0;
                     document.getElementById('mainImagePreviewContainer').innerHTML = '';
-                    
-                    // Recarregar a página após 1.5s
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
                     showMessage(data.message, 'error');
@@ -956,6 +1003,9 @@
             } catch (error) {
                 console.error('Erro:', error);
                 showMessage('Erro ao salvar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Informações';
             }
         });
 
@@ -990,25 +1040,35 @@
             }
         });
 
-        // ===== UPLOAD: PLANTAS =====
-        document.getElementById('uploadPlantaBtn').addEventListener('click', async () => {
-            if (selectedFilesPlanta.length === 0) {
+        // ===== FUNÇÃO GENÉRICA DE UPLOAD =====
+        async function uploadFilesGeneric(filesArray, endpoint, previewContainerId, galleryCB) {
+            if (!filesArray || filesArray.length === 0) {
                 Swal.fire('Atenção', 'Nenhuma imagem selecionada', 'warning');
-                return;
+                return false;
             }
 
-            const previews = document.getElementById('plantaPreviewContainer').querySelectorAll('.upload-preview-item');
+            const container = document.getElementById(previewContainerId);
+            const previews = container.querySelectorAll('.upload-preview-item');
             let uploadedCount = 0;
+            let totalCount = filesArray.length;
 
-            for (let i = 0; i < selectedFilesPlanta.length; i++) {
-                const file = selectedFilesPlanta[i];
+            console.log(`[UPLOAD] Iniciando: ${totalCount} arquivo(s) → ${endpoint}/${projectId}`);
+
+            for (let i = 0; i < filesArray.length; i++) {
+                const file = filesArray[i];
                 const preview = previews[i];
-                const altText = preview.querySelector('.alt-text').value.trim();
-                const titleText = preview.querySelector('.title-text').value.trim();
+
+                if (!preview) {
+                    console.warn(`[UPLOAD] Preview não encontrado para índice ${i}`);
+                    continue;
+                }
+
+                const altText = preview.querySelector('.alt-text')?.value.trim();
+                const titleText = preview.querySelector('.title-text')?.value.trim();
 
                 if (!altText) {
                     Swal.fire('Erro', `Descrição (alt) é obrigatória para ${file.name}`, 'error');
-                    return;
+                    return false;
                 }
 
                 const formData = new FormData();
@@ -1017,118 +1077,106 @@
                 formData.append('title', titleText);
 
                 try {
-                    const statusEl = preview.querySelector('.upload-status');
-                    const progressEl = preview.querySelector('.progress-bar');
-                    const progressContainer = preview.querySelector('.progress-bar-container');
+                    setUploadStatus(preview, 'Carregando...', 'loading');
+                    setUploadProgress(preview, 0);
 
-                    statusEl.textContent = 'Carregando...';
-                    statusEl.className = 'upload-status loading';
-                    progressContainer.classList.add('active');
-
-                    const response = await fetch(`/admin/upload-planta/${projectId}`, {
-                        method: 'POST',
-                        body: formData
+                    const data = await uploadFileWithProgress(`${endpoint}/${projectId}`, formData, (percent) => {
+                        setUploadProgress(preview, percent);
                     });
 
-                    const data = await response.json();
-
                     if (data.success) {
-                        statusEl.textContent = '✓ Upload concluído';
-                        statusEl.className = 'upload-status success';
-                        progressEl.style.width = '100%';
+                        setUploadStatus(preview, '✓ Upload concluído', 'success');
+                        setUploadProgress(preview, 100);
                         uploadedCount++;
-
-                        // Carregar galeria após upload bem-sucedido
-                        loadPlantaGallery();
+                        console.log(`[UPLOAD] ✓ ${file.name} (${uploadedCount}/${totalCount})`);
                     } else {
-                        statusEl.textContent = '✕ Erro: ' + data.message;
-                        statusEl.className = 'upload-status error';
+                        setUploadStatus(preview, '✕ Erro: ' + data.message, 'error');
+                        console.error(`[UPLOAD] ✕ ${file.name}: ${data.message}`);
                     }
                 } catch (error) {
-                    const statusEl = preview.querySelector('.upload-status');
-                    statusEl.textContent = '✕ Erro: ' + error.message;
-                    statusEl.className = 'upload-status error';
+                    setUploadStatus(preview, '✕ Erro: ' + error.message, 'error');
+                    console.error(`[UPLOAD] ✕ ${file.name}:`, error.message);
                 }
             }
 
-            if (uploadedCount === selectedFilesPlanta.length) {
+            console.log(`[UPLOAD] Fim: ${uploadedCount}/${totalCount} arquivo(s)`);
+
+            if (uploadedCount === totalCount && uploadedCount > 0) {
                 setTimeout(() => {
                     showMessage('Todas as imagens foram carregadas com sucesso!', 'success');
-                    selectedFilesPlanta.length = 0;
-                    document.getElementById('plantaPreviewContainer').innerHTML = '';
+                    filesArray.length = 0;
+                    container.innerHTML = '';
+                    if (galleryCB) galleryCB();
                 }, 500);
+                return true;
             }
+
+            if (uploadedCount > 0 && uploadedCount < totalCount) {
+                showMessage(`${uploadedCount} de ${totalCount} imagem(ns) carregada(s).`, 'error');
+            }
+
+            return uploadedCount === totalCount;
+        }
+
+        // ===== UPLOAD: PLANTAS =====
+        document.getElementById('uploadPlantaBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('uploadPlantaBtn');
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            
+            await uploadFilesGeneric(selectedFilesPlanta, '/admin/upload-planta', 'plantaPreviewContainer', loadPlantaGallery);
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Upload de Imagens';
         });
 
         // ===== UPLOAD: GALERIA GERAL =====
-        document.getElementById('uploadGalleryBtn').addEventListener('click', async () => {
-            if (selectedFilesGallery.length === 0) {
-                Swal.fire('Atenção', 'Nenhuma imagem selecionada', 'warning');
-                return;
+        async function uploadGalleryFiles() {
+            try {
+                const ensureResp = await fetch(`/admin/ensure-gallery-folder/${projectId}`, { method: 'POST' });
+                if (!ensureResp.ok) {
+                    console.warn('[UPLOAD] ensure-gallery-folder responded with', ensureResp.status);
+                }
+            } catch (err) {
+                console.error('[UPLOAD] Falha ao garantir pasta de galeria:', err);
             }
 
-            const previews = document.getElementById('galleryPreviewContainer').querySelectorAll('.upload-preview-item');
-            let uploadedCount = 0;
-
-            for (let i = 0; i < selectedFilesGallery.length; i++) {
-                const file = selectedFilesGallery[i];
-                const preview = previews[i];
-                const altText = preview.querySelector('.alt-text').value.trim();
-                const titleText = preview.querySelector('.title-text').value.trim();
-
-                if (!altText) {
-                    Swal.fire('Erro', `Descrição (alt) é obrigatória para ${file.name}`, 'error');
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('image', file);
-                formData.append('alt', altText);
-                formData.append('title', titleText);
-
-                try {
-                    const statusEl = preview.querySelector('.upload-status');
-                    const progressEl = preview.querySelector('.progress-bar');
-                    const progressContainer = preview.querySelector('.progress-bar-container');
-
-                    statusEl.textContent = 'Carregando...';
-                    statusEl.className = 'upload-status loading';
-                    progressContainer.classList.add('active');
-
-                    const response = await fetch(`/admin/upload-gallery/${projectId}`, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        statusEl.textContent = '✓ Upload concluído';
-                        statusEl.className = 'upload-status success';
-                        progressEl.style.width = '100%';
-                        uploadedCount++;
-
-                        // Carregar galeria após upload bem-sucedido
-                        loadGeneralGallery();
-                    } else {
-                        statusEl.textContent = '✕ Erro: ' + data.message;
-                        statusEl.className = 'upload-status error';
-                    }
-                } catch (error) {
-                    const statusEl = preview.querySelector('.upload-status');
-                    statusEl.textContent = '✕ Erro: ' + error.message;
-                    statusEl.className = 'upload-status error';
+            const galleryInputEl = document.getElementById('galleryInput');
+            if (selectedFilesGallery.length === 0 && galleryInputEl?.files?.length > 0) {
+                console.log('[UPLOAD] Preenchendo selectedFilesGallery a partir de galleryInput.files (fallback)');
+                for (const f of galleryInputEl.files) {
+                    displayFilePreview(f, document.getElementById('galleryPreviewContainer'), selectedFilesGallery);
                 }
             }
 
-            if (uploadedCount === selectedFilesGallery.length) {
-                setTimeout(() => {
-                    showMessage('Todas as imagens foram carregadas com sucesso!', 'success');
-                    selectedFilesGallery.length = 0;
-                    document.getElementById('galleryPreviewContainer').innerHTML = '';
-                }, 500);
-            }
-        });
+            return await uploadFilesGeneric(selectedFilesGallery, '/admin/upload-gallery', 'galleryPreviewContainer', loadGeneralGallery);
+        }
+
+        const uploadGalleryBtn = document.getElementById('uploadGalleryBtn');
+        const saveGalleryBtn = document.getElementById('saveGalleryBtn');
+
+        if (uploadGalleryBtn) {
+            uploadGalleryBtn.addEventListener('click', async () => {
+                uploadGalleryBtn.disabled = true;
+                uploadGalleryBtn.textContent = 'Enviando...';
+                await uploadGalleryFiles();
+                uploadGalleryBtn.disabled = false;
+                uploadGalleryBtn.innerHTML = '<i class="fas fa-check"></i> Upload de Imagens';
+            });
+        }
+
+        if (saveGalleryBtn) {
+            saveGalleryBtn.addEventListener('click', async () => {
+                saveGalleryBtn.disabled = true;
+                saveGalleryBtn.textContent = 'Salvando...';
+                const success = await uploadGalleryFiles();
+                if (success) {
+                    showMessage('A galeria foi salva.', 'success');
+                }
+                saveGalleryBtn.disabled = false;
+                saveGalleryBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Galeria';
+            });
+        }
 
         // ===== CARREGAR GALERIAS =====
         async function loadPlantaGallery() {
@@ -1144,7 +1192,7 @@
                                 <div class="gallery-item">
                                     <img src="${img.src}" alt="${img.alt}">
                                     <div class="gallery-item-overlay">
-                                        <button onclick="deletePlantaImage('${img.src.split('/').pop()}')">
+                                        <button onclick="deletePlantaImage('${img.src.split('/').pop().split('?')[0]}')">
                                             <i class="fas fa-trash"></i> Deletar
                                         </button>
                                     </div>
@@ -1174,7 +1222,7 @@
                                 <div class="gallery-item">
                                     <img src="${img.src}" alt="${img.alt}">
                                     <div class="gallery-item-overlay">
-                                        <button onclick="deleteGalleryImage('${img.src.split('/').pop()}')">
+                                        <button onclick="deleteGalleryImage('${img.src.split('/').pop().split('?')[0]}')">
                                             <i class="fas fa-trash"></i> Deletar
                                         </button>
                                     </div>

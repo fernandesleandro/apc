@@ -125,11 +125,6 @@
         "plantaTitle": "Distribuição de Espaços",
         "plantaSubtitle": "Planejado cirurgicamente para maximizar conforto e iluminação.",
         "plantaGallery": [
-          { "src": "/images/planta/monumental/planta1.png", "alt": "Planta Unidade Tipo A" },
-          { "src": "/images/planta/monumental/planta2.png", "alt": "Planta Unidade Tipo B" }
-        ],
-        "plantaDescription": "Planta otimizada com cozinha linear gourmet e integração total.",
-        "plantaHighlights": ["48m² Privativos", "Suíte Modulável", "Janelas Piso-Teto", "Varanda Panorâmica"],
         "commonAreas": [
           { "label": "Rooftop Lounge", "icon": "fas fa-sun" },
           { "label": "Academia Premium", "icon": "fas fa-dumbbell" },
@@ -165,11 +160,6 @@
           { "label": "Metragem", "value": "Apto's de 1 e 2 quartos de 30 a 100 m²" },
           { "label": "Localização", "value": "Rua das Paineiras, Lote 3 – NORTE (ÁGUAS CLARAS) - Taguatinga – DF" }
         ],
-        "plantaTitle": "Distribuição de Espaços",
-        "plantaGallery": [
-          { "src": "/images/planta/cosmopolitan/planta1.png", "alt": "Pavimento Corporativo" },
-          { "src": "/images/planta/cosmopolitan/planta2.png", "alt": "Layout de Escritórios" }
-        ],
         "plantaDescription": "Layout corporativo com lobby executivo, salas modulares e infraestrutura de alto desempenho.",
         "plantaHighlights": ["Lobby Executivo Premium", "Infraestrutura para Data Center"]
       }
@@ -191,11 +181,6 @@
           { "label": "Unidades", "value": "108 salas, 02 lojas, 02 salões" },
           { "label": "Vagas de Garagem", "value": "376 (132 vinculadas + 244 autônomas)" }
         ],
-        "plantaTitle": "Composição Técnica",
-        "plantaGallery": [
-          { "src": "/images/planta/barao-maua/planta1.png", "alt": "Planta Comercial Nível 1" },
-          { "src": "/images/planta/barao-maua/planta2.png", "alt": "Implantação Geral" }
-        ],
         "plantaDescription": "O Barão de Mauá foi edificado sobre um terreno de 3.000m², otimizando cada espaço para gerar valor comercial.",
         "plantaHighlights": [
           "108 salas comerciais modernas",
@@ -213,14 +198,16 @@
       "description": "Empreendimento comercial corporativo multiusuário de uso misto leve",
       "image": "/images/gallery/monumental/monumental.jpg",
       "href": "/obras/monumental",
-      "badge": "Lançamento"
+      "badge": "Lançamento",
+      "category": "Comercial"
     },
     {
       "id": "cosmopolitan",
       "title": "Cosmopolitan",
       "description": "Modernidade empresarial no coração do Setor Comercial Sul.",
       "image": "/images/gallery/cosmopolitan/cosmopolitan.png",
-      "href": "/obras/cosmopolitan"
+      "href": "/obras/cosmopolitan",
+      "category": "Corporativo"
     }
     ,
     {
@@ -228,12 +215,28 @@
       "title": "Barão Mauá",
       "description": "Projeto comercial com 108 salas, 2 lojas, 2 salões e 376 vagas de garagem.",
       "image": "/images/gallery/barao-maua/aerea1.png",
-      "href": "/obras/barao-maua"
+      "href": "/obras/barao-maua",
+      "category": "Comercial"
     }
   ],
-  "galleries": {
+  "plantaGalleries": {
+    "monumental": [
+      { "src": "/images/planta/monumental/planta1.png", "alt": "Planta Unidade Tipo A", "title": "Planta Tipo A" },
+      { "src": "/images/planta/monumental/planta2.png", "alt": "Planta Unidade Tipo B", "title": "Planta Tipo B" }
+    ],
+    "cosmopolitan": [
+      { "src": "/images/planta/cosmopolitan/planta1.png", "alt": "Pavimento Corporativo", "title": "Pavimento Corporativo" },
+      { "src": "/images/planta/cosmopolitan/planta2.png", "alt": "Layout de Escritórios", "title": "Layout de Escritórios" }
+    ],
+    "barao-maua": [
+      { "src": "/images/planta/barao-maua/planta1.png", "alt": "Planta Comercial Nível 1", "title": "Planta Comercial Nível 1" },
+      { "src": "/images/planta/barao-maua/planta2.png", "alt": "Implantação Geral", "title": "Implantação Geral" }
+    ]
+  },
+  "projectGalleries": {
     "monumental": [
       { "src": "/images/gallery/monumental/monumental.jpg", "alt": "Monumental Center" },
+      { "src": "/images/gallery/monumental/fachada.jpg", "alt": "Fachada do Monumental Center" },
       { "src": "/images/gallery/monumental/piscina.jpg", "alt": "Piscina" },
       { "src": "/images/gallery/monumental/salao.jpg", "alt": "Salão" }
     ],

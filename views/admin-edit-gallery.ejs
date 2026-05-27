@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Galeria: <%= project.title %> | Admin AP Construções</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/admin-scripts.js" defer></script>
+</head>
+
+<body class="admin-dashboard-body">
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="/images/logo.png" alt="Logo AP Construções" class="sidebar-logo">
+                <h3>Admin Panel</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="/admin/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="/admin/dashboard"><i class="fas fa-pager"></i> Páginas</a></li>
+                    <li class="active"><a href="/admin/dashboard"><i class="fas fa-building"></i> Projetos</a></li>
+                    <li><a href="/admin/edit-settings"><i class="fas fa-cog"></i> Configurações</a></li>
+                    <li><a href="/admin/logout"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="admin-main-content">
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <i class="fas fa-images dashboard-icon"></i>
+                    <h1>Gerenciar Galeria de Imagens: <%= project.title %></h1>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle user-avatar"></i>
+                        <span><%= username %></span>
+                    </div>
+                    <a href="/admin/logout" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="admin-section">
+                    <div class="admin-section-header">
+                        <h2><i class="fas fa-upload"></i> Upload de Novas Imagens para a Galeria</h2>
+                    </div>
+                    <div class="upload-area" id="projectGalleryUploadArea">
+                        <input type="file" id="projectGalleryImageInput" accept="image/jpeg, image/png, image/webp, image/gif" multiple style="display: none;">
+                        <p><i class="fas fa-cloud-upload-alt"></i> Arraste e solte imagens aqui ou clique para selecionar</p>
+                        <p class="small-text">Formatos aceitos: JPG, PNG, WebP, GIF. Máximo: 50MB por arquivo.</p>
+                    </div>
+                    <div id="projectGalleryUploadPreview" class="upload-preview-container"></div>
+                    <div id="projectGalleryUploadProgress" class="progress-bar-container" style="display: none;">
+                        <div class="progress-bar" style="width: 0%;"></div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                    <button id="projectGalleryUploadButton" class="btn btn-primary mt-3" style="display: none;"><i class="fas fa-upload"></i> Enviar Imagens Selecionadas</button>
+                    <div id="projectGalleryUploadMessages" class="mt-2"></div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="admin-section-header">
+                        <h2><i class="fas fa-images"></i> Galeria de Imagens do Projeto</h2>
+                    </div>
+                    <div class="image-gallery" id="projectGalleryImages">
+                        <% if (projectGallery && projectGallery.images && projectGallery.images.length > 0) { %>
+                            <% projectGallery.images.forEach(image => { %>
+                                <div class="image-gallery-item" data-filename="<%= image.src.split('/').pop() %>">
+                                    <img src="<%= image.src %>" alt="<%= image.alt %>" title="<%= image.title %>">
+                                    <div class="image-actions">
+                                        <button class="btn btn-danger btn-sm" onclick="confirmDeleteImage('<%= projectId %>', '<%= image.src.split('/').pop() %>', 'gallery')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                    <p class="image-alt-text"><%= image.alt %></p>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p id="noProjectGalleryImagesMessage">Nenhuma imagem na galeria geral do projeto ainda.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const projectId = "<%= projectId %>";
+        const projectGalleryUploadArea = document.getElementById('projectGalleryUploadArea');
+        const projectGalleryImageInput = document.getElementById('projectGalleryImageInput');
+        const projectGalleryUploadPreview = document.getElementById('projectGalleryUploadPreview');
+        const projectGalleryUploadProgress = document.getElementById('projectGalleryUploadProgress');
+        const projectGalleryUploadProgressBar = projectGalleryUploadProgress.querySelector('.progress-bar');
+        const projectGalleryUploadProgressText = projectGalleryUploadProgress.querySelector('.progress-text');
+        const projectGalleryUploadButton = document.getElementById('projectGalleryUploadButton');
+        const projectGalleryUploadMessages = document.getElementById('projectGalleryUploadMessages');
+        const projectGalleryImages = document.getElementById('projectGalleryImages');
+        const noProjectGalleryImagesMessage = document.getElementById('noProjectGalleryImagesMessage');
+
+        let selectedProjectGalleryFiles = [];
+
+        // Drag and Drop para área de upload da galeria
+        setupDragAndDrop(projectGalleryUploadArea, projectGalleryImageInput, selectedProjectGalleryFiles, projectGalleryUploadPreview, projectGalleryUploadButton);
+
+        // Seleção manual de arquivos da galeria
+        projectGalleryImageInput.addEventListener('change', (e) => {
+            handleFileSelection(e.target.files, selectedProjectGalleryFiles, projectGalleryUploadPreview, projectGalleryUploadButton);
+        });
+
+        // Botão de upload da galeria
+        projectGalleryUploadButton.addEventListener('click', () => {
+            uploadFiles(selectedProjectGalleryFiles, `/admin/upload-gallery/${projectId}`, projectGalleryUploadProgress, projectGalleryUploadProgressBar, projectGalleryUploadProgressText, projectGalleryUploadMessages, projectGalleryImages, noProjectGalleryImagesMessage, () => {
+                selectedProjectGalleryFiles = []; // Limpa a lista após o upload
+                projectGalleryUploadPreview.innerHTML = ''; // Limpa previews
+                projectGalleryUploadButton.style.display = 'none'; // Esconde botão
+            });
+        });
+    </script>
+</body>
+
+</html>

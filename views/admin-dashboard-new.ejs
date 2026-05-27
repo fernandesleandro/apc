@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrativo | AP Construções</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f8fafc;
+        }
+
+        /* HEADER */
+        .admin-header {
+            background: linear-gradient(135deg, #0073ff 0%, #005bc2 100%);
+            box-shadow: 0 8px 24px rgba(0, 115, 255, 0.25);
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .admin-header h1 {
+            font-size: 2rem;
+            color: white;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .admin-user span {
+            color: rgba(255,255,255,0.95);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-1px);
+        }
+
+        /* CONTAINER */
+        .admin-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* TABS/SEÇÕES */
+        .section-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
+
+        .section-tab {
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .section-tab:hover {
+            color: #0073ff;
+        }
+
+        .section-tab.active {
+            color: #0073ff;
+            border-bottom-color: #0073ff;
+        }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* CARDS */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            color: #1a202c;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 i {
+            color: #0073ff;
+        }
+
+        /* TABELAS */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background: #f7fafc;
+        }
+
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #4a5568;
+            font-size: 0.95rem;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .truncate {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ACTIONS */
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0073ff 0%, #005bc2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 115, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #f56565;
+        }
+
+        .btn-info {
+            background: #63b3ed;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #4299e1;
+        }
+
+        /* CREATE NEW */
+        .create-section {
+            margin-bottom: 30px;
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            font-size: 1rem;
+        }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        /* STATUS BADGES */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-residential {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .badge-commercial {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .badge-mixed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-other {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #1a202c;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #e53e3e;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+
+        label .required {
+            color: #e53e3e;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #0073ff;
+            box-shadow: 0 0 0 3px rgba(0, 115, 255, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+        }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px;
+            }
+
+            .admin-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .admin-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .admin-container {
+                margin: 20px auto;
+            }
+
+            .truncate {
+                max-width: 150px;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 50% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="admin-header">
+        <h1><i class="fas fa-cog"></i> Dashboard Administrativo</h1>
+        <div class="admin-user">
+            <div class="admin-user-info">
+                <div class="admin-user-avatar"><%= username.charAt(0).toUpperCase() %></div>
+                <span><%= username %></span>
+            </div>
+            <a href="/admin/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </div>
+    </div>
+
+    <!-- CONTAINER -->
+    <div class="admin-container">
+        <!-- TABS DE SEÇÃO -->
+        <div class="section-tabs">
+            <button class="section-tab active" data-section="pages">
+                <i class="fas fa-file-alt"></i> Páginas Institucionais
+            </button>
+            <button class="section-tab" data-section="projects">
+                <i class="fas fa-building"></i> Obras / Projetos
+            </button>
+        </div>
+
+        <!-- SEÇÃO: PÁGINAS INSTITUCIONAIS -->
+        <div id="pages" class="section-content active">
+            <div class="card">
+                <h2><i class="fas fa-file-alt"></i> Páginas Institucionais</h2>
+                <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                    Edite as páginas principais do site: Home, Sobre, Contato e Serviços.
+                </p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Página</th>
+                                <th>Descrição</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% const instPages = pages.filter(p => ['home', 'sobre', 'contato', 'servicos'].includes(p.id)); %>
+                            <% if (instPages.length > 0) { %>
+                                <% instPages.forEach(page => { %>
+                                    <tr>
+                                        <td>
+                                            <strong><%= page.title %></strong><br>
+                                            <small style="color: #a0aec0;">ID: <%= page.id %></small>
+                                        </td>
+                                        <td class="truncate"><%= page.description || '(sem descrição)' %></td>
+                                        <td>
+                                            <div class="actions">
+                                                <a href="/admin/edit-page/<%= page.id %>" class="btn btn-primary">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: #a0aec0; padding: 40px;">
+                                        Nenhuma página encontrada
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO: OBRAS / PROJETOS -->
+        <div id="projects" class="section-content">
+            <!-- CRIAR NOVO PROJETO -->
+            <div class="card">
+                <h2><i class="fas fa-plus-circle"></i> Nova Obra</h2>
+                <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                    Crie uma nova obra preenchendo os dados obrigatórios. As pastas de imagens serão criadas automaticamente.
+                </p>
+
+                <form id="createProjectForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="newProjectId">ID da Obra <span class="required">*</span></label>
+                            <input type="text" id="newProjectId" name="id" placeholder="ex: meu-projeto" required pattern="^[a-z0-9-]+$" title="Apenas letras minúsculas, números e hífens">
+                            <small style="color: #718096; font-size: 0.85rem; display: block; margin-top: 5px;">Será usado na URL: /obras/meu-projeto</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="newProjectTitle">Título <span class="required">*</span></label>
+                            <input type="text" id="newProjectTitle" name="title" placeholder="Nome da obra" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="newProjectCategory">Categoria <span class="required">*</span></label>
+                            <select id="newProjectCategory" name="category" required>
+                                <option value="">Selecionar categoria</option>
+                                <option value="residencial">Residencial</option>
+                                <option value="comercial">Comercial</option>
+                                <option value="misto">Misto</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newProjectBadge">Badge (Opcional)</label>
+                            <input type="text" id="newProjectBadge" name="badge" placeholder="Ex: Em Construção">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newProjectDescription">Descrição <span class="required">*</span></label>
+                        <textarea id="newProjectDescription" name="description" placeholder="Descreva brevemente a obra..." required></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px;">
+                        <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 1rem;">
+                            <i class="fas fa-plus"></i> Criar Obra
+                        </button>
+                        <button type="reset" class="btn btn-secondary" style="padding: 12px 24px; font-size: 1rem;">
+                            <i class="fas fa-redo"></i> Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- LISTAR PROJETOS -->
+            <div class="card">
+                <h2><i class="fas fa-list"></i> Obras Cadastradas</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Obra</th>
+                                <th>Categoria</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (projects.length > 0) { %>
+                                <% projects.forEach(project => { %>
+                                    <tr>
+                                        <td>
+                                            <strong><%= project.title %></strong><br>
+                                            <small style="color: #a0aec0;">ID: <%= project.id %></small>
+                                        </td>
+                                        <td>
+                                            <% const categoryMap = { 'residencial': 'Residencial', 'comercial': 'Comercial', 'misto': 'Misto', 'outro': 'Outro' }; %>
+                                            <span class="badge badge-<%= project.category || 'other' %>">
+                                                <%= categoryMap[project.category] || 'Outro' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <% if (project.badge) { %>
+                                                <span class="badge" style="background: #fef3c7; color: #92400e;">
+                                                    <%= project.badge %>
+                                                </span>
+                                            <% } else { %>
+                                                <span style="color: #a0aec0; font-size: 0.9rem;">—</span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="actions">
+                                                <a href="/admin/edit-project-new/<%= project.id %>" class="btn btn-primary">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </a>
+                                                <button class="btn btn-danger" onclick="deleteProject('<%= project.id %>', '<%= project.title %>')">
+                                                    <i class="fas fa-trash"></i> Deletar
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="empty-state">
+                                            <i class="fas fa-inbox"></i>
+                                            <p>Nenhuma obra cadastrada</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // ===== TABS =====
+        document.querySelectorAll('.section-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const sectionName = tab.getAttribute('data-section');
+
+                document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.section-content').forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(sectionName).classList.add('active');
+            });
+        });
+
+        // ===== CRIAR NOVO PROJETO =====
+        document.getElementById('createProjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                id: document.getElementById('newProjectId').value.trim().toLowerCase().replace(/\s+/g, '-'),
+                title: document.getElementById('newProjectTitle').value.trim(),
+                category: document.getElementById('newProjectCategory').value.trim(),
+                description: document.getElementById('newProjectDescription').value.trim(),
+                badge: document.getElementById('newProjectBadge').value.trim() || ''
+            };
+
+            if (!formData.id || !formData.title || !formData.category || !formData.description) {
+                Swal.fire('Validação', 'Todos os campos marcados com * são obrigatórios', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/create-project', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire('Sucesso!', 'Obra criada com sucesso! Redirecionando...', 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Erro', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Erro', 'Erro ao criar obra: ' + error.message, 'error');
+            }
+        });
+
+        // ===== DELETAR PROJETO =====
+        async function deleteProject(projectId, projectTitle) {
+            const result = await Swal.fire({
+                title: 'Confirmar Exclusão',
+                html: `Tem certeza que deseja deletar a obra <strong>"${projectTitle}"</strong>?<br><br><small style="color: #718096;">Esta ação é irreversível e removerá todas as imagens associadas.</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e53e3e',
+                confirmButtonText: 'Sim, deletar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/delete-project/${projectId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire('Deletado!', 'Obra deletada com sucesso!', 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Erro', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Erro', 'Erro ao deletar obra: ' + error.message, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Página não encontrada</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #0073ff;
+            --dark-blue: #005bc2;
+            --light-gray: #f8fafc;
+            --text-dark: #1a202c;
+            --text-gray: #718096;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 50px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            animation: fadeIn 1s ease-out;
+        }
+        h1 { font-size: 6rem; margin-bottom: 10px; font-weight: 700; }
+        h2 { font-size: 2rem; margin-bottom: 20px; font-weight: 400; }
+        p { font-size: 1.1rem; margin-bottom: 40px; line-height: 1.6; }
+        .btn-home {
+            display: inline-block;
+            background: white;
+            color: var(--primary-blue);
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn-home:hover {
+            background: var(--light-gray);
+            transform: translateY(-2px);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 4rem; }
+            h2 { font-size: 1.5rem; }
+            p { font-size: 1rem; }
+            .container { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Página Não Encontrada</h2>
+        <p>Ops! Parece que a página que você está procurando não existe ou foi movida. Não se preocupe, você pode voltar para a página inicial.</p>
+        <a href="/" class="btn-home"><i class="fas fa-home"></i> Voltar para o Início</a>
+    </div>
+</body>
+</html>

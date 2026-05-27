@@ -254,3 +254,97 @@ a { text-decoration: none; color: inherit; }
     font-family: "Font Awesome 6 Free" !important; /* Garante que a fonte correta seja usada */
     font-weight: 900 !important; /* Necessário para ícones Solid (fas) do Font Awesome 6 */
 }
+
+/* ===== MELHORIAS ADICIONAIS PARA MOBILE E UX ===== */
+
+/* Melhor espaçamento em telas pequenas */
+@media (max-width: 640px) {
+    body { font-size: 15px; }
+    .container { padding: 0 16px; }
+    
+    .hero-title { font-size: 2.2rem; line-height: 1.2; }
+    .section-title { font-size: 1.8rem; }
+    .detail-hero-overlay h1 { font-size: 2rem; }
+    
+    .hero-subtitle { font-size: 0.95rem; margin-bottom: 24px; }
+    .services-grid { grid-template-columns: 1fr; gap: 20px; }
+    .projects-grid { grid-template-columns: 1fr; gap: 20px; }
+    
+    .service-card { padding: 25px 20px; }
+    .project-img-wrapper { height: 200px; }
+    
+    .detail-hero { min-height: 400px; height: 50vh; }
+    .detail-main-grid { gap: 30px; }
+    .detail-desc h2 { font-size: 1.8rem; }
+    
+    .showcase-gallery { grid-template-columns: 1fr; gap: 12px; }
+    .gallery-img-item { height: 200px; }
+    .gallery-img-large { grid-column: span 1; height: 200px; }
+    
+    .planta-section { padding: 60px 0; }
+    .planta-wrapper { gap: 25px; padding: 20px; border-radius: 8px; }
+    .planta-header { margin-bottom: 40px; }
+    
+    .common-areas-section { padding: 60px 0; }
+    .common-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .common-item { padding: 20px 15px; }
+    .common-item i { font-size: 1.8rem; }
+    
+    .contact-layout { gap: 30px; padding: 60px 0; }
+    .form-wrapper { padding: 25px; border-radius: 8px; }
+    .info-card { padding: 25px; }
+    
+    .footer-top-grid { grid-template-columns: 1fr; gap: 40px; }
+    .footer-nav-col h4, .footer-contact-col h4 { margin-bottom: 20px; }
+    
+    /* Admin pages adjustments */
+    .admin-header { padding: 15px 20px; flex-wrap: wrap; }
+    .admin-user { gap: 10px; }
+    .admin-container { padding: 0 20px 20px; }
+}
+
+/* Melhorias de acessibilidade */
+button, a, input[type="button"], input[type="submit"] {
+    -webkit-tap-highlight-color: rgba(0, 115, 255, 0.2);
+}
+
+/* Melhorias de contraste para botões */
+.btn-filled { box-shadow: 0 4px 15px rgba(0, 115, 255, 0.3); }
+.btn-filled:active { box-shadow: 0 2px 8px rgba(0, 115, 255, 0.4); }
+
+/* Focus states melhorados para acessibilidade */
+:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+/* Melhorar input focus states */
+input:focus, textarea:focus, select:focus {
+    box-shadow: 0 0 0 4px rgba(0, 115, 255, 0.15);
+}
+
+/* Loading animation para operações assíncronas */
+.loading {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Toast/Alert improvements */
+.message {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
