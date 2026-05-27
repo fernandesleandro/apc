@@ -334,6 +334,19 @@ const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.admin) {
     return next();
   }
+  const isAjaxRequest =
+    req.xhr ||
+    req.headers['x-requested-with'] === 'XMLHttpRequest' ||
+    (req.headers.accept && req.headers.accept.includes('application/json')) ||
+    req.method !== 'GET';
+
+  if (isAjaxRequest) {
+    return res.status(401).json({
+      success: false,
+      message: 'Sessão expirada. Faça login novamente.'
+    });
+  }
+
   res.redirect('/admin/login');
 };
 

@@ -1125,8 +1125,15 @@
             try {
                 const response = await fetch(`/admin/save-project/${projectId}`, {
                     method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 });
+
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`Resposta inválida do servidor (${response.status}).`);
+                }
 
                 const data = await response.json();
 
@@ -1136,6 +1143,11 @@
                     document.getElementById('mainImagePreviewContainer').innerHTML = '';
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
+                    if (response.status === 401) {
+                        showMessage('Sessão expirada. Redirecionando para login...', 'error');
+                        setTimeout(() => window.location.href = '/admin/login', 1200);
+                        return;
+                    }
                     showMessage(data.message, 'error');
                 }
             } catch (error) {
