@@ -171,6 +171,7 @@
         /* TABELAS */
         .table-container {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
@@ -459,6 +460,8 @@
             .admin-user {
                 width: 100%;
                 justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
             }
 
             .admin-container {
@@ -488,7 +491,45 @@
 
             .modal-content {
                 width: 95%;
-                margin: 50% auto;
+                margin: 20% auto;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .admin-header {
+                padding: 16px;
+            }
+
+            .admin-header h1 {
+                font-size: 1.2rem;
+            }
+
+            .admin-container {
+                padding: 0 12px;
+            }
+
+            .section-tabs {
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .section-tab {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            th, td {
+                padding: 8px;
+                font-size: 0.82rem;
+            }
+
+            .logout-btn {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
