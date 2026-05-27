@@ -35,7 +35,7 @@
 
         .page-header h1 {
             font-size: 2rem;
-            color: #1a202c;
+            color: #a2aec5;
             font-weight: 800;
         }
 
@@ -751,7 +751,7 @@
             <div class="form-card">
                 <div class="section">
                     <h3><i class="fas fa-image"></i> Galeria do Projeto</h3>
-                    <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Imagens gerais, detalhes construtivos e vistas do empreendimento. As imagens serão armazenadas em <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;">/images/gallery/<%= project.id %>/detalhe/</code></p>
+                    <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Imagens gerais, detalhes construtivos e vistas do empreendimento. As imagens serão armazenadas em <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;">/images/gallery/<%= project.id %>/</code></p>
 
                     <form id="galleryForm">
                         <div class="drop-area" id="galleryDropArea">
@@ -824,20 +824,25 @@
 
         function setUploadStatus(preview, text, statusClass) {
             const statusEl = preview.querySelector('.upload-status');
+            const iconEl = preview.querySelector('.upload-status-icon');
             if (!statusEl) return;
             statusEl.textContent = text;
             statusEl.className = `upload-status ${statusClass}`;
+            
+            // Mostrar/ocultar ícone de spinner baseado no status
+            if (iconEl) {
+                iconEl.style.display = statusClass === 'loading' ? 'block' : 'none';
+            }
+            
+            // Ocultar texto de status quando estiver em loading
+            if (statusClass === 'loading') {
+                statusEl.style.display = 'none';
+            } else {
+                statusEl.style.display = 'block';
+            }
         }
 
-        function setUploadProgress(preview, percent) {
-            const progressEl = preview.querySelector('.progress-bar');
-            const progressContainer = preview.querySelector('.progress-bar-container');
-            if (!progressEl || !progressContainer) return;
-            progressContainer.classList.add('active');
-            progressEl.style.width = `${Math.round(percent)}%`;
-        }
-
-        function uploadFileWithProgress(url, formData, onProgress) {
+        function uploadFileWithProgress(url, formData) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', url);
@@ -859,12 +864,6 @@
                 };
 
                 xhr.onerror = () => reject(new Error('Falha na requisição de upload'));
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable && onProgress) {
-                        onProgress((event.loaded / event.total) * 100);
-                    }
-                };
-
                 xhr.send(formData);
             });
         }
@@ -923,10 +922,9 @@
                             <button type="button" class="btn-danger" style="padding: 8px 12px;" onclick="removePreview(this, '${file.name}', ${selectedFiles === selectedFilesMain ? 'selectedFilesMain' : selectedFiles === selectedFilesPlanta ? 'selectedFilesPlanta' : 'selectedFilesGallery'})">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        </div>
-                        <div class="upload-status loading">Pronto para upload</div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar"></div>
+                        </div>                        
+                        <div class="upload-status-icon" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
                         </div>
                     </div>
                 `;
@@ -1078,15 +1076,11 @@
 
                 try {
                     setUploadStatus(preview, 'Carregando...', 'loading');
-                    setUploadProgress(preview, 0);
 
-                    const data = await uploadFileWithProgress(`${endpoint}/${projectId}`, formData, (percent) => {
-                        setUploadProgress(preview, percent);
-                    });
+                    const data = await uploadFileWithProgress(`${endpoint}/${projectId}`, formData);
 
                     if (data.success) {
                         setUploadStatus(preview, '✓ Upload concluído', 'success');
-                        setUploadProgress(preview, 100);
                         uploadedCount++;
                         console.log(`[UPLOAD] ✓ ${file.name} (${uploadedCount}/${totalCount})`);
                     } else {
@@ -1133,12 +1127,12 @@
         // ===== UPLOAD: GALERIA GERAL =====
         async function uploadGalleryFiles() {
             try {
-                const ensureResp = await fetch(`/admin/ensure-gallery-folder/${projectId}`, { method: 'POST' });
+                const ensureResp = await fetch(`/admin/ensure-project-folders/${projectId}`, { method: 'POST' });
                 if (!ensureResp.ok) {
-                    console.warn('[UPLOAD] ensure-gallery-folder responded with', ensureResp.status);
+                    console.warn('[UPLOAD] ensure-project-folders responded with', ensureResp.status);
                 }
             } catch (err) {
-                console.error('[UPLOAD] Falha ao garantir pasta de galeria:', err);
+                console.error('[UPLOAD] Falha ao garantir pastas do projeto:', err);
             }
 
             const galleryInputEl = document.getElementById('galleryInput');

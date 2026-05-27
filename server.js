@@ -55,7 +55,7 @@ function uploadForProject(fieldName, type = 'gallery') {
     if (type === 'planta') {
       dest = path.join(plantaBase, folder);
     } else if (type === 'gallery') {
-      dest = path.join(projectGalleryBase, folder, 'detalhe');
+      dest = path.join(projectGalleryBase, folder);
     } else if (type === 'project_main') {
       dest = path.join(projectGalleryBase, folder);
     } else {
@@ -161,6 +161,53 @@ const ProjectGallery = mongoose.model('ProjectGallery', new mongoose.Schema({
 const Admin = mongoose.model('Admin', AdminSchema);
 
 const PORT = process.env.PORT || 3000;
+const isVercel = Boolean(process.env.VERCEL);
+const defaultSettings = {
+  nav: [
+    { title: 'Home', url: '/' },
+    { title: 'Sobre', url: '/sobre' },
+    { title: 'Obras', url: '/obras' },
+    { title: 'Contato', url: '/contato' }
+  ],
+  footer: {
+    company: 'AP Construções',
+    description: 'Construção civil com qualidade, confiança e excelência.',
+    links: [],
+    contact: []
+  }
+};
+const fallbackImage = 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80';
+
+function normalizePublicPath(value) {
+  if (!value || typeof value !== 'string') return '';
+  const trimmed = value.trim().replace(/\\/g, '/');
+  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('data:')) return trimmed;
+  const withoutPublic = trimmed.replace(/^\/?public\//, '');
+  return withoutPublic.startsWith('/') ? withoutPublic : `/${withoutPublic}`;
+}
+
+function normalizeImageRecord(image) {
+  if (!image || typeof image !== 'object') return image;
+  return { ...image, src: normalizePublicPath(image.src) };
+}
+
+function normalizeProjectRecord(project) {
+  if (!project) return project;
+  const object = typeof project.toObject === 'function' ? project.toObject() : project;
+  return {
+    ...object,
+    href: object.href || `/obras/${object.id}`,
+    image: normalizePublicPath(object.image) || fallbackImage
+  };
+}
+
+async function getSettings() {
+  const settings = await Setting.findOne().lean();
+  return {
+    nav: (settings && Array.isArray(settings.nav) && settings.nav.length) ? settings.nav : defaultSettings.nav,
+    footer: (settings && settings.footer) ? settings.footer : defaultSettings.footer
+  };
+}
 
 // ===== MIDDLEWARE DE DESABILITAR CACHE (DESENVOLVIMENTO) =====
 app.use((req, res, next) => {
@@ -356,43 +403,64 @@ app.get('/admin/logout', (req, res) => {
 // ------------------------------------------
 
 app.get('/', async (req, res) => {
-  const settings = await Setting.findOne();
-  const page = await Page.findOne({ id: 'home' });
-  const projects = await Project.find();
-  res.render('home', { 
-    page, 
-    nav: settings.nav, 
-    footer: settings.footer, 
-    projects, 
-    active: req.path, 
-    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` 
-  });
+  try {
+    const settings = await getSettings();
+    const page = await Page.findOne({ id: 'home' }).lean();
+    const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+    res.render('home', {
+      page: page || { title: 'AP Construções', hero: { title: 'AP Construções', subtitle: 'Construção civil com qualidade, confiança e excelência.' } },
+      nav: settings.nav,
+      footer: settings.footer,
+      projects,
+      active: req.path,
+      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar home:', error);
+    res.status(500).send('Erro ao carregar página inicial');
+  }
 });
 
 app.get('/sobre', async (req, res) => {
-  const settings = await Setting.findOne();
-  const page = await Page.findOne({ id: 'sobre' });
-  res.render('sobre', { page, nav: settings.nav, footer: settings.footer, detailData: {}, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  try {
+    const settings = await getSettings();
+    const page = await Page.findOne({ id: 'sobre' }).lean();
+    res.render('sobre', { page: page || { title: 'Sobre', description: '' }, nav: settings.nav, footer: settings.footer, detailData: {}, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar sobre:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
 });
 
 app.get('/contato', async (req, res) => {
-  const settings = await Setting.findOne();
-  const page = await Page.findOne({ id: 'contato' });
-  res.render('contato', { page, nav: settings.nav, footer: settings.footer, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  try {
+    const settings = await getSettings();
+    const page = await Page.findOne({ id: 'contato' }).lean();
+    res.render('contato', { page: page || { title: 'Contato', description: '' }, nav: settings.nav, footer: settings.footer, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar contato:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
 });
 
 app.get('/obras', async (req, res) => {
-  const settings = await Setting.findOne();
-  const projects = await Project.find();
-  res.render('obras', { nav: settings.nav, footer: settings.footer, projects, active: '/obras', requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  try {
+    const settings = await getSettings();
+    const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+    res.render('obras', { nav: settings.nav, footer: settings.footer, projects, active: '/obras', requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar obras:', error);
+    res.status(500).send('Erro ao carregar obras');
+  }
 });
 
 // Generic route to serve project details under /obras/:slug
 app.get('/obras/:slug', async (req, res) => {
-  const settings = await Setting.findOne();
+  try {
+  const settings = await getSettings();
   const slug = req.params.slug;
-  const project = await Project.findOne({ id: slug });
-  let page = await Page.findOne({ id: slug });
+  const project = normalizeProjectRecord(await Project.findOne({ id: slug }).lean());
+  let page = await Page.findOne({ id: slug }).lean();
 
   if (!page) {
     if (project) {
@@ -402,13 +470,13 @@ app.get('/obras/:slug', async (req, res) => {
         const detailData = JSON.parse(JSON.stringify(defaultPage.details || {}));
         detailData.heroImage = project.image || (defaultPage.hero && defaultPage.hero.image);
 
-        const plantaGallery = await PlantaGallery.findOne({ projectId: project.id });
+        const plantaGallery = await PlantaGallery.findOne({ projectId: project.id }).lean();
         if (plantaGallery) {
-          detailData.plantaGallery = plantaGallery.images;
+          detailData.plantaGallery = (plantaGallery.images || []).map(normalizeImageRecord);
         }
-        const projectGallery = await ProjectGallery.findOne({ projectId: project.id });
+        const projectGallery = await ProjectGallery.findOne({ projectId: project.id }).lean();
         if (projectGallery) {
-          detailData.galleryImages = projectGallery.images;
+          detailData.galleryImages = (projectGallery.images || []).map(normalizeImageRecord);
         }
         return res.render('project', { page: defaultPage, nav: settings.nav, footer: settings.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
       }
@@ -419,16 +487,20 @@ app.get('/obras/:slug', async (req, res) => {
   const detailData = JSON.parse(JSON.stringify(page.details || {}));
   detailData.heroImage = (project && project.image) || (page.hero && page.hero.image);
 
-  const plantaGallery = await PlantaGallery.findOne({ projectId: page.id });
+  const plantaGallery = await PlantaGallery.findOne({ projectId: page.id }).lean();
   if (plantaGallery) {
-    detailData.plantaGallery = plantaGallery.images;
+    detailData.plantaGallery = (plantaGallery.images || []).map(normalizeImageRecord);
   }
-  const projectGallery = await ProjectGallery.findOne({ projectId: page.id });
+  const projectGallery = await ProjectGallery.findOne({ projectId: page.id }).lean();
   if (projectGallery) {
-    detailData.galleryImages = projectGallery.images;
+    detailData.galleryImages = (projectGallery.images || []).map(normalizeImageRecord);
   }
 
   res.render('project', { page, nav: settings.nav, footer: settings.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar projeto:', error);
+    res.status(500).send('Erro ao carregar projeto');
+  }
 });
 
 // Legacy routes; use /obras/:slug instead
@@ -443,15 +515,15 @@ app.get('/admin/dashboard', isAuthenticated, async (req, res) => {
   try {
     const settings = await Setting.findOne();
     const pages = await Page.find();
-    const projects = await Project.find();
+    const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
     
     const plantaGalleries = await PlantaGallery.find();
     const projectGalleries = await ProjectGallery.find();
     const galleries = [...plantaGalleries, ...projectGalleries];
     
     res.render('admin-dashboard-new', { 
-      nav: settings.nav, 
-      footer: settings.footer, 
+      nav: settings ? settings.nav : defaultSettings.nav, 
+      footer: settings ? settings.footer : defaultSettings.footer, 
       pages,
       projects,
       galleries,
@@ -534,6 +606,21 @@ app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+// Rota principal para edição de projetos (usa a nova view com tabs)
+app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
+  try {
+    const project = await Project.findOne({ id: req.params.id });
+    if (!project) {
+      return res.status(404).send('Projeto não encontrado');
+    }
+    // Renderizar a nova view refatorada com tabs
+    res.render('admin-edit-project-new', { project, username: req.session.admin.username });
+  } catch (error) {
+    console.error('Erro ao carregar projeto:', error);
+    res.status(500).send('Erro ao carregar projeto');
+  }
+});
+
 // Rota alternativa para compatibilidade com links antigos
 app.get('/admin/edit-project-new/:id', isAuthenticated, async (req, res) => {
   try {
@@ -541,8 +628,8 @@ app.get('/admin/edit-project-new/:id', isAuthenticated, async (req, res) => {
     if (!project) {
       return res.status(404).send('Projeto não encontrado');
     }
-    // Renderizar a nova view refatorada
-    res.render('admin-edit-project', { project, username: req.session.admin.username });
+    // Renderizar a nova view refatorada com tabs
+    res.render('admin-edit-project-new', { project, username: req.session.admin.username });
   } catch (error) {
     console.error('Erro ao carregar projeto:', error);
     res.status(500).send('Erro ao carregar projeto');
@@ -568,6 +655,8 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
       const webPath = toWebPath(req.file.path);
       projectData.image = webPath;
       console.log(`[UPLOAD] Imagem de projeto: ${req.file.originalname} → ${projectData.image}`);
+    } else if (projectData.image) {
+      projectData.image = normalizePublicPath(projectData.image);
     }
 
     const updatedProject = await Project.findOneAndUpdate({ id: req.params.id }, projectData, { new: true });
@@ -799,18 +888,30 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
   }
 });
 
-// Garantir que a pasta de galeria (incluindo /detalhe) exista para um projeto
-app.post('/admin/ensure-gallery-folder/:projectId', isAuthenticated, (req, res) => {
+// Garantir que as pastas de imagens existam para um projeto
+app.post('/admin/ensure-project-folders/:projectId', isAuthenticated, (req, res) => {
   try {
     const projectId = req.params.projectId;
     const folder = sanitizeFolderName(projectId);
-    const dest = path.join(projectGalleryBase, folder, 'detalhe');
-    fs.mkdirSync(dest, { recursive: true });
-    console.log(`[FOLDER] Garantido gallery detalhe para: ${dest}`);
-    return res.json({ success: true, path: toWebPath(dest) });
+    
+    // Criar pasta de galeria
+    const galleryDest = path.join(projectGalleryBase, folder);
+    fs.mkdirSync(galleryDest, { recursive: true });
+    console.log(`[FOLDER] Garantido gallery para: ${galleryDest}`);
+    
+    // Criar pasta de planta
+    const plantaDest = path.join(plantaBase, folder);
+    fs.mkdirSync(plantaDest, { recursive: true });
+    console.log(`[FOLDER] Garantido planta para: ${plantaDest}`);
+    
+    return res.json({ 
+      success: true, 
+      galleryPath: toWebPath(galleryDest),
+      plantaPath: toWebPath(plantaDest)
+    });
   } catch (err) {
-    console.error('[ERROR] Falha ao garantir pasta de galeria:', err);
-    return res.status(500).json({ success: false, message: 'Erro ao garantir pasta de galeria' });
+    console.error('[ERROR] Falha ao garantir pastas do projeto:', err);
+    return res.status(500).json({ success: false, message: 'Erro ao garantir pastas do projeto' });
   }
 });
 
@@ -823,7 +924,7 @@ app.post('/admin/delete-gallery-image/:projectId/:filename', isAuthenticated, as
     }
 
     const projectFolder = sanitizeFolderName(req.params.projectId);
-    const filePath = path.join(projectGalleryBase, projectFolder, 'detalhe', filename);
+    const filePath = path.join(projectGalleryBase, projectFolder, filename);
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
@@ -907,13 +1008,15 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
       return res.json({ success: false, message: 'Um projeto com este ID já existe' });
     }
 
+    const normalizedImage = image ? normalizePublicPath(image) : '';
+
     const newProject = new Project({
       id: id.trim(),
       title: title.trim(),
       description: description ? description.trim() : '',
       badge: badge ? badge.trim() : '',
       href: href ? href.trim() : `/obras/${id.trim()}`,
-      image: image ? image.trim() : '',
+      image: normalizedImage,
       category: category.trim(),
       createdAt: new Date()
     });
@@ -929,7 +1032,7 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
       hero: {
         title: title.trim(),
         subtitle: '',
-        image: image ? image.trim() : ''
+        image: normalizedImage
       },
       details: { // Detalhes textuais do projeto
         detailTag: badge ? badge.trim() : '',
@@ -952,17 +1055,12 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
     // Criar pastas dedicadas para a obra em /public/images/gallery/:projectId e /public/images/planta/:projectId
     try {
       const folderName = sanitizeFolderName(id.trim());
-        const projectGalleryPath = path.join(projectGalleryBase, folderName);
-      const projectGalleryDetailPath = path.join(projectGalleryBase, folderName, 'detalhe');
+      const projectGalleryPath = path.join(projectGalleryBase, folderName);
       const plantaPath = path.join(plantaBase, folderName);
 
       if (!fs.existsSync(projectGalleryPath)) {
         fs.mkdirSync(projectGalleryPath, { recursive: true });
         console.log(`[CREATE] Pasta da galeria geral criada: ${projectGalleryPath}`);
-      }
-      if (!fs.existsSync(projectGalleryDetailPath)) {
-        fs.mkdirSync(projectGalleryDetailPath, { recursive: true });
-        console.log(`[CREATE] Pasta da galeria detalhe criada: ${projectGalleryDetailPath}`);
       }
       if (!fs.existsSync(plantaPath)) {
         fs.mkdirSync(plantaPath, { recursive: true });
