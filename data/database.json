@@ -124,7 +124,8 @@
         ],
         "plantaTitle": "Distribuição de Espaços",
         "plantaSubtitle": "Planejado cirurgicamente para maximizar conforto e iluminação.",
-        "plantaGallery": [
+        "plantaDescription": "",
+        "plantaHighlights": [],
         "commonAreas": [
           { "label": "Rooftop Lounge", "icon": "fas fa-sun" },
           { "label": "Academia Premium", "icon": "fas fa-dumbbell" },

@@ -610,6 +610,9 @@
             <button class="tab-btn" data-tab="location">
                 <i class="fas fa-map-marker-alt"></i> Localização
             </button>
+            <button class="tab-btn" data-tab="common-areas">
+                <i class="fas fa-swimming-pool"></i> Áreas Comuns
+            </button>
             <button class="tab-btn" data-tab="gallery">
                 <i class="fas fa-images"></i> Galeria do Projeto
             </button>
@@ -649,10 +652,18 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="badge">Badge (Selo) </label>
+                                <label for="badge">Badge (Selo) — listagem</label>
                                 <input type="text" id="badge" name="badge" value="<%= project.badge || '' %>" placeholder="Ex: Em Construção">
-                                <div class="form-hint">Rótulo exibido sobre a imagem (opcional)</div>
+                                <div class="form-hint">Rótulo exibido na listagem de obras</div>
                             </div>
+                            <div class="form-group">
+                                <label for="detailTag">Tag do Projeto — página de detalhes</label>
+                                <input type="text" id="detailTag" name="detailTag" value="<%= page && page.details && page.details.detailTag ? page.details.detailTag : (project.badge || '') %>" placeholder="Ex: Lançamento Exclusivo">
+                                <div class="form-hint">Tag exibida no hero da página do projeto</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
                             <div class="form-group">
                                 <label for="href">URL Customizada </label>
                                 <input type="text" id="href" name="href" value="<%= project.href || '/obras/' + project.id %>" placeholder="/obras/nome-obra">
@@ -701,24 +712,24 @@
 
                         <div class="form-group form-row full">
                             <label for="plantaTitle">Título da Seção</label>
-                            <input type="text" id="plantaTitle" name="plantaTitle" placeholder="Ex: Distribuição de Espaços" value="">
+                            <input type="text" id="plantaTitle" name="plantaTitle" placeholder="Ex: Distribuição de Espaços" value="<%= page && page.details && page.details.plantaTitle ? page.details.plantaTitle : 'Distribuição de Espaços' %>">
                             <div class="form-hint">Título que aparecerá no site</div>
                         </div>
 
                         <div class="form-group form-row full">
                             <label for="plantaSubtitle">Subtítulo (Opcional)</label>
-                            <input type="text" id="plantaSubtitle" name="plantaSubtitle" placeholder="Ex: Conheça a organização dos ambientes" value="">
+                            <input type="text" id="plantaSubtitle" name="plantaSubtitle" placeholder="Ex: Conheça a organização dos ambientes" value="<%= page && page.details && page.details.plantaSubtitle ? page.details.plantaSubtitle : '' %>">
                         </div>
 
                         <div class="form-group form-row full">
                             <label for="plantaDescription">Descrição</label>
-                            <textarea id="plantaDescription" name="plantaDescription" placeholder="Descrição detalhada dos espaços e distribuição..."></textarea>
+                            <textarea id="plantaDescription" name="plantaDescription" placeholder="Descrição detalhada dos espaços e distribuição..."><%= page && page.details && page.details.plantaDescription ? page.details.plantaDescription : '' %></textarea>
                             <div class="form-hint">Explique como os espaços estão organizados</div>
                         </div>
 
                         <div class="form-group form-row full">
                             <label for="plantaHighlights">Destaques (um por linha)</label>
-                            <textarea id="plantaHighlights" name="plantaHighlights" placeholder="Destaque 1&#10;Destaque 2&#10;Destaque 3" style="font-family: monospace; font-size: 0.9rem;"></textarea>
+                            <textarea id="plantaHighlights" name="plantaHighlights" placeholder="Destaque 1&#10;Destaque 2&#10;Destaque 3" style="font-family: monospace; font-size: 0.9rem;"><%= page && page.details && Array.isArray(page.details.plantaHighlights) ? page.details.plantaHighlights.join('\n') : '' %></textarea>
                             <div class="form-hint">Principais características dos espaços</div>
                         </div>
                     </div>
@@ -758,26 +769,15 @@
                 <form id="technicalInfoForm">
                     <div class="section">
                         <h3><i class="fas fa-ruler-combined"></i> Informações Técnicas</h3>
-                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Dados técnicos do empreendimento</p>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Cadastre itens dinâmicos de label e value para o resumo técnico</p>
 
-                        <div class="form-group">
-                            <label for="constructionArea">Área de Construção</label>
-                            <input type="text" id="constructionArea" name="constructionArea" placeholder="Ex: 13.889,35 m²" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Área de Construção')?.value || '') : '' %>">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="landArea">Área do Terreno</label>
-                            <input type="text" id="landArea" name="landArea" placeholder="Ex: 1.875,00 m²" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Área do Terreno')?.value || '') : '' %>">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="units">Unidades</label>
-                            <input type="text" id="units" name="units" placeholder="Ex: 198 salas, 2 lojas" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Unidades')?.value || '') : '' %>">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="parkingSpaces">Vagas de Garagem</label>
-                            <input type="text" id="parkingSpaces" name="parkingSpaces" placeholder="Ex: 222 vagas de garagem" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Vagas de Garagem')?.value || '') : '' %>">
+                        <div class="form-group form-row full">
+                            <label>Itens Técnicos (dinâmicos)</label>
+                            <div id="technicalItemsContainer"></div>
+                            <button type="button" id="addTechnicalItemBtn" class="btn-upload" style="margin-top: 12px;">
+                                <i class="fas fa-plus"></i> Adicionar Item
+                            </button>
+                            <div class="form-hint">Cada item aparece na barra de resumo da página do projeto</div>
                         </div>
                     </div>
 
@@ -798,7 +798,7 @@
 
                         <div class="form-group">
                             <label for="address">Endereço Completo</label>
-                            <input type="text" id="address" name="address" placeholder="Ex: SHIN CA 02 Lote B - Lago Norte / DF" value="<%= page && page.details && page.details.location && page.details.location.features ? (page.details.location.features.find(f => f.label === 'Endereço')?.value || '') : '' %>">
+                            <input type="text" id="address" name="address" placeholder="Ex: SHIN CA 02 Lote B - Lago Norte / DF" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Endereço')?.value || '') : '' %>">
                         </div>
 
                         <div class="form-group">
@@ -813,13 +813,35 @@
 
                         <div class="form-group form-row full">
                             <label for="locationFeatures">Características (formato JSON)</label>
-                            <textarea id="locationFeatures" name="locationFeatures" placeholder='[{"label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental", "icon": "fas fa-route"}]' style="font-family: monospace; font-size: 0.85rem;"><%= page && page.details && page.details.location && page.details.location.features ? JSON.stringify(page.details.location.features.filter(f => f.label !== 'Endereço'), null, 2) : '' %></textarea>
+                            <textarea id="locationFeatures" name="locationFeatures" placeholder='[{"label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental", "icon": "fas fa-route"}]' style="font-family: monospace; font-size: 0.85rem;"><%= page && page.details && page.details.location && Array.isArray(page.details.location.features) ? JSON.stringify(page.details.location.features, null, 2) : '' %></textarea>
                             <div class="form-hint">Array de objetos com label, value e icon (classe FontAwesome)</div>
                         </div>
                     </div>
 
                     <div class="btn-group">
                         <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Localização</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: ÁREAS COMUNS -->
+        <div id="common-areas" class="tab-content">
+            <div class="form-card">
+                <form id="commonAreasForm">
+                    <div class="section">
+                        <h3><i class="fas fa-swimming-pool"></i> Áreas Comuns</h3>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Itens exibidos na seção "Conforto & Lazer" da página do projeto</p>
+
+                        <div class="form-group form-row full">
+                            <label for="commonAreas">Áreas Comuns (formato JSON)</label>
+                            <textarea id="commonAreas" name="commonAreas" placeholder='[{"label": "Rooftop Lounge", "icon": "fas fa-sun"}, {"label": "Academia Premium", "icon": "fas fa-dumbbell"}]' style="font-family: monospace; font-size: 0.85rem; min-height: 220px;"><%= page && page.details && Array.isArray(page.details.commonAreas) ? JSON.stringify(page.details.commonAreas, null, 2) : '[]' %></textarea>
+                            <div class="form-hint">Array de objetos com <code>label</code> e <code>icon</code> (classe FontAwesome)</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Áreas Comuns</button>
                     </div>
                 </form>
             </div>
@@ -866,6 +888,7 @@
         const selectedFilesMain = [];
         const selectedFilesPlanta = [];
         const selectedFilesGallery = [];
+        const initialTechnicalSummaryItems = <%- JSON.stringify((page && page.details && Array.isArray(page.details.summaryItems) ? page.details.summaryItems : []).filter(item => item && item.label !== 'Endereço')) %>;
 
         // ===== TABS =====
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1021,6 +1044,43 @@
             }
         }
 
+        function createTechnicalItemRow(item = { label: '', value: '' }) {
+            const row = document.createElement('div');
+            row.className = 'form-row';
+            row.style.marginBottom = '10px';
+            row.innerHTML = `
+                <div class="form-group">
+                    <label>Label</label>
+                    <input type="text" class="technical-label" placeholder="Ex: Área de Construção" value="${(item.label || '').replace(/"/g, '&quot;')}">
+                </div>
+                <div class="form-group">
+                    <label>Valor</label>
+                    <input type="text" class="technical-value" placeholder="Ex: 13.889,35 m²" value="${(item.value || '').replace(/"/g, '&quot;')}">
+                </div>
+                <div class="form-group" style="display:flex; align-items:flex-end;">
+                    <button type="button" class="btn-danger remove-technical-item" style="padding: 10px 12px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            row.querySelector('.remove-technical-item').addEventListener('click', () => row.remove());
+            return row;
+        }
+
+        function renderTechnicalItems(items) {
+            const container = document.getElementById('technicalItemsContainer');
+            container.innerHTML = '';
+            (items || []).forEach(item => container.appendChild(createTechnicalItemRow(item)));
+            if (!container.children.length) {
+                container.appendChild(createTechnicalItemRow());
+            }
+        }
+
+        document.getElementById('addTechnicalItemBtn').addEventListener('click', () => {
+            const container = document.getElementById('technicalItemsContainer');
+            container.appendChild(createTechnicalItemRow());
+        });
+
         // ===== SETUP DRAG & DROP PARA CADA SEÇÃO =====
         setupDragAndDrop(
             document.getElementById('mainImageDropArea'),
@@ -1055,6 +1115,7 @@
             formData.append('description', document.getElementById('description').value);
             formData.append('category', document.getElementById('category').value);
             formData.append('badge', document.getElementById('badge').value);
+            formData.append('detailTag', document.getElementById('detailTag').value);
             formData.append('href', document.getElementById('href').value);
 
             if (selectedFilesMain.length > 0) {
@@ -1124,18 +1185,19 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Salvando...';
 
-            const formData = {
-                constructionArea: document.getElementById('constructionArea').value,
-                landArea: document.getElementById('landArea').value,
-                units: document.getElementById('units').value,
-                parkingSpaces: document.getElementById('parkingSpaces').value
-            };
+            const rows = document.querySelectorAll('#technicalItemsContainer .form-row');
+            const summaryItems = [];
+            rows.forEach(row => {
+                const label = row.querySelector('.technical-label')?.value.trim() || '';
+                const value = row.querySelector('.technical-value')?.value.trim() || '';
+                if (label) summaryItems.push({ label, value });
+            });
 
             try {
                 const response = await fetch(`/admin/update-technical-info/${projectId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify({ summaryItems })
                 });
 
                 const data = await response.json();
@@ -1168,6 +1230,21 @@
                 locationFeatures: document.getElementById('locationFeatures').value
             };
 
+            const featuresRaw = formData.locationFeatures.trim();
+            if (featuresRaw) {
+                try {
+                    const parsed = JSON.parse(featuresRaw);
+                    if (!Array.isArray(parsed)) {
+                        throw new Error('locationFeatures deve ser um array JSON');
+                    }
+                } catch (parseError) {
+                    showMessage('JSON inválido em Características: ' + parseError.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Localização';
+                    return;
+                }
+            }
+
             try {
                 const response = await fetch(`/admin/update-location-info/${projectId}`, {
                     method: 'POST',
@@ -1188,6 +1265,50 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Localização';
+            }
+        });
+
+        // ===== FORM: ÁREAS COMUNS =====
+        document.getElementById('commonAreasForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
+
+            const commonAreasRaw = document.getElementById('commonAreas').value.trim();
+            let parsedCommonAreas;
+            try {
+                parsedCommonAreas = commonAreasRaw ? JSON.parse(commonAreasRaw) : [];
+                if (!Array.isArray(parsedCommonAreas)) {
+                    throw new Error('commonAreas deve ser um array JSON');
+                }
+            } catch (parseError) {
+                showMessage('JSON inválido em Áreas Comuns: ' + parseError.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Áreas Comuns';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/update-common-areas/${projectId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ commonAreas: parsedCommonAreas })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao salvar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Áreas Comuns';
             }
         });
 
@@ -1449,9 +1570,15 @@
 
         // ===== INICIALIZAÇÃO =====
         async function init() {
-            // Carregar galerias ao abrir a página
             loadPlantaGallery();
             loadGeneralGallery();
+            renderTechnicalItems(initialTechnicalSummaryItems);
+
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                const tabBtn = document.querySelector(`.tab-btn[data-tab="${hash}"]`);
+                if (tabBtn) tabBtn.click();
+            }
         }
 
         init();
