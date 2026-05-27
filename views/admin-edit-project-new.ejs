@@ -604,6 +604,12 @@
             <button class="tab-btn" data-tab="planta">
                 <i class="fas fa-building"></i> Distribuição de Espaços
             </button>
+            <button class="tab-btn" data-tab="technical">
+                <i class="fas fa-ruler-combined"></i> Informações Técnicas
+            </button>
+            <button class="tab-btn" data-tab="location">
+                <i class="fas fa-map-marker-alt"></i> Localização
+            </button>
             <button class="tab-btn" data-tab="gallery">
                 <i class="fas fa-images"></i> Galeria do Projeto
             </button>
@@ -741,6 +747,79 @@
                     <div class="btn-group">
                         <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Detalhes da Planta</button>
                         <button type="button" id="uploadPlantaBtn" class="btn-upload"><i class="fas fa-check"></i> Upload de Imagens</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: INFORMAÇÕES TÉCNICAS -->
+        <div id="technical" class="tab-content">
+            <div class="form-card">
+                <form id="technicalInfoForm">
+                    <div class="section">
+                        <h3><i class="fas fa-ruler-combined"></i> Informações Técnicas</h3>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Dados técnicos do empreendimento</p>
+
+                        <div class="form-group">
+                            <label for="constructionArea">Área de Construção</label>
+                            <input type="text" id="constructionArea" name="constructionArea" placeholder="Ex: 13.889,35 m²" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Área de Construção')?.value || '') : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="landArea">Área do Terreno</label>
+                            <input type="text" id="landArea" name="landArea" placeholder="Ex: 1.875,00 m²" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Área do Terreno')?.value || '') : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="units">Unidades</label>
+                            <input type="text" id="units" name="units" placeholder="Ex: 198 salas, 2 lojas" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Unidades')?.value || '') : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="parkingSpaces">Vagas de Garagem</label>
+                            <input type="text" id="parkingSpaces" name="parkingSpaces" placeholder="Ex: 222 vagas de garagem" value="<%= page && page.details && page.details.summaryItems ? (page.details.summaryItems.find(i => i.label === 'Vagas de Garagem')?.value || '') : '' %>">
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Informações Técnicas</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: LOCALIZAÇÃO -->
+        <div id="location" class="tab-content">
+            <div class="form-card">
+                <form id="locationForm">
+                    <div class="section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Localização</h3>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Endereço e características da localização</p>
+
+                        <div class="form-group">
+                            <label for="address">Endereço Completo</label>
+                            <input type="text" id="address" name="address" placeholder="Ex: SHIN CA 02 Lote B - Lago Norte / DF" value="<%= page && page.details && page.details.location && page.details.location.features ? (page.details.location.features.find(f => f.label === 'Endereço')?.value || '') : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="locationTitle">Título da Seção</label>
+                            <input type="text" id="locationTitle" name="locationTitle" placeholder="Ex: Localização Estratégica" value="<%= page && page.details && page.details.location ? (page.details.location.title || '') : '' %>">
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="locationDescription">Descrição</label>
+                            <textarea id="locationDescription" name="locationDescription" placeholder="Descrição da localização e seus benefícios..."><%= page && page.details && page.details.location ? (page.details.location.description || '') : '' %></textarea>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="locationFeatures">Características (formato JSON)</label>
+                            <textarea id="locationFeatures" name="locationFeatures" placeholder='[{"label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental", "icon": "fas fa-route"}]' style="font-family: monospace; font-size: 0.85rem;"><%= page && page.details && page.details.location && page.details.location.features ? JSON.stringify(page.details.location.features.filter(f => f.label !== 'Endereço'), null, 2) : '' %></textarea>
+                            <div class="form-hint">Array de objetos com label, value e icon (classe FontAwesome)</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Localização</button>
                     </div>
                 </form>
             </div>
@@ -1035,6 +1114,80 @@
             } catch (error) {
                 console.error('Erro:', error);
                 showMessage('Erro ao salvar: ' + error.message, 'error');
+            }
+        });
+
+        // ===== FORM: INFORMAÇÕES TÉCNICAS =====
+        document.getElementById('technicalInfoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
+
+            const formData = {
+                constructionArea: document.getElementById('constructionArea').value,
+                landArea: document.getElementById('landArea').value,
+                units: document.getElementById('units').value,
+                parkingSpaces: document.getElementById('parkingSpaces').value
+            };
+
+            try {
+                const response = await fetch(`/admin/update-technical-info/${projectId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao salvar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Informações Técnicas';
+            }
+        });
+
+        // ===== FORM: LOCALIZAÇÃO =====
+        document.getElementById('locationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
+
+            const formData = {
+                address: document.getElementById('address').value,
+                locationTitle: document.getElementById('locationTitle').value,
+                locationDescription: document.getElementById('locationDescription').value,
+                locationFeatures: document.getElementById('locationFeatures').value
+            };
+
+            try {
+                const response = await fetch(`/admin/update-location-info/${projectId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao salvar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Localização';
             }
         });
 

@@ -613,8 +613,10 @@ app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
     if (!project) {
       return res.status(404).send('Projeto não encontrado');
     }
+    // Buscar página correspondente para obter detalhes técnicos e localização
+    const page = await Page.findOne({ id: req.params.id });
     // Renderizar a nova view refatorada com tabs
-    res.render('admin-edit-project-new', { project, username: req.session.admin.username });
+    res.render('admin-edit-project-new', { project, page, username: req.session.admin.username });
   } catch (error) {
     console.error('Erro ao carregar projeto:', error);
     res.status(500).send('Erro ao carregar projeto');
@@ -628,8 +630,10 @@ app.get('/admin/edit-project-new/:id', isAuthenticated, async (req, res) => {
     if (!project) {
       return res.status(404).send('Projeto não encontrado');
     }
+    // Buscar página correspondente para obter detalhes técnicos e localização
+    const page = await Page.findOne({ id: req.params.id });
     // Renderizar a nova view refatorada com tabs
-    res.render('admin-edit-project-new', { project, username: req.session.admin.username });
+    res.render('admin-edit-project-new', { project, page, username: req.session.admin.username });
   } catch (error) {
     console.error('Erro ao carregar projeto:', error);
     res.status(500).send('Erro ao carregar projeto');
@@ -802,6 +806,174 @@ app.post('/admin/delete-planta-image/:projectId/:filename', isAuthenticated, asy
   } catch (error) {
     console.error('[ERROR] Erro ao remover imagem de planta:', error);
     res.status(500).json({ success: false, message: 'Erro ao remover imagem de planta: ' + error.message });
+  }
+});
+
+// ===== ROTAS PARA INFORMAÇÕES TÉCNICAS E LOCALIZAÇÃO =====
+
+app.post('/admin/update-technical-info/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const { constructionArea, landArea, units, parkingSpaces } = req.body;
+    const projectId = req.params.projectId;
+
+    console.log(`[DEBUG] Recebendo dados técnicos para projeto: ${projectId}`);
+    console.log(`[DEBUG] Dados recebidos:`, { constructionArea, landArea, units, parkingSpaces });
+
+    // Buscar a página correspondente ao projeto
+    const page = await Page.findOne({ id: projectId });
+    if (!page) {
+      console.log(`[DEBUG] Página não encontrada para projeto: ${projectId}`);
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    console.log(`[DEBUG] Página encontrada:`, page.id);
+
+    // Atualizar informações técnicas em details
+    if (!page.details) page.details = {};
+    if (!page.details.summaryItems) page.details.summaryItems = [];
+
+    // Preservar endereço se existir
+    const existingAddress = page.details.summaryItems.find(item => item.label === 'Endereço');
+
+    // Atualizar summaryItems
+    page.details.summaryItems = [
+      existingAddress || { label: 'Endereço', value: '' },
+      { label: 'Área de Construção', value: constructionArea || '' },
+      { label: 'Área do Terreno', value: landArea || '' },
+      { label: 'Unidades', value: units || '' },
+      { label: 'Vagas de Garagem', value: parkingSpaces || '' }
+    ];
+
+    console.log(`[DEBUG] summaryItems atualizados:`, page.details.summaryItems);
+
+    await page.save();
+    console.log(`[UPDATE] Informações técnicas atualizadas para: ${projectId}`);
+
+    res.json({ success: true, message: 'Informações técnicas salvas com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar informações técnicas:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar informações técnicas: ' + error.message });
+  }
+});
+
+app.post('/admin/update-location-info/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const { address, locationTitle, locationDescription, locationFeatures } = req.body;
+    const projectId = req.params.projectId;
+
+    console.log(`[DEBUG] Recebendo dados de localização para projeto: ${projectId}`);
+    console.log(`[DEBUG] Dados recebidos:`, { address, locationTitle, locationDescription, locationFeatures });
+
+    // Buscar a página correspondente ao projeto
+    const page = await Page.findOne({ id: projectId });
+    if (!page) {
+      console.log(`[DEBUG] Página não encontrada para projeto: ${projectId}`);
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    console.log(`[DEBUG] Página encontrada:`, page.id);
+
+    // Atualizar localização em details
+    if (!page.details) page.details = {};
+    if (!page.details.summaryItems) page.details.summaryItems = [];
+    if (!page.details.location) page.details.location = {};
+
+    // Preservar todos os itens existentes do summaryItems
+    const existingSummaryItems = [...page.details.summaryItems];
+
+    // Atualizar endereço no summaryItems (preservando outros itens)
+    const addressIndex = page.details.summaryItems.findIndex(item => item.label === 'Endereço');
+    if (addressIndex > -1) {
+      page.details.summaryItems[addressIndex].value = address || '';
+    } else {
+      page.details.summaryItems.unshift({ label: 'Endereço', value: address || '' });
+    }
+
+    // Atualizar location
+    page.details.location = {
+      title: locationTitle || 'Localização',
+      description: locationDescription || '',
+      features: []
+    };
+
+    // Parse e adicionar features se fornecidas
+    if (locationFeatures) {
+      try {
+        const parsedFeatures = JSON.parse(locationFeatures);
+        if (Array.isArray(parsedFeatures)) {
+          page.details.location.features = parsedFeatures;
+        }
+      } catch (e) {
+        console.warn('[WARN] Não foi possível parsear locationFeatures como JSON:', e);
+      }
+    }
+
+    // Garantir que todos os itens técnicos sejam preservados
+    const technicalItems = ['Área de Construção', 'Área do Terreno', 'Unidades', 'Vagas de Garagem'];
+    technicalItems.forEach(label => {
+      const existingItem = existingSummaryItems.find(item => item.label === label);
+      if (existingItem && !page.details.summaryItems.find(item => item.label === label)) {
+        page.details.summaryItems.push(existingItem);
+      }
+    });
+
+    console.log(`[DEBUG] location atualizado:`, page.details.location);
+    console.log(`[DEBUG] summaryItems atualizado:`, page.details.summaryItems);
+    console.log(`[DEBUG] Estado completo do details antes do save:`, JSON.stringify(page.details, null, 2));
+
+    await page.save();
+    console.log(`[UPDATE] Informações de localização atualizadas para: ${projectId}`);
+
+    res.json({ success: true, message: 'Informações de localização salvas com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar informações de localização:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar informações de localização: ' + error.message });
+  }
+});
+
+app.post('/admin/update-common-areas/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const { commonAreas } = req.body;
+    const projectId = req.params.projectId;
+
+    console.log(`[DEBUG] Recebendo dados de commonAreas para projeto: ${projectId}`);
+    console.log(`[DEBUG] Dados recebidos:`, commonAreas);
+
+    // Buscar a página correspondente ao projeto
+    const page = await Page.findOne({ id: projectId });
+    if (!page) {
+      console.log(`[DEBUG] Página não encontrada para projeto: ${projectId}`);
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    console.log(`[DEBUG] Página encontrada:`, page.id);
+
+    // Atualizar commonAreas em details
+    if (!page.details) page.details = {};
+    if (!page.details.commonAreas) page.details.commonAreas = [];
+
+    // Parse e salvar commonAreas se fornecidos
+    if (commonAreas) {
+      try {
+        const parsedCommonAreas = JSON.parse(commonAreas);
+        if (Array.isArray(parsedCommonAreas)) {
+          page.details.commonAreas = parsedCommonAreas;
+        }
+      } catch (e) {
+        console.warn('[WARN] Não foi possível parsear commonAreas como JSON:', e);
+        return res.status(400).json({ success: false, message: 'Formato inválido para commonAreas. Deve ser um array JSON.' });
+      }
+    }
+
+    console.log(`[DEBUG] commonAreas atualizado:`, page.details.commonAreas);
+
+    await page.save();
+    console.log(`[UPDATE] Áreas comuns atualizadas para: ${projectId}`);
+
+    res.json({ success: true, message: 'Áreas comuns salvas com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar áreas comuns:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar áreas comuns: ' + error.message });
   }
 });
 
@@ -1038,8 +1210,15 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
         detailTag: badge ? badge.trim() : '',
         summaryItems: [],
         plantaTitle: 'Distribuição de Espaços',
+        plantaSubtitle: '',
         plantaDescription: '',
-        plantaHighlights: []
+        plantaHighlights: [],
+        commonAreas: [],
+        location: {
+          title: 'Localização',
+          description: '',
+          features: []
+        }
       },
       createdAt: new Date()
     });
