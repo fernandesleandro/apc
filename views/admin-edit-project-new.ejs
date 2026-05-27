@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Projeto: <%= project.title %> | AP Construções</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+        }
+
+        .edit-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: #a2aec5;
+            font-weight: 800;
+        }
+
+        .page-header-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: #cbd5e0;
+            transform: translateX(-3px);
+        }
+
+        /* MENSAGENS DE STATUS */
+        .message-container {
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message {
+            padding: 16px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .message i {
+            font-size: 1.2rem;
+        }
+
+        /* ABAS / TABS */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
+
+        .tab-btn {
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-btn:hover {
+            color: #0073ff;
+        }
+
+        .tab-btn.active {
+            color: #0073ff;
+            border-bottom-color: #0073ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* CARDS E FORMS */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section h3 {
+            font-size: 1.1rem;
+            color: #1a202c;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+
+        label .required {
+            color: #e53e3e;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #0073ff;
+            box-shadow: 0 0 0 3px rgba(0, 115, 255, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .form-hint {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 6px;
+        }
+
+        /* UPLOAD SECTION */
+        .upload-section {
+            margin-top: 30px;
+        }
+
+        .drop-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+
+        .drop-area:hover {
+            border-color: #0073ff;
+            background: #eef2ff;
+        }
+
+        .drop-area.highlight {
+            border-color: #0073ff;
+            background: #eef2ff;
+            box-shadow: 0 0 0 3px rgba(0, 115, 255, 0.1);
+        }
+
+        .drop-area i {
+            font-size: 2.5rem;
+            color: #0073ff;
+            margin-bottom: 10px;
+        }
+
+        .drop-area p {
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .drop-area .small {
+            font-size: 0.85rem;
+            color: #a0aec0;
+        }
+
+        /* GALLERY */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+            background: #f7fafc;
+            min-height: 150px;
+        }
+
+        .gallery-item:hover {
+            border-color: #0073ff;
+            box-shadow: 0 4px 12px rgba(0, 115, 255, 0.15);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .gallery-item-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .gallery-item:hover .gallery-item-overlay {
+            opacity: 1;
+        }
+
+        .gallery-item-overlay button {
+            flex: 1;
+            padding: 6px 10px;
+            background: white;
+            color: #e53e3e;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .gallery-item-overlay button:hover {
+            background: #fed7d7;
+        }
+
+        .empty-gallery {
+            grid-column: 1 / -1;
+            padding: 40px 20px;
+            text-align: center;
+            color: #a0aec0;
+        }
+
+        /* UPLOAD PREVIEW */
+        .upload-preview-container {
+            margin-top: 20px;
+        }
+
+        .upload-preview-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .upload-preview-item img {
+            width: 100px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .upload-preview-content {
+            flex: 1;
+        }
+
+        .upload-preview-content .file-name {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .upload-preview-content .file-size {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 3px;
+        }
+
+        .upload-preview-inputs {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .upload-preview-inputs input {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+        }
+
+        .upload-status {
+            font-size: 0.85rem;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .upload-status.loading {
+            display: block;
+            background: #eef2ff;
+            color: #0073ff;
+        }
+
+        .upload-status.success {
+            display: block;
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .upload-status.error {
+            display: block;
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .progress-bar-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0073ff, #005bc2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* BUTTONS */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0073ff 0%, #005bc2 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 115, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+            display: inline-block;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-upload.active {
+            display: inline-block;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #f56565;
+        }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .tabs-container {
+                gap: 5px;
+            }
+
+            .tab-btn {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+
+            .drop-area {
+                padding: 30px 20px;
+            }
+
+            .gallery-container {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 12px;
+            }
+
+            .upload-preview-item {
+                flex-direction: column;
+            }
+
+            .upload-preview-item img {
+                width: 100%;
+                height: 120px;
+            }
+        }
+
+        /* HIDDEN */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body style="background-color: #001a4d !important; background: #001a4d !important;">
+    <div class="edit-container" style="background-color: #001a4d !important;">
+        <!-- HEADER -->
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-edit"></i> Editar Projeto</h1>
+                <p style="color: #718096; margin-top: 5px;">
+                    <strong><%= project.title %></strong> | ID: <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;"><%= project.id %></code>
+                </p>
+            </div>
+            <div class="page-header-meta">
+                <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+            </div>
+        </div>
+
+        <!-- MENSAGEM -->
+        <div id="messageContainer" class="message-container">
+            <div id="message" class="message"></div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="info">
+                <i class="fas fa-info-circle"></i> Informações Básicas
+            </button>
+            <button class="tab-btn" data-tab="planta">
+                <i class="fas fa-building"></i> Distribuição de Espaços
+            </button>
+            <button class="tab-btn" data-tab="gallery">
+                <i class="fas fa-images"></i> Galeria do Projeto
+            </button>
+        </div>
+
+        <!-- TAB: INFORMAÇÕES BÁSICAS -->
+        <div id="info" class="tab-content active">
+            <div class="form-card">
+                <form id="basicInfoForm">
+                    <div class="section">
+                        <h3><i class="fas fa-heading"></i> Dados do Projeto</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title">Título do Projeto <span class="required">*</span></label>
+                                <input type="text" id="title" name="title" value="<%= project.title %>" required>
+                                <div class="form-hint">Nome do empreendimento</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Categoria <span class="required">*</span></label>
+                                <select id="category" name="category" required>
+                                    <option value="">Selecionar categoria</option>
+                                    <option value="residencial" <% if (project.category === 'residencial') { %>selected<% } %>>Residencial</option>
+                                    <option value="comercial" <% if (project.category === 'comercial') { %>selected<% } %>>Comercial</option>
+                                    <option value="misto" <% if (project.category === 'misto') { %>selected<% } %>>Misto</option>
+                                    <option value="outro" <% if (project.category === 'outro') { %>selected<% } %>>Outro</option>
+                                </select>
+                                <div class="form-hint">Tipo de empreendimento</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="description">Descrição <span class="required">*</span></label>
+                            <textarea id="description" name="description" required placeholder="Descrição geral do projeto"><%= project.description %></textarea>
+                            <div class="form-hint">Texto que aparecerá na listagem de obras</div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="badge">Badge (Selo) </label>
+                                <input type="text" id="badge" name="badge" value="<%= project.badge || '' %>" placeholder="Ex: Em Construção">
+                                <div class="form-hint">Rótulo exibido sobre a imagem (opcional)</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="href">URL Customizada </label>
+                                <input type="text" id="href" name="href" value="<%= project.href || '/obras/' + project.id %>" placeholder="/obras/nome-obra">
+                                <div class="form-hint">URL de acesso ao projeto</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- IMAGEM PRINCIPAL -->
+                    <div class="section upload-section">
+                        <h3><i class="fas fa-image"></i> Imagem Principal do Projeto</h3>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Esta imagem aparecerá na listagem de obras e na página do projeto</p>
+
+                        <% if (project.image) { %>
+                            <div style="margin-bottom: 20px;">
+                                <p style="margin-bottom: 10px; font-weight: 600; color: #2d3748;">Imagem Atual</p>
+                                <img src="<%= project.image %>" alt="<%= project.title %>" style="max-width: 400px; max-height: 300px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                            </div>
+                        <% } %>
+
+                        <div class="drop-area" id="mainImageDropArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Arraste uma imagem aqui</strong></p>
+                            <p class="small">ou clique para selecionar (máximo 50MB)</p>
+                        </div>
+                        <input type="file" id="mainImageInput" style="display: none;" accept="image/*">
+
+                        <div id="mainImagePreviewContainer" class="upload-preview-container"></div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Informações</button>
+                        <a href="/admin/dashboard" class="btn-secondary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i> Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: DISTRIBUIÇÃO DE ESPAÇOS -->
+        <div id="planta" class="tab-content">
+            <div class="form-card">
+                <form id="plantaDetailsForm">
+                    <div class="section">
+                        <h3><i class="fas fa-layer-group"></i> Informações da Distribuição de Espaços</h3>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Organize aqui as imagens de plantas, implantação e detalhes dos espaços</p>
+
+                        <div class="form-group form-row full">
+                            <label for="plantaTitle">Título da Seção</label>
+                            <input type="text" id="plantaTitle" name="plantaTitle" placeholder="Ex: Distribuição de Espaços" value="">
+                            <div class="form-hint">Título que aparecerá no site</div>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="plantaSubtitle">Subtítulo (Opcional)</label>
+                            <input type="text" id="plantaSubtitle" name="plantaSubtitle" placeholder="Ex: Conheça a organização dos ambientes" value="">
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="plantaDescription">Descrição</label>
+                            <textarea id="plantaDescription" name="plantaDescription" placeholder="Descrição detalhada dos espaços e distribuição..."></textarea>
+                            <div class="form-hint">Explique como os espaços estão organizados</div>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="plantaHighlights">Destaques (um por linha)</label>
+                            <textarea id="plantaHighlights" name="plantaHighlights" placeholder="Destaque 1&#10;Destaque 2&#10;Destaque 3" style="font-family: monospace; font-size: 0.9rem;"></textarea>
+                            <div class="form-hint">Principais características dos espaços</div>
+                        </div>
+                    </div>
+
+                    <div class="section upload-section">
+                        <h3><i class="fas fa-image"></i> Imagens de Plantas/Implantação</h3>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">As imagens serão armazenadas em <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;">/images/planta/<%= project.id %>/</code></p>
+
+                        <div class="drop-area" id="plantaDropArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Arraste imagens aqui</strong></p>
+                            <p class="small">ou clique para selecionar (máximo 50MB cada)</p>
+                        </div>
+                        <input type="file" id="plantaInput" style="display: none;" multiple accept="image/*">
+
+                        <div id="plantaPreviewContainer" class="upload-preview-container"></div>
+                    </div>
+
+                    <div id="plantaGalleryContainer" class="section">
+                        <h3><i class="fas fa-photo-film"></i> Imagens Enviadas</h3>
+                        <div id="plantaGallery" class="gallery-container">
+                            <div class="empty-gallery">Nenhuma imagem enviada ainda</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Detalhes da Planta</button>
+                        <button type="button" id="uploadPlantaBtn" class="btn-upload"><i class="fas fa-check"></i> Upload de Imagens</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: GALERIA GERAL -->
+        <div id="gallery" class="tab-content">
+            <div class="form-card">
+                <div class="section">
+                    <h3><i class="fas fa-image"></i> Galeria do Projeto</h3>
+                    <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Imagens gerais, detalhes construtivos e vistas do empreendimento. As imagens serão armazenadas em <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;">/images/gallery/<%= project.id %>/</code></p>
+
+                    <form id="galleryForm">
+                        <div class="drop-area" id="galleryDropArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Arraste imagens aqui</strong></p>
+                            <p class="small">ou clique para selecionar (máximo 50MB cada)</p>
+                        </div>
+                        <input type="file" id="galleryInput" style="display: none;" multiple accept="image/*">
+
+                        <div id="galleryPreviewContainer" class="upload-preview-container"></div>
+                    </form>
+                </div>
+
+                <div id="galleryGalleryContainer" class="section">
+                    <h3><i class="fas fa-photo-film"></i> Imagens Enviadas</h3>
+                    <div id="galleryGallery" class="gallery-container">
+                        <div class="empty-gallery">Nenhuma imagem enviada ainda</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" id="uploadGalleryBtn" class="btn-upload" style="display: inline-block !important;"><i class="fas fa-check"></i> Upload de Imagens</button>
+                    <button type="button" id="saveGalleryBtn" class="btn-primary"><i class="fas fa-save"></i> Salvar Galeria</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // ===== VARIÁVEIS GLOBAIS =====
+        const projectId = '<%= project.id %>';
+        const selectedFilesMain = [];
+        const selectedFilesPlanta = [];
+        const selectedFilesGallery = [];
+
+        // ===== TABS =====
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.getAttribute('data-tab');
+                
+                // Remover active de todos os abas e conteúdo
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Adicionar active ao clicado
+                btn.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // ===== MENSAGENS =====
+        function showMessage(message, type = 'success') {
+            const container = document.getElementById('messageContainer');
+            const messageEl = document.getElementById('message');
+            
+            messageEl.textContent = message;
+            messageEl.className = `message ${type}`;
+            messageEl.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.style.display = 'block';
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 5000);
+        }
+
+        function setUploadStatus(preview, text, statusClass) {
+            const statusEl = preview.querySelector('.upload-status');
+            const iconEl = preview.querySelector('.upload-status-icon');
+            if (!statusEl) return;
+            statusEl.textContent = text;
+            statusEl.className = `upload-status ${statusClass}`;
+            
+            // Mostrar/ocultar ícone de spinner baseado no status
+            if (iconEl) {
+                iconEl.style.display = statusClass === 'loading' ? 'block' : 'none';
+            }
+            
+            // Ocultar texto de status quando estiver em loading
+            if (statusClass === 'loading') {
+                statusEl.style.display = 'none';
+            } else {
+                statusEl.style.display = 'block';
+            }
+        }
+
+        function uploadFileWithProgress(url, formData) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', url);
+
+                xhr.onload = () => {
+                    let data;
+                    try {
+                        data = xhr.responseText ? JSON.parse(xhr.responseText) : {};
+                    } catch (parseError) {
+                        data = { success: false, message: 'Resposta inválida do servidor' };
+                    }
+
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(data);
+                    } else {
+                        const message = data && data.message ? data.message : `Erro de upload: ${xhr.status} ${xhr.statusText}`;
+                        reject(new Error(message));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error('Falha na requisição de upload'));
+                xhr.send(formData);
+            });
+        }
+
+        // ===== DRAG & DROP GENÉRICO =====
+        function setupDragAndDrop(dropArea, fileInput, selectedFiles, previewContainer) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'));
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'));
+            });
+
+            dropArea.addEventListener('drop', (e) => handleDrop(e, selectedFiles, previewContainer));
+            dropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleFileSelection(e.target.files, selectedFiles, previewContainer));
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+
+        function handleDrop(e, selectedFiles, previewContainer) {
+            const files = e.dataTransfer.files;
+            handleFileSelection(files, selectedFiles, previewContainer);
+        }
+
+        function handleFileSelection(files, selectedFiles, previewContainer) {
+            for (const file of files) {
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                    displayFilePreview(file, previewContainer, selectedFiles);
+                }
+            }
+        }
+
+        function displayFilePreview(file, previewContainer, selectedFiles) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const previewItem = document.createElement('div');
+                previewItem.classList.add('upload-preview-item');
+                previewItem.innerHTML = `
+                    <img src="${reader.result}" alt="${file.name}">
+                    <div class="upload-preview-content">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        <div class="upload-preview-inputs">
+                            <input type="text" class="alt-text" placeholder="Descrição (obrigatório)" required>
+                            <input type="text" class="title-text" placeholder="Título (opcional)">
+                            <button type="button" class="btn-danger" style="padding: 8px 12px;" onclick="removePreview(this, '${file.name}', ${selectedFiles === selectedFilesMain ? 'selectedFilesMain' : selectedFiles === selectedFilesPlanta ? 'selectedFilesPlanta' : 'selectedFilesGallery'})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>                        
+                        <div class="upload-status-icon" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </div>
+                `;
+                previewContainer.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePreview(btn, fileName, fileList) {
+            btn.closest('.upload-preview-item').remove();
+            // Remover do array
+            const index = window[fileList].findIndex(f => f.name === fileName);
+            if (index > -1) {
+                window[fileList].splice(index, 1);
+            }
+        }
+
+        // ===== SETUP DRAG & DROP PARA CADA SEÇÃO =====
+        setupDragAndDrop(
+            document.getElementById('mainImageDropArea'),
+            document.getElementById('mainImageInput'),
+            selectedFilesMain,
+            document.getElementById('mainImagePreviewContainer')
+        );
+
+        setupDragAndDrop(
+            document.getElementById('plantaDropArea'),
+            document.getElementById('plantaInput'),
+            selectedFilesPlanta,
+            document.getElementById('plantaPreviewContainer')
+        );
+
+        setupDragAndDrop(
+            document.getElementById('galleryDropArea'),
+            document.getElementById('galleryInput'),
+            selectedFilesGallery,
+            document.getElementById('galleryPreviewContainer')
+        );
+
+        // ===== FORM: INFORMAÇÕES BÁSICAS =====
+        document.getElementById('basicInfoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvando...';
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('category', document.getElementById('category').value);
+            formData.append('badge', document.getElementById('badge').value);
+            formData.append('href', document.getElementById('href').value);
+
+            if (selectedFilesMain.length > 0) {
+                formData.append('imageFile', selectedFilesMain[0]);
+            }
+
+            try {
+                const response = await fetch(`/admin/save-project/${projectId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    selectedFilesMain.length = 0;
+                    document.getElementById('mainImagePreviewContainer').innerHTML = '';
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao salvar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Informações';
+            }
+        });
+
+        // ===== FORM: DETALHES DA PLANTA =====
+        document.getElementById('plantaDetailsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                plantaTitle: document.getElementById('plantaTitle').value,
+                plantaSubtitle: document.getElementById('plantaSubtitle').value,
+                plantaDescription: document.getElementById('plantaDescription').value,
+                plantaHighlights: document.getElementById('plantaHighlights').value.split('\n').filter(h => h.trim()).map(h => h.trim())
+            };
+
+            try {
+                const response = await fetch(`/admin/update-planta-details/${projectId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao salvar: ' + error.message, 'error');
+            }
+        });
+
+        // ===== FUNÇÃO GENÉRICA DE UPLOAD =====
+        async function uploadFilesGeneric(filesArray, endpoint, previewContainerId, galleryCB) {
+            if (!filesArray || filesArray.length === 0) {
+                Swal.fire('Atenção', 'Nenhuma imagem selecionada', 'warning');
+                return false;
+            }
+
+            const container = document.getElementById(previewContainerId);
+            const previews = container.querySelectorAll('.upload-preview-item');
+            let uploadedCount = 0;
+            let totalCount = filesArray.length;
+
+            console.log(`[UPLOAD] Iniciando: ${totalCount} arquivo(s) → ${endpoint}/${projectId}`);
+
+            for (let i = 0; i < filesArray.length; i++) {
+                const file = filesArray[i];
+                const preview = previews[i];
+
+                if (!preview) {
+                    console.warn(`[UPLOAD] Preview não encontrado para índice ${i}`);
+                    continue;
+                }
+
+                const altText = preview.querySelector('.alt-text')?.value.trim();
+                const titleText = preview.querySelector('.title-text')?.value.trim();
+
+                if (!altText) {
+                    Swal.fire('Erro', `Descrição (alt) é obrigatória para ${file.name}`, 'error');
+                    return false;
+                }
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('alt', altText);
+                formData.append('title', titleText);
+
+                try {
+                    setUploadStatus(preview, 'Carregando...', 'loading');
+
+                    const data = await uploadFileWithProgress(`${endpoint}/${projectId}`, formData);
+
+                    if (data.success) {
+                        setUploadStatus(preview, '✓ Upload concluído', 'success');
+                        uploadedCount++;
+                        console.log(`[UPLOAD] ✓ ${file.name} (${uploadedCount}/${totalCount})`);
+                    } else {
+                        setUploadStatus(preview, '✕ Erro: ' + data.message, 'error');
+                        console.error(`[UPLOAD] ✕ ${file.name}: ${data.message}`);
+                    }
+                } catch (error) {
+                    setUploadStatus(preview, '✕ Erro: ' + error.message, 'error');
+                    console.error(`[UPLOAD] ✕ ${file.name}:`, error.message);
+                }
+            }
+
+            console.log(`[UPLOAD] Fim: ${uploadedCount}/${totalCount} arquivo(s)`);
+
+            if (uploadedCount === totalCount && uploadedCount > 0) {
+                setTimeout(() => {
+                    showMessage('Todas as imagens foram carregadas com sucesso!', 'success');
+                    filesArray.length = 0;
+                    container.innerHTML = '';
+                    if (galleryCB) galleryCB();
+                }, 500);
+                return true;
+            }
+
+            if (uploadedCount > 0 && uploadedCount < totalCount) {
+                showMessage(`${uploadedCount} de ${totalCount} imagem(ns) carregada(s).`, 'error');
+            }
+
+            return uploadedCount === totalCount;
+        }
+
+        // ===== UPLOAD: PLANTAS =====
+        document.getElementById('uploadPlantaBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('uploadPlantaBtn');
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            
+            await uploadFilesGeneric(selectedFilesPlanta, '/admin/upload-planta', 'plantaPreviewContainer', loadPlantaGallery);
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Upload de Imagens';
+        });
+
+        // ===== UPLOAD: GALERIA GERAL =====
+        async function uploadGalleryFiles() {
+            try {
+                const ensureResp = await fetch(`/admin/ensure-project-folders/${projectId}`, { method: 'POST' });
+                if (!ensureResp.ok) {
+                    console.warn('[UPLOAD] ensure-project-folders responded with', ensureResp.status);
+                }
+            } catch (err) {
+                console.error('[UPLOAD] Falha ao garantir pastas do projeto:', err);
+            }
+
+            const galleryInputEl = document.getElementById('galleryInput');
+            if (selectedFilesGallery.length === 0 && galleryInputEl?.files?.length > 0) {
+                console.log('[UPLOAD] Preenchendo selectedFilesGallery a partir de galleryInput.files (fallback)');
+                for (const f of galleryInputEl.files) {
+                    displayFilePreview(f, document.getElementById('galleryPreviewContainer'), selectedFilesGallery);
+                }
+            }
+
+            return await uploadFilesGeneric(selectedFilesGallery, '/admin/upload-gallery', 'galleryPreviewContainer', loadGeneralGallery);
+        }
+
+        const uploadGalleryBtn = document.getElementById('uploadGalleryBtn');
+        const saveGalleryBtn = document.getElementById('saveGalleryBtn');
+
+        if (uploadGalleryBtn) {
+            uploadGalleryBtn.addEventListener('click', async () => {
+                uploadGalleryBtn.disabled = true;
+                uploadGalleryBtn.textContent = 'Enviando...';
+                await uploadGalleryFiles();
+                uploadGalleryBtn.disabled = false;
+                uploadGalleryBtn.innerHTML = '<i class="fas fa-check"></i> Upload de Imagens';
+            });
+        }
+
+        if (saveGalleryBtn) {
+            saveGalleryBtn.addEventListener('click', async () => {
+                saveGalleryBtn.disabled = true;
+                saveGalleryBtn.textContent = 'Salvando...';
+                const success = await uploadGalleryFiles();
+                if (success) {
+                    showMessage('A galeria foi salva.', 'success');
+                }
+                saveGalleryBtn.disabled = false;
+                saveGalleryBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Galeria';
+            });
+        }
+
+        // ===== CARREGAR GALERIAS =====
+        async function loadPlantaGallery() {
+            try {
+                const galleryEl = document.getElementById('plantaGallery');
+                
+                // Fetch data would happen here, for now we'll show empty state
+                fetch(`/admin/get-planta-gallery/${projectId}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.images && data.images.length > 0) {
+                            galleryEl.innerHTML = data.images.map(img => `
+                                <div class="gallery-item">
+                                    <img src="${img.src}" alt="${img.alt}">
+                                    <div class="gallery-item-overlay">
+                                        <button onclick="deletePlantaImage('${img.src.split('/').pop().split('?')[0]}')">
+                                            <i class="fas fa-trash"></i> Deletar
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        } else {
+                            galleryEl.innerHTML = '<div class="empty-gallery">Nenhuma imagem enviada ainda</div>';
+                        }
+                    })
+                    .catch(err => {
+                        galleryEl.innerHTML = '<div class="empty-gallery">Erro ao carregar galeria</div>';
+                    });
+            } catch (error) {
+                console.error('Erro ao carregar galeria de planta:', error);
+            }
+        }
+
+        async function loadGeneralGallery() {
+            try {
+                const galleryEl = document.getElementById('galleryGallery');
+                
+                fetch(`/admin/get-gallery/${projectId}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.images && data.images.length > 0) {
+                            galleryEl.innerHTML = data.images.map(img => `
+                                <div class="gallery-item">
+                                    <img src="${img.src}" alt="${img.alt}">
+                                    <div class="gallery-item-overlay">
+                                        <button onclick="deleteGalleryImage('${img.src.split('/').pop().split('?')[0]}')">
+                                            <i class="fas fa-trash"></i> Deletar
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        } else {
+                            galleryEl.innerHTML = '<div class="empty-gallery">Nenhuma imagem enviada ainda</div>';
+                        }
+                    })
+                    .catch(err => {
+                        galleryEl.innerHTML = '<div class="empty-gallery">Erro ao carregar galeria</div>';
+                    });
+            } catch (error) {
+                console.error('Erro ao carregar galeria geral:', error);
+            }
+        }
+
+        async function deletePlantaImage(filename) {
+            const result = await Swal.fire({
+                title: 'Confirmar exclusão',
+                text: 'Deseja remover esta imagem?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e53e3e',
+                confirmButtonText: 'Sim, deletar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/delete-planta-image/${projectId}/${filename}`, {
+                        method: 'POST'
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Imagem deletada com sucesso!', 'success');
+                        loadPlantaGallery();
+                    } else {
+                        showMessage('Erro ao deletar imagem', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Erro ao deletar: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function deleteGalleryImage(filename) {
+            const result = await Swal.fire({
+                title: 'Confirmar exclusão',
+                text: 'Deseja remover esta imagem?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e53e3e',
+                confirmButtonText: 'Sim, deletar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/delete-gallery-image/${projectId}/${filename}`, {
+                        method: 'POST'
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Imagem deletada com sucesso!', 'success');
+                        loadGeneralGallery();
+                    } else {
+                        showMessage('Erro ao deletar imagem', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Erro ao deletar: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // ===== INICIALIZAÇÃO =====
+        async function init() {
+            // Carregar galerias ao abrir a página
+            loadPlantaGallery();
+            loadGeneralGallery();
+        }
+
+        init();
+    </script>
+</body>
+</html>
