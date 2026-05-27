@@ -927,13 +927,9 @@
         async function parseApiJson(response) {
             const contentType = response.headers.get('content-type') || '';
             if (response.status === 401 || response.status === 403) {
-                let data = null;
-                if (contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    await response.text();
-                }
-                throw new Error((data && data.message) || 'Sessão expirada. Faça login novamente.');
+                // Fluxo simples: se não autorizado, volta para login.
+                window.location.href = '/admin/login';
+                throw new Error('Não autorizado.');
             }
 
             if (!contentType.includes('application/json')) {
@@ -1150,6 +1146,7 @@
             try {
                 const response = await fetch(`/admin/save-project/${projectId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 });
@@ -1161,11 +1158,6 @@
                     document.getElementById('mainImagePreviewContainer').innerHTML = '';
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    if (response.status === 401) {
-                        showMessage('Sessão expirada. Redirecionando para login...', 'error');
-                        setTimeout(() => window.location.href = '/admin/login', 1200);
-                        return;
-                    }
                     showMessage(data.message, 'error');
                 }
             } catch (error) {
@@ -1191,6 +1183,7 @@
             try {
                 const response = await fetch(`/admin/update-planta-details/${projectId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify(formData)
                 });
@@ -1225,6 +1218,7 @@
             try {
                 const response = await fetch(`/admin/update-technical-info/${projectId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ summaryItems })
                 });
@@ -1276,6 +1270,7 @@
             try {
                 const response = await fetch(`/admin/update-location-info/${projectId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify(formData)
                 });
@@ -1319,6 +1314,7 @@
             try {
                 const response = await fetch(`/admin/update-common-areas/${projectId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ commonAreas: parsedCommonAreas })
                 });
@@ -1427,7 +1423,7 @@
         // ===== UPLOAD: GALERIA GERAL =====
         async function uploadGalleryFiles() {
             try {
-                const ensureResp = await fetch(`/admin/ensure-project-folders/${projectId}`, { method: 'POST' });
+                const ensureResp = await fetch(`/admin/ensure-project-folders/${projectId}`, { method: 'POST', credentials: 'same-origin' });
                 if (!ensureResp.ok) {
                     console.warn('[UPLOAD] ensure-project-folders responded with', ensureResp.status);
                 }
@@ -1478,7 +1474,7 @@
                 const galleryEl = document.getElementById('plantaGallery');
                 
                 // Fetch data would happen here, for now we'll show empty state
-                fetch(`/admin/get-planta-gallery/${projectId}`)
+                fetch(`/admin/get-planta-gallery/${projectId}`, { credentials: 'same-origin' })
                     .then(r => r.json())
                     .then(data => {
                         if (data.images && data.images.length > 0) {
@@ -1508,7 +1504,7 @@
             try {
                 const galleryEl = document.getElementById('galleryGallery');
                 
-                fetch(`/admin/get-gallery/${projectId}`)
+                fetch(`/admin/get-gallery/${projectId}`, { credentials: 'same-origin' })
                     .then(r => r.json())
                     .then(data => {
                         if (data.images && data.images.length > 0) {
@@ -1548,6 +1544,7 @@
                 try {
                     const response = await fetch(`/admin/delete-planta-image/${projectId}/${filename}`, {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     const data = await parseApiJson(response);
@@ -1578,6 +1575,7 @@
                 try {
                     const response = await fetch(`/admin/delete-gallery-image/${projectId}/${filename}`, {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     const data = await parseApiJson(response);
