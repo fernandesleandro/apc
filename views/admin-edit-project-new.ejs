@@ -924,6 +924,22 @@
             }, 5000);
         }
 
+        async function parseApiJson(response) {
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const raw = await response.text();
+                if (response.status === 401 || /admin\/login|<!DOCTYPE/i.test(raw)) {
+                    throw new Error('Sessão expirada. Faça login novamente.');
+                }
+                throw new Error(`Resposta inválida do servidor (${response.status}).`);
+            }
+            const data = await response.json();
+            if (response.status === 401) {
+                throw new Error(data.message || 'Sessão expirada. Faça login novamente.');
+            }
+            return data;
+        }
+
         function setUploadStatus(preview, text, statusClass) {
             const statusEl = preview.querySelector('.upload-status');
             const iconEl = preview.querySelector('.upload-status-icon');
@@ -1128,14 +1144,7 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 });
-
-                const contentType = response.headers.get('content-type') || '';
-                if (!contentType.includes('application/json')) {
-                    const text = await response.text();
-                    throw new Error(`Resposta inválida do servidor (${response.status}).`);
-                }
-
-                const data = await response.json();
+                const data = await parseApiJson(response);
 
                 if (data.success) {
                     showMessage(data.message, 'success');
@@ -1173,11 +1182,10 @@
             try {
                 const response = await fetch(`/admin/update-planta-details/${projectId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify(formData)
                 });
-
-                const data = await response.json();
+                const data = await parseApiJson(response);
 
                 if (data.success) {
                     showMessage(data.message, 'success');
@@ -1208,11 +1216,10 @@
             try {
                 const response = await fetch(`/admin/update-technical-info/${projectId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ summaryItems })
                 });
-
-                const data = await response.json();
+                const data = await parseApiJson(response);
 
                 if (data.success) {
                     showMessage(data.message, 'success');
@@ -1260,11 +1267,10 @@
             try {
                 const response = await fetch(`/admin/update-location-info/${projectId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify(formData)
                 });
-
-                const data = await response.json();
+                const data = await parseApiJson(response);
 
                 if (data.success) {
                     showMessage(data.message, 'success');
@@ -1304,11 +1310,10 @@
             try {
                 const response = await fetch(`/admin/update-common-areas/${projectId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ commonAreas: parsedCommonAreas })
                 });
-
-                const data = await response.json();
+                const data = await parseApiJson(response);
 
                 if (data.success) {
                     showMessage(data.message, 'success');
@@ -1533,10 +1538,10 @@
             if (result.isConfirmed) {
                 try {
                     const response = await fetch(`/admin/delete-planta-image/${projectId}/${filename}`, {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
-
-                    const data = await response.json();
+                    const data = await parseApiJson(response);
 
                     if (data.success) {
                         showMessage('Imagem deletada com sucesso!', 'success');
@@ -1563,10 +1568,10 @@
             if (result.isConfirmed) {
                 try {
                     const response = await fetch(`/admin/delete-gallery-image/${projectId}/${filename}`, {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
-
-                    const data = await response.json();
+                    const data = await parseApiJson(response);
 
                     if (data.success) {
                         showMessage('Imagem deletada com sucesso!', 'success');
