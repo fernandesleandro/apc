@@ -162,14 +162,15 @@
     </section>
     <% } %>
 
-    <% if (detailData.location) { %>
+    <% if (detailData.location && (detailData.location.description || (detailData.location.features && detailData.location.features.length))) { %>
     <section class="location-section">
         <div class="container">
             <div class="section-header" style="max-width: 700px;">
-                <span class="section-tag"><%= detailData.location.title %></span>
+                <span class="section-tag"><%= detailData.location.title || 'Localização' %></span>
                 <h2 class="section-title" style="margin-bottom: 20px;">Estilo de Vida e Comodidade</h2>
                 <p style="color: var(--text-muted); font-size: 1.1rem;"><%= detailData.location.description %></p>
             </div>
+            <% if (detailData.location.features && detailData.location.features.length) { %>
             <div class="location-grid">
                 <% detailData.location.features.forEach(feat => { %>
                     <div class="location-card">
@@ -179,6 +180,7 @@
                     </div>
                 <% }) %>
             </div>
+            <% } %>
         </div>
     </section>
     <% } %>

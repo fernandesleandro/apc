@@ -201,6 +201,90 @@ function normalizeProjectRecord(project) {
   };
 }
 
+function parseJsonField(value, fallback = null) {
+  if (value === null || value === undefined || value === '') return fallback;
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) return value;
+  if (typeof value !== 'string') return fallback;
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function upsertSummaryItems(existingItems, updates) {
+  const items = Array.isArray(existingItems) ? existingItems.map(item => ({ ...item })) : [];
+  for (const update of updates) {
+    if (!update || !update.label) continue;
+    const index = items.findIndex(item => item.label === update.label);
+    if (index >= 0) {
+      items[index].value = update.value ?? '';
+    } else {
+      items.push({ label: update.label, value: update.value ?? '' });
+    }
+  }
+  return items;
+}
+
+function mergeSummaryItems(existingItems, incomingItems) {
+  if (!Array.isArray(incomingItems) || incomingItems.length === 0) {
+    return Array.isArray(existingItems) ? existingItems.map(item => ({ ...item })) : [];
+  }
+  const map = new Map();
+  for (const item of (existingItems || [])) {
+    if (item && item.label) map.set(item.label, { ...item });
+  }
+  for (const item of incomingItems) {
+    if (item && item.label) map.set(item.label, { ...item });
+  }
+  return Array.from(map.values());
+}
+
+function mergeDetails(existing, incoming) {
+  const base = JSON.parse(JSON.stringify(existing || {}));
+  if (!incoming || typeof incoming !== 'object') return base;
+
+  for (const key of Object.keys(incoming)) {
+    if (key === 'plantaGallery') continue;
+
+    if (key === 'location' && incoming.location && typeof incoming.location === 'object') {
+      base.location = base.location || {};
+      if (incoming.location.title !== undefined) base.location.title = incoming.location.title;
+      if (incoming.location.description !== undefined) base.location.description = incoming.location.description;
+      if (Array.isArray(incoming.location.features)) {
+        base.location.features = incoming.location.features.map(f => ({ ...f }));
+      }
+      continue;
+    }
+
+    if (key === 'summaryItems' && Array.isArray(incoming.summaryItems)) {
+      base.summaryItems = mergeSummaryItems(base.summaryItems, incoming.summaryItems);
+      continue;
+    }
+
+    if (Array.isArray(incoming[key])) {
+      base[key] = incoming[key].map(item => (typeof item === 'object' && item !== null ? { ...item } : item));
+      continue;
+    }
+
+    if (incoming[key] !== undefined) {
+      base[key] = incoming[key];
+    }
+  }
+
+  return base;
+}
+
+async function updatePageDetails(projectId, updater) {
+  const page = await Page.findOne({ id: projectId });
+  if (!page) return null;
+  if (!page.details || typeof page.details !== 'object') page.details = {};
+  updater(page.details);
+  page.markModified('details');
+  await page.save();
+  return page;
+}
+
 async function getSettings() {
   const settings = await Setting.findOne().lean();
   return {
@@ -576,11 +660,29 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Formato de dados inválido: ' + parseError.message });
     }
 
-    const updatedPage = await Page.findOneAndUpdate({ id: req.params.id }, pageData, { new: true });
-    
-    if (!updatedPage) {
+    // Mesclar details para não sobrescrever campos ausentes no formulário legado
+    const existingPage = await Page.findOne({ id: req.params.id });
+    if (!existingPage) {
       return res.status(404).json({ success: false, message: 'Página não encontrada' });
     }
+
+    if (pageData.details && typeof pageData.details === 'object') {
+      pageData.details = mergeDetails(existingPage.details || {}, pageData.details);
+    }
+
+    const updatePayload = {
+      title: pageData.title,
+      description: pageData.description,
+      hero: pageData.hero !== undefined ? pageData.hero : existingPage.hero,
+      content: pageData.content !== undefined ? pageData.content : existingPage.content,
+      details: pageData.details !== undefined ? pageData.details : existingPage.details
+    };
+
+    existingPage.set(updatePayload);
+    if (updatePayload.details) existingPage.markModified('details');
+    if (updatePayload.hero) existingPage.markModified('hero');
+    if (updatePayload.content) existingPage.markModified('content');
+    const updatedPage = await existingPage.save();
 
     console.log(`[UPDATE] Página atualizada: ${req.params.id}`);
     res.json({ success: true, message: 'Página atualizada com sucesso!' });
@@ -598,23 +700,10 @@ app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
     if (!project) {
       return res.status(404).send('Projeto não encontrado');
     }
-    // Renderizar a nova view refatorada
-    res.render('admin-edit-project', { project, username: req.session.admin.username });
-  } catch (error) {
-    console.error('Erro ao carregar projeto:', error);
-    res.status(500).send('Erro ao carregar projeto');
-  }
-});
-
-// Rota principal para edição de projetos (usa a nova view com tabs)
-app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
-  try {
-    const project = await Project.findOne({ id: req.params.id });
-    if (!project) {
-      return res.status(404).send('Projeto não encontrado');
-    }
+    // Buscar página correspondente para obter detalhes técnicos e localização
+    const page = await Page.findOne({ id: req.params.id });
     // Renderizar a nova view refatorada com tabs
-    res.render('admin-edit-project-new', { project, username: req.session.admin.username });
+    res.render('admin-edit-project-new', { project, page, username: req.session.admin.username });
   } catch (error) {
     console.error('Erro ao carregar projeto:', error);
     res.status(500).send('Erro ao carregar projeto');
@@ -628,8 +717,10 @@ app.get('/admin/edit-project-new/:id', isAuthenticated, async (req, res) => {
     if (!project) {
       return res.status(404).send('Projeto não encontrado');
     }
+    // Buscar página correspondente para obter detalhes técnicos e localização
+    const page = await Page.findOne({ id: req.params.id });
     // Renderizar a nova view refatorada com tabs
-    res.render('admin-edit-project-new', { project, username: req.session.admin.username });
+    res.render('admin-edit-project-new', { project, page, username: req.session.admin.username });
   } catch (error) {
     console.error('Erro ao carregar projeto:', error);
     res.status(500).send('Erro ao carregar projeto');
@@ -667,8 +758,24 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
     }
 
     // Sincronizar imagem com o Hero da página para garantir que a alteração apareça
+    const pageUpdate = {};
     if (projectData.image) {
-      await Page.findOneAndUpdate({ id: req.params.id }, { "hero.image": projectData.image });
+      pageUpdate['hero.image'] = projectData.image;
+    }
+
+    // Sincronizar detailTag com badge (hero da página do projeto)
+    const detailTagValue = (req.body.detailTag !== undefined ? req.body.detailTag : projectData.badge) || '';
+    await updatePageDetails(req.params.id, (details) => {
+      details.detailTag = detailTagValue.trim();
+    });
+
+    // Se detailTag foi editado explicitamente, manter badge do projeto alinhado
+    if (req.body.detailTag !== undefined) {
+      await Project.findOneAndUpdate({ id: req.params.id }, { badge: req.body.detailTag.trim() });
+    }
+
+    if (Object.keys(pageUpdate).length > 0) {
+      await Page.findOneAndUpdate({ id: req.params.id }, pageUpdate);
       console.log(`[SYNC] Imagem sincronizada na página: ${req.params.id}`);
     }
 
@@ -729,6 +836,7 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
       uploadedAt: new Date()
     });
 
+    plantaGallery.markModified('images');
     await plantaGallery.save();
     console.log(`[UPLOAD-PLANTA] ✓ Salvo em BD: ${req.params.projectId}`);
     console.log(`[UPLOAD-PLANTA] Total de imagens: ${plantaGallery.images.length}`);
@@ -748,18 +856,21 @@ app.post('/admin/update-planta-details/:projectId', isAuthenticated, async (req,
   try {
     const { plantaTitle, plantaSubtitle, plantaDescription, plantaHighlights } = req.body;
 
-    const page = await Page.findOne({ id: req.params.projectId });
+    const page = await updatePageDetails(req.params.projectId, (details) => {
+      if (plantaTitle !== undefined) details.plantaTitle = plantaTitle || '';
+      if (plantaSubtitle !== undefined) details.plantaSubtitle = plantaSubtitle || '';
+      if (plantaDescription !== undefined) details.plantaDescription = plantaDescription || '';
+      if (plantaHighlights !== undefined) {
+        details.plantaHighlights = Array.isArray(plantaHighlights)
+          ? plantaHighlights
+          : (plantaHighlights ? [plantaHighlights] : []);
+      }
+    });
+
     if (!page) {
       return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
     }
 
-    if (!page.details) page.details = {};
-    page.details.plantaTitle = plantaTitle || '';
-    page.details.plantaSubtitle = plantaSubtitle || '';
-    page.details.plantaDescription = plantaDescription || '';
-    page.details.plantaHighlights = Array.isArray(plantaHighlights) ? plantaHighlights : (plantaHighlights ? [plantaHighlights] : []);
-
-    await page.save();
     console.log(`[UPDATE] Detalhes da planta atualizados para o projeto: ${req.params.projectId}`);
     res.json({ success: true, message: 'Detalhes da planta atualizados com sucesso!' });
   } catch (error) {
@@ -793,6 +904,7 @@ app.post('/admin/delete-planta-image/:projectId/:filename', isAuthenticated, asy
       const initialCount = plantaGallery.images.length;
       plantaGallery.images = plantaGallery.images.filter(img => !img.src.includes(filename));
       if (plantaGallery.images.length < initialCount) {
+        plantaGallery.markModified('images');
         await plantaGallery.save();
         console.log(`[UPDATE] Imagem de planta removida da galeria do projeto: ${req.params.projectId}`);
       }
@@ -802,6 +914,114 @@ app.post('/admin/delete-planta-image/:projectId/:filename', isAuthenticated, asy
   } catch (error) {
     console.error('[ERROR] Erro ao remover imagem de planta:', error);
     res.status(500).json({ success: false, message: 'Erro ao remover imagem de planta: ' + error.message });
+  }
+});
+
+// ===== ROTAS PARA INFORMAÇÕES TÉCNICAS E LOCALIZAÇÃO =====
+
+app.post('/admin/update-technical-info/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const { summaryItems } = req.body;
+    const projectId = req.params.projectId;
+
+    if (!Array.isArray(summaryItems)) {
+      return res.status(400).json({ success: false, message: 'Formato inválido para summaryItems. Deve ser um array.' });
+    }
+
+    const normalizedSummaryItems = summaryItems
+      .filter(item => item && typeof item === 'object')
+      .map(item => ({
+        label: String(item.label || '').trim(),
+        value: String(item.value || '').trim()
+      }))
+      .filter(item => item.label.length > 0);
+
+    const page = await updatePageDetails(projectId, (details) => {
+      const existingAddress = (details.summaryItems || []).find(item => item && item.label === 'Endereço');
+      const hasAddressInPayload = normalizedSummaryItems.some(item => item.label === 'Endereço');
+
+      details.summaryItems = hasAddressInPayload
+        ? normalizedSummaryItems
+        : (existingAddress ? [existingAddress, ...normalizedSummaryItems] : normalizedSummaryItems);
+    });
+
+    if (!page) {
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    console.log(`[UPDATE] Informações técnicas atualizadas para: ${projectId}`);
+    res.json({ success: true, message: 'Informações técnicas salvas com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar informações técnicas:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar informações técnicas: ' + error.message });
+  }
+});
+
+app.post('/admin/update-location-info/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const { address, locationTitle, locationDescription, locationFeatures } = req.body;
+    const projectId = req.params.projectId;
+
+    const parsedFeatures = parseJsonField(locationFeatures, null);
+    if (locationFeatures && parsedFeatures === null) {
+      return res.status(400).json({ success: false, message: 'Formato inválido para locationFeatures. Deve ser um array JSON.' });
+    }
+
+    const page = await updatePageDetails(projectId, (details) => {
+      details.summaryItems = upsertSummaryItems(details.summaryItems, [
+        { label: 'Endereço', value: address || '' }
+      ]);
+
+      const currentLocation = details.location && typeof details.location === 'object' ? details.location : {};
+      details.location = {
+        title: locationTitle !== undefined ? (locationTitle || 'Localização') : (currentLocation.title || 'Localização'),
+        description: locationDescription !== undefined ? (locationDescription || '') : (currentLocation.description || ''),
+        features: Array.isArray(parsedFeatures)
+          ? parsedFeatures
+          : (Array.isArray(currentLocation.features) ? currentLocation.features : [])
+      };
+    });
+
+    if (!page) {
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    console.log(`[UPDATE] Informações de localização atualizadas para: ${projectId}`);
+    res.json({ success: true, message: 'Informações de localização salvas com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar informações de localização:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar informações de localização: ' + error.message });
+  }
+});
+
+app.post('/admin/update-common-areas/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const { commonAreas } = req.body;
+    const projectId = req.params.projectId;
+
+    const parsedCommonAreas = parseJsonField(commonAreas, null);
+    if (commonAreas !== undefined && commonAreas !== null && commonAreas !== '' && parsedCommonAreas === null) {
+      return res.status(400).json({ success: false, message: 'Formato inválido para commonAreas. Deve ser um array JSON.' });
+    }
+
+    const page = await updatePageDetails(projectId, (details) => {
+      if (Array.isArray(parsedCommonAreas)) {
+        details.commonAreas = parsedCommonAreas.map(area => ({
+          label: area.label || '',
+          icon: area.icon || 'fas fa-check'
+        }));
+      }
+    });
+
+    if (!page) {
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    console.log(`[UPDATE] Áreas comuns atualizadas para: ${projectId}`);
+    res.json({ success: true, message: 'Áreas comuns salvas com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar áreas comuns:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar áreas comuns: ' + error.message });
   }
 });
 
@@ -873,6 +1093,7 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
       uploadedAt: new Date()
     });
 
+    projectGallery.markModified('images');
     await projectGallery.save();
     console.log(`[UPLOAD-GALLERY] ✓ Salvo em BD: ${req.params.projectId}`);
     console.log(`[UPLOAD-GALLERY] Total de imagens: ${projectGallery.images.length}`);
@@ -938,6 +1159,7 @@ app.post('/admin/delete-gallery-image/:projectId/:filename', isAuthenticated, as
       const initialCount = projectGallery.images.length;
       projectGallery.images = projectGallery.images.filter(img => !img.src.includes(filename));
       if (projectGallery.images.length < initialCount) {
+        projectGallery.markModified('images');
         await projectGallery.save();
         console.log(`[UPDATE] Imagem de galeria removida da coleção do projeto: ${req.params.projectId}`);
       }
@@ -1038,8 +1260,15 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
         detailTag: badge ? badge.trim() : '',
         summaryItems: [],
         plantaTitle: 'Distribuição de Espaços',
+        plantaSubtitle: '',
         plantaDescription: '',
-        plantaHighlights: []
+        plantaHighlights: [],
+        commonAreas: [],
+        location: {
+          title: 'Localização',
+          description: '',
+          features: []
+        }
       },
       createdAt: new Date()
     });
