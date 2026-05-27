@@ -25,6 +25,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         .header h1 {
             font-size: 1.8rem;
@@ -160,6 +162,19 @@
             }
             .form-card {
                 padding: 20px;
+            }
+            .back-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            .form-card {
+                padding: 14px;
             }
         }
     </style>
