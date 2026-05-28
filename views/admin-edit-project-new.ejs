@@ -1501,10 +1501,19 @@
             saveGalleryBtn.addEventListener('click', async () => {
                 saveGalleryBtn.disabled = true;
                 saveGalleryBtn.textContent = 'Salvando...';
-                const success = await uploadGalleryFiles();
-                if (success) {
-                    showMessage('A galeria foi salva.', 'success');
+                
+                // Se houver arquivos pendentes, faz o upload primeiro
+                if (selectedFilesGallery.length > 0) {
+                    const success = await uploadGalleryFiles();
+                    if (success) {
+                        showMessage('Galeria salva com sucesso!', 'success');
+                    }
+                } else {
+                    // Apenas recarrega a galeria e confirma
+                    await loadGeneralGallery();
+                    showMessage('Galeria salva com sucesso!', 'success');
                 }
+                
                 saveGalleryBtn.disabled = false;
                 saveGalleryBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Galeria';
             });

@@ -323,9 +323,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    sameSite: 'lax'
   }
 }));
 
@@ -334,16 +335,19 @@ const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.admin) {
     return next();
   }
+  
+  // Verifica se é uma requisição AJAX/API
   const isAjaxRequest =
     req.xhr ||
     req.headers['x-requested-with'] === 'XMLHttpRequest' ||
     (req.headers.accept && req.headers.accept.includes('application/json')) ||
-    req.method !== 'GET';
+    req.headers['content-type']?.includes('application/json');
 
   if (isAjaxRequest) {
     return res.status(401).json({
       success: false,
-      message: 'Sessão expirada. Faça login novamente.'
+      message: 'Sessão expirada. Faça login novamente.',
+      redirect: '/admin/login'
     });
   }
 
@@ -829,9 +833,14 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
 
     if (!alt || alt.trim().length === 0) {
       console.warn(`[UPLOAD-PLANTA] ✗ Alt text vazio para ${req.file.originalname}`);
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-        console.log(`[UPLOAD-PLANTA] Arquivo deletado: ${req.file.path}`);
+      try {
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+          console.log(`[UPLOAD-PLANTA] Arquivo deletado: ${req.file.path}`);
+        }
+      } catch (delErr) {
+        // Ignora erro de deletar (pode ser EROFS na Vercel)
+        console.warn(`[UPLOAD-PLANTA] Não foi possível deletar arquivo: ${delErr.message}`);
       }
       return res.status(400).json({ success: false, message: 'Descrição (alt) é obrigatória' });
     }
@@ -857,9 +866,23 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
     res.json({ success: true, message: 'Imagem de planta enviada com sucesso!', image: plantaGallery.images[plantaGallery.images.length - 1] });
   } catch (error) {
     console.error('[UPLOAD-PLANTA] ✗ Erro:', error.message);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-      console.log(`[UPLOAD-PLANTA] Arquivo deletado por erro: ${req.file.path}`);
+    
+    // Verifica erro de sistema de arquivos read-only (Vercel)
+    if (error.code === 'EROFS' || error.message.includes('read-only')) {
+      console.error('[UPLOAD-PLANTA] ✗ Sistema de arquivos read-only (Vercel). Upload não suportado em ambiente serverless.');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Upload de arquivos não é suportado no ambiente de produção atual. Use um serviço de armazenamento externo ou servidor com sistema de arquivos gravável.' 
+      });
+    }
+    
+    try {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+        console.log(`[UPLOAD-PLANTA] Arquivo deletado por erro: ${req.file.path}`);
+      }
+    } catch (delErr) {
+      // Ignora erro de deletar
     }
     res.status(500).json({ success: false, message: 'Erro ao enviar imagem de planta: ' + error.message });
   }
@@ -904,11 +927,20 @@ app.post('/admin/delete-planta-image/:projectId/:filename', isAuthenticated, asy
     const projectFolder = sanitizeFolderName(req.params.projectId);
     const filePath = path.join(plantaBase, projectFolder, filename);
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      console.log(`[DELETE] Arquivo de planta removido: ${filePath}`);
-    } else {
-      console.warn(`[DELETE] Arquivo de planta não encontrado no disco: ${filePath}`);
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`[DELETE] Arquivo de planta removido: ${filePath}`);
+      } else {
+        console.warn(`[DELETE] Arquivo de planta não encontrado no disco: ${filePath}`);
+      }
+    } catch (delErr) {
+      // Verifica erro de sistema de arquivos read-only (Vercel)
+      if (delErr.code === 'EROFS' || delErr.message.includes('read-only')) {
+        console.warn(`[DELETE] Sistema de arquivos read-only (Vercel). Removendo apenas do banco de dados.`);
+      } else {
+        console.error(`[DELETE] Erro ao deletar arquivo: ${delErr.message}`);
+      }
     }
 
     // Remover do banco de dados
@@ -1086,9 +1118,14 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
 
     if (!alt || alt.trim().length === 0) {
       console.warn(`[UPLOAD-GALLERY] ✗ Alt text vazio para ${req.file.originalname}`);
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-        console.log(`[UPLOAD-GALLERY] Arquivo deletado: ${req.file.path}`);
+      try {
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+          console.log(`[UPLOAD-GALLERY] Arquivo deletado: ${req.file.path}`);
+        }
+      } catch (delErr) {
+        // Ignora erro de deletar (pode ser EROFS na Vercel)
+        console.warn(`[UPLOAD-GALLERY] Não foi possível deletar arquivo: ${delErr.message}`);
       }
       return res.status(400).json({ success: false, message: 'Descrição (alt) é obrigatória' });
     }
@@ -1114,9 +1151,23 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
     res.json({ success: true, message: 'Imagem de galeria enviada com sucesso!', image: projectGallery.images[projectGallery.images.length - 1] });
   } catch (error) {
     console.error('[UPLOAD-GALLERY] ✗ Erro:', error.message);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-      console.log(`[UPLOAD-GALLERY] Arquivo deletado por erro: ${req.file.path}`);
+    
+    // Verifica erro de sistema de arquivos read-only (Vercel)
+    if (error.code === 'EROFS' || error.message.includes('read-only')) {
+      console.error('[UPLOAD-GALLERY] ✗ Sistema de arquivos read-only (Vercel). Upload não suportado em ambiente serverless.');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Upload de arquivos não é suportado no ambiente de produção atual. Use um serviço de armazenamento externo ou servidor com sistema de arquivos gravável.' 
+      });
+    }
+    
+    try {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+        console.log(`[UPLOAD-GALLERY] Arquivo deletado por erro: ${req.file.path}`);
+      }
+    } catch (delErr) {
+      // Ignora erro de deletar
     }
     res.status(500).json({ success: false, message: 'Erro ao enviar imagem de galeria: ' + error.message });
   }
@@ -1160,11 +1211,20 @@ app.post('/admin/delete-gallery-image/:projectId/:filename', isAuthenticated, as
     const projectFolder = sanitizeFolderName(req.params.projectId);
     const filePath = path.join(projectGalleryBase, projectFolder, filename);
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      console.log(`[DELETE] Arquivo de galeria removido: ${filePath}`);
-    } else {
-      console.warn(`[DELETE] Arquivo de galeria não encontrado no disco: ${filePath}`);
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`[DELETE] Arquivo de galeria removido: ${filePath}`);
+      } else {
+        console.warn(`[DELETE] Arquivo de galeria não encontrado no disco: ${filePath}`);
+      }
+    } catch (delErr) {
+      // Verifica erro de sistema de arquivos read-only (Vercel)
+      if (delErr.code === 'EROFS' || delErr.message.includes('read-only')) {
+        console.warn(`[DELETE] Sistema de arquivos read-only (Vercel). Removendo apenas do banco de dados.`);
+      } else {
+        console.error(`[DELETE] Erro ao deletar arquivo: ${delErr.message}`);
+      }
     }
 
     const projectGallery = await ProjectGallery.findOne({ projectId: req.params.projectId });
