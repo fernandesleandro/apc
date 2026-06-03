@@ -4,12 +4,12 @@
             <img src="/logo.png" alt="AP Construções" class="logo-img">
             <div class="logo-text"><span>CONSTRUÇÕES</span></div>
         </a>
-        <button class="menu-toggle" aria-label="Abrir Menu">
+        <button type="button" class="menu-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="main-nav">
             <span></span>
             <span></span>
             <span></span>
         </button>
-        <nav class="nav-menu">
+        <nav class="nav-menu" id="main-nav">
             <% nav.forEach(item => { %>
                 <a href="<%= item.url %>" class="nav-link <%= active === item.url ? 'active' : '' %>"><%= item.title %></a>
             <% }) %>

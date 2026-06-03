@@ -1,67 +1,26 @@
 {
   "nav": [
-    {
-      "title": "Início",
-      "url": "/"
-    },
-    {
-      "title": "Sobre Nós",
-      "url": "/sobre"
-    },
-    {
-      "title": "Serviços",
-      "url": "/#servicos"
-    },
-    {
-      "title": "Obras",
-      "url": "/obras"
-    },
-    {
-      "title": "Contato",
-      "url": "/contato"
-    }
+    { "title": "Início", "url": "/" },
+    { "title": "Sobre Nós", "url": "/sobre" },
+    { "title": "Serviços", "url": "/#servicos" },
+    { "title": "Obras", "url": "/obras" },
+    { "title": "Contato", "url": "/contato" }
   ],
   "footer": {
     "company": "AP Construções",
     "description": "Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.",
     "links": [
-      {
-        "title": "Início",
-        "url": "/"
-      },
-      {
-        "title": "Sobre Nós",
-        "url": "/sobre"
-      },
-      {
-        "title": "Serviços",
-        "url": "/#servicos"
-      },
-      {
-        "title": "Obras",
-        "url": "/obras"
-      },
-      {
-        "title": "Contato",
-        "url": "/contato"
-      }
+      { "title": "Início", "url": "/" },
+      { "title": "Sobre Nós", "url": "/sobre" },
+      { "title": "Serviços", "url": "/#servicos" },
+      { "title": "Obras", "url": "/obras" },
+      { "title": "Contato", "url": "/contato" }
     ],
-    "contact": [      
-      {
-        "icon": "fas fa-phone-alt",
-        "label": "",
-        "value": "(61) 2195-8300"
-      },
-      {
-        "icon": "fas fa-envelope",
-        "label": "",
-        "value": "contato@apconstrucoes.com.br"
-      },
-      {
-        "icon": "fas fa-map-marker-alt",
-        "label": "",
-        "value": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF"
-      }
+    "contact": [
+      { "icon": "fas fa-phone-alt", "label": "Telefone Central", "value": "(61) 2195-8300" },
+      { "icon": "fab fa-whatsapp", "label": "WhatsApp Comercial", "value": "(61) 2195-8300" },
+      { "icon": "fas fa-envelope", "label": "E-mail", "value": "contato@apconstrucoes.com.br" },
+      { "icon": "fas fa-map-marker-alt", "label": "Endereço Corporativo", "value": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF" }
     ]
   },
   "pages": [
@@ -84,15 +43,14 @@
       },
       "content": {
         "historia": [
-          "A AP Construções consolida sua atuação no mercado da engenharia e construção civil unindo inovação, conhecimento técnico e experiência acumulada ao longo de décadas. Parte dessa trajetória foi construída em conjunto com a Porto BSB Engenharia, empresa fundada em 2002.",
+          "A AP Construções consolida sua atuação no mercado da engenharia e construção civil unindo inovação, conhecimento técnico e experiência acumulada ao longo de décadas.",
           "Nossa história é sustentada por profissionais com ampla experiência no mercado de Brasília, participando da execução e desenvolvimento de diversos empreendimentos ao longo dos anos.",
-          "A filosofia da AP Construções é aliar soluções inovadoras ao mais alto padrão de qualidade, excelência na execução e responsabilidade em cada entrega.",
-          "Investimos continuamente na formação dos nossos profissionais, no aprimoramento de processos e na abraçando novas tecnologias, mantendo o foco em desempenho, solidez e confiança."
+          "A filosofia da AP Construções é aliar soluções inovadoras ao mais alto padrão de qualidade, excelência na execução e responsabilidade em cada entrega."
         ],
         "pilares": [
-          { "label": "Missão", "icon": "fa-bullseye", "text": "Trabalhar de forma ética e competente, transformando projetos complexos em realidades tangíveis, investindo em tecnologia e pessoas." },
-          { "label": "Visão", "icon": "fa-eye", "text": "Ser a referência máxima em solidez e excelência construtiva em Brasília." },
-          { "label": "Valores", "icon": "fa-gem", "text": "Rigor técnico (PBQP-H), transparência total e compromisso com a segurança jurídica." }
+          { "label": "Missão", "icon": "fa-bullseye", "text": "Trabalhar de forma ética e competente, transformando projetos complexos em realidades tangíveis." },
+          { "label": "Visão", "icon": "fa-eye", "text": "Ser referência em solidez e excelência construtiva em Brasília." },
+          { "label": "Valores", "icon": "fa-gem", "text": "Rigor técnico, transparência total e compromisso com a segurança jurídica." }
         ]
       }
     },
@@ -102,46 +60,64 @@
       "description": "Fale com a AP Construções para projetos residenciais de alto padrão, reformas corporativas e consultoria de engenharia em Brasília.",
       "hero": {
         "title": "Canais de Atendimento",
-        "subtitle": "Agende uma reunião em nossa sede corporativa."
+        "subtitle": "Agende uma reunião em nossa sede corporativa ou solicite informações sobre nossos empreendimentos."
       }
     },
     {
       "id": "monumental",
       "title": "Monumental Center | AP Construções",
-      "description": "Monumental Center ",
+      "description": "Edifício comercial multiusuário no Lago Norte com 198 salas, 2 lojas, 222 vagas e infraestrutura corporativa completa. Ideal para escritórios, consultórios e varejo de apoio em uma das regiões mais valorizadas de Brasília.",
       "hero": {
         "title": "Monumental Center",
-        "subtitle": "Edifício comercial multiusuário de uso misto leve (predominância comercial + apoio varejista)"
+        "subtitle": "Empreendimento comercial multiusuário — salas, lojas e infraestrutura de alto padrão no Lago Norte"
       },
       "details": {
         "detailTag": "Lançamento Exclusivo",
+        "detailHeadline": "Espaços comerciais inteligentes no Lago Norte",
+        "detailBullets": [
+          "198 salas modulares para escritórios e consultórios",
+          "2 lojas de apoio no térreo com fluxo qualificado",
+          "222 vagas de garagem com gestão profissional",
+          "Infraestrutura preparada para empresas em expansão"
+        ],
         "summaryItems": [
           { "label": "Endereço", "value": "SHIN CA 02 Lote B - Lago Norte / DF" },
           { "label": "Área de Construção", "value": "13.889,35 m²" },
-          { "label": "Área do Terreno", "value": " 1.875,00 m²" },
-          { "label": "Unidades", "value": "198 salas,  2 lojas" },
-          { "label": "Vagas de Garagem", "value": "222 vagas de garagem" }
+          { "label": "Área do Terreno", "value": "1.875,00 m²" },
+          { "label": "Unidades", "value": "198 salas + 2 lojas" },
+          { "label": "Vagas de Garagem", "value": "222 vagas" }
         ],
+        "plantaSectionTag": "Distribuição de Espaços",
         "plantaTitle": "Distribuição de Espaços",
-        "plantaSubtitle": "Planejado cirurgicamente para maximizar conforto e iluminação.",
-        "plantaDescription": "",
-        "plantaHighlights": [],
+        "plantaSubtitle": "Plantas modulares pensadas para flexibilidade comercial e máxima eficiência de layout.",
+        "plantaDescription": "O Monumental Center organiza salas comerciais em tipologias que permitem adaptação para escritórios, clínicas, coworkings e operações híbridas, com circulação clara e aproveitamento otimizado da área construída.",
+        "plantaHighlights": [
+          "Salas modulares com possibilidade de união de módulos",
+          "Lojas de apoio no nível térreo",
+          "Infraestrutura para ar-condicionado e redes",
+          "222 vagas com dimensionamento para alto fluxo"
+        ],
+        "commonAreasSectionTag": "Infraestrutura do Edifício",
+        "commonAreasTitle": "Diferenciais para Empresas e Investidores",
+        "commonAreasIntro": "Ambientes e serviços pensados para operação comercial contínua, conforto dos usuários e valorização do ativo.",
         "commonAreas": [
-          { "label": "Rooftop Lounge", "icon": "fas fa-sun" },
-          { "label": "Academia Premium", "icon": "fas fa-dumbbell" },
-          { "label": "Espaço Gourmet", "icon": "fas fa-utensils" },
-          { "label": "Coworking Integrado", "icon": "fas fa-laptop-house" },
-          { "label": "Piscina Aquecida", "icon": "fas fa-swimmer" },
-          { "label": "Lavanderia Coletiva", "icon": "fas fa-tshirt" }
+          { "label": "Lobby Corporativo", "icon": "fas fa-door-open" },
+          { "label": "Segurança e Controle de Acesso", "icon": "fas fa-shield-alt" },
+          { "label": "Elevadores de Alto Desempenho", "icon": "fas fa-elevator" },
+          { "label": "Estacionamento Amplo", "icon": "fas fa-car" },
+          { "label": "Infraestrutura para TI", "icon": "fas fa-network-wired" },
+          { "label": "Áreas de Convivência", "icon": "fas fa-users" }
         ],
         "location": {
           "title": "Localização Estratégica",
-          "description": "Localizado em uma região valorizada e com áreas comuns que oferecem conforto e comodidade aos moradores.",
+          "subtitle": "Lago Norte: visibilidade, prestígio e conectividade",
+          "description": "Localizado no Lago Norte, o empreendimento se beneficia de uma das regiões mais valorizadas de Brasília, com acesso facilitado ao eixo central, serviços de alto padrão e fluxo qualificado para negócios.",
+          "mapQuery": "SHIN CA 02 Lote B Lago Norte Brasília DF",
           "features": [
-            { "label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental e Metrô", "icon": "fas fa-route" },
-            { "label": "Hospitais", "value": "Próximo aos principais centros de saúde", "icon": "fas fa-hospital-symbol" },
-            { "label": "Educação", "value": "Cercado por instituições de ensino renomadas", "icon": "fas fa-graduation-cap" },
-            { "label": "Arte e Cultura", "value": "Próximo a museus, teatros e centros culturais", "icon": "fas fa-palette" }
+            { "label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental e vias principais", "detail": "~10 min", "icon": "fas fa-route" },
+            { "label": "Saúde", "value": "Proximidade a hospitais e clínicas de referência", "detail": "Região consolidada", "icon": "fas fa-hospital-symbol" },
+            { "label": "Educação", "value": "Instituições de ensino e comércio de apoio", "detail": "Entorno completo", "icon": "fas fa-graduation-cap" },
+            { "label": "Cultura", "value": "Museus, teatros e eixos de lazer da capital", "detail": "Curta distância", "icon": "fas fa-palette" }
           ]
         }
       }
@@ -149,32 +125,78 @@
     {
       "id": "cosmopolitan",
       "title": "Cosmopolitan | AP Construções",
-      "description": "Cosmopolitan: edifício corporativo de alto padrão no Setor Comercial Sul, projetado para empresas que buscam desempenho, localização estratégica e design executivo.",
+      "description": "Empreendimento corporativo no Setor Comercial Sul com salas modulares, lobby executivo e infraestrutura de alto desempenho para empresas que priorizam localização, imagem e eficiência operacional.",
       "hero": {
         "title": "Cosmopolitan",
-        "subtitle": "Edifício corporativo premium no Setor Comercial Sul.",
+        "subtitle": "Edifício corporativo premium no Setor Comercial Sul — Brasília",
         "image": "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80"
       },
       "details": {
         "detailTag": "Espaço Corporativo",
-        "summaryItems": [
-          { "label": "Metragem", "value": "Apto's de 1 e 2 quartos de 30 a 100 m²" },
-          { "label": "Localização", "value": "Rua das Paineiras, Lote 3 – NORTE (ÁGUAS CLARAS) - Taguatinga – DF" }
+        "detailHeadline": "Performance empresarial no coração do SCS",
+        "detailBullets": [
+          "Salas modulares de 30 a 100 m²",
+          "Lobby executivo e imagem institucional",
+          "Infraestrutura para data center e redes",
+          "Localização estratégica para empresas consolidadas"
         ],
-        "plantaDescription": "Layout corporativo com lobby executivo, salas modulares e infraestrutura de alto desempenho.",
-        "plantaHighlights": ["Lobby Executivo Premium", "Infraestrutura para Data Center"]
+        "summaryItems": [
+          { "label": "Tipologia", "value": "Salas de 30 a 100 m²" },
+          { "label": "Endereço", "value": "Rua das Paineiras, Lote 3 – Norte (Águas Claras) - Taguatinga/DF" },
+          { "label": "Perfil", "value": "Corporativo / Comercial" }
+        ],
+        "plantaSectionTag": "Distribuição de Espaços",
+        "plantaTitle": "Distribuição de Espaços",
+        "plantaSubtitle": "Layout corporativo com flexibilidade para equipes e operações em crescimento.",
+        "plantaDescription": "Plantas organizadas para receber escritórios, consultorias e operações administrativas com eficiência de circulação, iluminação natural e possibilidade de personalização por unidade.",
+        "plantaHighlights": [
+          "Lobby Executivo Premium",
+          "Salas modulares com infraestrutura completa",
+          "Infraestrutura para Data Center",
+          "Áreas de apoio e circulação otimizadas"
+        ],
+        "commonAreasSectionTag": "Infraestrutura Corporativa",
+        "commonAreasTitle": "Ambientes de Suporte ao Negócio",
+        "commonAreasIntro": "Espaços que reforçam produtividade, recepção de clientes e operação diária das empresas instaladas.",
+        "commonAreas": [
+          { "label": "Lobby Executivo", "icon": "fas fa-building" },
+          { "label": "Salão de Reuniões", "icon": "fas fa-handshake" },
+          { "label": "Área Gourmet", "icon": "fas fa-utensils" },
+          { "label": "Academia", "icon": "fas fa-dumbbell" },
+          { "label": "Piscina", "icon": "fas fa-swimmer" },
+          { "label": "Quadra / Lazer", "icon": "fas fa-table-tennis" }
+        ],
+        "location": {
+          "title": "Localização Estratégica",
+          "subtitle": "Taguatinga Norte: expansão e fluxo comercial",
+          "description": "Endereço com fácil acesso às principais vias da região, com serviços, comércio e transporte que favorecem a rotina de equipes e clientes.",
+          "mapQuery": "Rua das Paineiras Lote 3 Águas Claras Taguatinga DF",
+          "features": [
+            { "label": "Acesso", "value": "Conexão rápida com vias da região Norte", "icon": "fas fa-road" },
+            { "label": "Comércio", "value": "Serviços e varejo no entorno imediato", "icon": "fas fa-store" },
+            { "label": "Transporte", "value": "Facilidade para deslocamento de equipes", "icon": "fas fa-bus" },
+            { "label": "Expansão", "value": "Região em constante desenvolvimento", "icon": "fas fa-chart-line" }
+          ]
+        }
       }
     },
     {
       "id": "barao-maua",
       "title": "Barão Mauá | AP Construções",
-      "description": "Barão Mauá — projeto comercial com salas, lojas e amplas vagas de garagem.",
+      "description": "Empreendimento comercial no SIG com 108 salas, 2 lojas, 2 salões e 376 vagas em 15.076 m² de área construída. Solução robusta para empresas que buscam escala, estacionamento e localização consolidada.",
       "hero": {
         "title": "Barão Mauá",
-        "subtitle": "Ficha Técnica: SIG Quadra 04 Lote 25 - Brasília / DF"
+        "subtitle": "Complexo comercial de grande porte no SIG — Brasília/DF"
       },
       "details": {
-        "detailTag": "Ficha Técnica",
+        "detailTag": "Empreendimento Consolidado",
+        "detailHeadline": "Escala comercial com 376 vagas no SIG",
+        "detailBullets": [
+          "108 salas comerciais com padrão moderno",
+          "2 lojas e 2 salões para operações de maior porte",
+          "376 vagas (132 vinculadas + 244 autônomas)",
+          "Terreno de 3.000 m² com implantação otimizada"
+        ],
         "summaryItems": [
           { "label": "Endereço", "value": "SIG Quadra 04 Lote 25 - Brasília / DF" },
           { "label": "Área de Construção", "value": "15.076,68 m²" },
@@ -182,13 +204,39 @@
           { "label": "Unidades", "value": "108 salas, 02 lojas, 02 salões" },
           { "label": "Vagas de Garagem", "value": "376 (132 vinculadas + 244 autônomas)" }
         ],
-        "plantaDescription": "O Barão de Mauá foi edificado sobre um terreno de 3.000m², otimizando cada espaço para gerar valor comercial.",
+        "plantaSectionTag": "Distribuição de Espaços",
+        "plantaTitle": "Distribuição de Espaços",
+        "plantaSubtitle": "Implantação pensada para fluxo, visibilidade e aproveitamento do terreno.",
+        "plantaDescription": "O Barão de Mauá foi edificado sobre um terreno de 3.000 m², com distribuição que prioriza salas comerciais, lojas de grande impacto e salões versáteis, além de estacionamento dimensionado para alto volume de usuários.",
         "plantaHighlights": [
           "108 salas comerciais modernas",
           "02 lojas e 02 grandes salões",
           "376 vagas (132 vinculadas / 244 autônomas)",
-          "Área total: 15.076,68 m²"
-        ]
+          "Área total construída: 15.076,68 m²"
+        ],
+        "commonAreasSectionTag": "Infraestrutura",
+        "commonAreasTitle": "Suporte Operacional do Empreendimento",
+        "commonAreasIntro": "Infraestrutura voltada à operação comercial diária e à experiência de colaboradores e visitantes.",
+        "commonAreas": [
+          { "label": "Controle de Acesso", "icon": "fas fa-shield-alt" },
+          { "label": "Elevadores", "icon": "fas fa-elevator" },
+          { "label": "Estacionamento Robusto", "icon": "fas fa-car" },
+          { "label": "Salões Multiuso", "icon": "fas fa-th-large" },
+          { "label": "Lojas de Grande Fluxo", "icon": "fas fa-store" },
+          { "label": "Rede e Infraestrutura", "icon": "fas fa-network-wired" }
+        ],
+        "location": {
+          "title": "Localização Estratégica",
+          "subtitle": "SIG: polo comercial consolidado",
+          "description": "O SIG reúne empresas, serviços e excelente conectividade viária, sendo uma das regiões mais reconhecidas para operações comerciais em Brasília.",
+          "mapQuery": "SIG Quadra 04 Lote 25 Brasília DF",
+          "features": [
+            { "label": "Visibilidade", "value": "Região com forte presença corporativa", "icon": "fas fa-eye" },
+            { "label": "Acesso", "value": "Conexão com vias principais do Plano Piloto", "icon": "fas fa-route" },
+            { "label": "Serviços", "value": "Comércio, bancos e apoio no entorno", "icon": "fas fa-store" },
+            { "label": "Estacionamento", "value": "Capacidade superior a 370 vagas", "icon": "fas fa-parking" }
+          ]
+        }
       }
     }
   ],
@@ -196,28 +244,27 @@
     {
       "id": "monumental",
       "title": "Monumental Center",
-      "description": "Empreendimento comercial corporativo multiusuário de uso misto leve",
+      "description": "Comercial multiusuário no Lago Norte — 198 salas, 2 lojas e 222 vagas.",
       "image": "/images/gallery/monumental/monumental.jpg",
       "href": "/obras/monumental",
       "badge": "Lançamento",
-      "category": "Comercial"
+      "category": "comercial"
     },
     {
       "id": "cosmopolitan",
       "title": "Cosmopolitan",
-      "description": "Modernidade empresarial no coração do Setor Comercial Sul.",
+      "description": "Corporativo premium com salas modulares e infraestrutura executiva.",
       "image": "/images/gallery/cosmopolitan/cosmopolitan.png",
       "href": "/obras/cosmopolitan",
-      "category": "Corporativo"
-    }
-    ,
+      "category": "corporativo"
+    },
     {
       "id": "barao-maua",
       "title": "Barão Mauá",
-      "description": "Projeto comercial com 108 salas, 2 lojas, 2 salões e 376 vagas de garagem.",
+      "description": "108 salas, 2 lojas, 2 salões e 376 vagas no SIG.",
       "image": "/images/gallery/barao-maua/aerea1.png",
       "href": "/obras/barao-maua",
-      "category": "Comercial"
+      "category": "comercial"
     }
   ],
   "plantaGalleries": {
@@ -238,19 +285,18 @@
     "monumental": [
       { "src": "/images/gallery/monumental/monumental.jpg", "alt": "Monumental Center" },
       { "src": "/images/gallery/monumental/fachada.jpg", "alt": "Fachada do Monumental Center" },
-      { "src": "/images/gallery/monumental/piscina.jpg", "alt": "Piscina" },
-      { "src": "/images/gallery/monumental/salao.jpg", "alt": "Salão" }
+      { "src": "/images/gallery/monumental/piscina.jpg", "alt": "Área de lazer" },
+      { "src": "/images/gallery/monumental/salao.jpg", "alt": "Salão de eventos" }
     ],
     "cosmopolitan": [
-      { "src": "/images/gallery/cosmopolitan/cosmopolitan.png", "alt": "Salão" },
-      { "src": "/images/gallery/cosmopolitan/piscina.jpg", "alt": "Piscina" },
-      { "src": "/images/gallery/cosmopolitan/gourmet.jpg", "alt": "Area Gourmet"  },
-      { "src": "/images/gallery/cosmopolitan/quadra.jpg", "alt": "Academia" }
-    ]
-    ,
+      { "src": "/images/gallery/cosmopolitan/cosmopolitan.png", "alt": "Fachada Cosmopolitan" },
+      { "src": "/images/gallery/cosmopolitan/piscina.jpg", "alt": "Área de lazer" },
+      { "src": "/images/gallery/cosmopolitan/gourmet.jpg", "alt": "Área gourmet" },
+      { "src": "/images/gallery/cosmopolitan/quadra.jpg", "alt": "Área esportiva" }
+    ],
     "barao-maua": [
-      { "src": "/images/gallery/barao-maua/aerea1.png", "alt": "Vista Aérea 1" },
-      { "src": "/images/gallery/barao-maua/aerea2.png", "alt": "Vista Aérea 2" }
+      { "src": "/images/gallery/barao-maua/aerea1.png", "alt": "Vista aérea 1" },
+      { "src": "/images/gallery/barao-maua/aerea2.png", "alt": "Vista aérea 2" }
     ]
   }
 }

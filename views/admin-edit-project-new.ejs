@@ -678,8 +678,9 @@
                                 <select id="category" name="category" required>
                                     <option value="">Selecionar categoria</option>
                                     <option value="residencial" <% if (project.category === 'residencial') { %>selected<% } %>>Residencial</option>
-                                    <option value="comercial" <% if (project.category === 'comercial') { %>selected<% } %>>Comercial</option>
-                                    <option value="misto" <% if (project.category === 'misto') { %>selected<% } %>>Misto</option>
+                                    <option value="comercial" <% if (project.category === 'comercial' || project.category === 'Comercial') { %>selected<% } %>>Comercial</option>
+                                    <option value="corporativo" <% if (project.category === 'corporativo' || project.category === 'Corporativo') { %>selected<% } %>>Corporativo</option>
+                                    <option value="misto" <% if (project.category === 'misto' || project.category === 'Misto') { %>selected<% } %>>Misto</option>
                                     <option value="outro" <% if (project.category === 'outro') { %>selected<% } %>>Outro</option>
                                 </select>
                                 <div class="form-hint">Tipo de empreendimento</div>
@@ -687,9 +688,26 @@
                         </div>
 
                         <div class="form-group form-row full">
-                            <label for="description">Descrição <span class="required">*</span></label>
-                            <textarea id="description" name="description" required placeholder="Descrição geral do projeto"><%= project.description %></textarea>
-                            <div class="form-hint">Texto que aparecerá na listagem de obras</div>
+                            <label for="description">Descrição (listagem) <span class="required">*</span></label>
+                            <textarea id="description" name="description" required placeholder="Descrição curta para cards de obras"><%= project.description %></textarea>
+                            <div class="form-hint">Texto exibido nos cards da home e /obras</div>
+                        </div>
+
+                        <div class="form-group form-row full">
+                            <label for="heroSubtitle">Subtítulo do Hero</label>
+                            <input type="text" id="heroSubtitle" value="<%= page && page.hero && page.hero.subtitle ? page.hero.subtitle : '' %>" placeholder="Frase curta abaixo do título na página">
+                        </div>
+                        <div class="form-group form-row full">
+                            <label for="pageDescription">Descrição longa (Detalhes do Projeto)</label>
+                            <textarea id="pageDescription" rows="5" placeholder="Texto principal da seção Detalhes do Projeto"><%= page && page.description ? page.description : '' %></textarea>
+                        </div>
+                        <div class="form-group form-row full">
+                            <label for="detailHeadline">Título da seção Detalhes (H2)</label>
+                            <input type="text" id="detailHeadline" value="<%= page && page.details && page.details.detailHeadline ? page.details.detailHeadline : '' %>" placeholder="Ex: Espaços comerciais no Lago Norte">
+                        </div>
+                        <div class="form-group form-row full">
+                            <label for="detailBullets">Destaques (um por linha)</label>
+                            <textarea id="detailBullets" rows="4" placeholder="Destaque 1&#10;Destaque 2"><%= page && page.details && Array.isArray(page.details.detailBullets) ? page.details.detailBullets.join('\n') : '' %></textarea>
                         </div>
 
                         <div class="form-row">
@@ -753,9 +771,12 @@
                         <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Organize aqui as imagens de plantas, implantação e detalhes dos espaços</p>
 
                         <div class="form-group form-row full">
-                            <label for="plantaTitle">Título da Seção</label>
+                            <label for="plantaSectionTag">Tag da seção</label>
+                            <input type="text" id="plantaSectionTag" name="plantaSectionTag" placeholder="Ex: Distribuição de Espaços" value="<%= page && page.details && page.details.plantaSectionTag ? page.details.plantaSectionTag : 'Distribuição de Espaços' %>">
+                        </div>
+                        <div class="form-group form-row full">
+                            <label for="plantaTitle">Título da Seção (H2)</label>
                             <input type="text" id="plantaTitle" name="plantaTitle" placeholder="Ex: Distribuição de Espaços" value="<%= page && page.details && page.details.plantaTitle ? page.details.plantaTitle : 'Distribuição de Espaços' %>">
-                            <div class="form-hint">Título que aparecerá no site</div>
                         </div>
 
                         <div class="form-group form-row full">
@@ -844,8 +865,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="locationTitle">Título da Seção</label>
+                            <label for="locationTitle">Tag da seção</label>
                             <input type="text" id="locationTitle" name="locationTitle" placeholder="Ex: Localização Estratégica" value="<%= page && page.details && page.details.location ? (page.details.location.title || '') : '' %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="locationSubtitle">Título (H2)</label>
+                            <input type="text" id="locationSubtitle" name="locationSubtitle" placeholder="Ex: Lago Norte: visibilidade e conectividade" value="<%= page && page.details && page.details.location ? (page.details.location.subtitle || '') : '' %>">
+                        </div>
+                        <div class="form-group form-row full">
+                            <label for="locationMapQuery">Busca do mapa (Google)</label>
+                            <input type="text" id="locationMapQuery" name="locationMapQuery" placeholder="Endereço para embed do mapa" value="<%= page && page.details && page.details.location ? (page.details.location.mapQuery || '') : '' %>">
                         </div>
 
                         <div class="form-group form-row full">
@@ -875,8 +904,20 @@
                         <h3><i class="fas fa-swimming-pool"></i> Áreas Comuns</h3>
                         <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Itens exibidos na seção "Conforto & Lazer" da página do projeto</p>
 
+                        <div class="form-group">
+                            <label for="commonAreasSectionTag">Tag da seção</label>
+                            <input type="text" id="commonAreasSectionTag" value="<%= page && page.details && page.details.commonAreasSectionTag ? page.details.commonAreasSectionTag : 'Conforto & Lazer' %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="commonAreasTitle">Título (H2)</label>
+                            <input type="text" id="commonAreasTitle" value="<%= page && page.details && page.details.commonAreasTitle ? page.details.commonAreasTitle : 'Áreas Comuns do Empreendimento' %>">
+                        </div>
                         <div class="form-group form-row full">
-                            <label for="commonAreas">Áreas Comuns (formato JSON)</label>
+                            <label for="commonAreasIntro">Texto introdutório</label>
+                            <textarea id="commonAreasIntro" rows="3"><%= page && page.details && page.details.commonAreasIntro ? page.details.commonAreasIntro : '' %></textarea>
+                        </div>
+                        <div class="form-group form-row full">
+                            <label for="commonAreas">Itens (formato JSON)</label>
                             <textarea id="commonAreas" name="commonAreas" placeholder='[{"label": "Rooftop Lounge", "icon": "fas fa-sun"}, {"label": "Academia Premium", "icon": "fas fa-dumbbell"}]' style="font-family: monospace; font-size: 0.85rem; min-height: 220px;"><%= page && page.details && Array.isArray(page.details.commonAreas) ? JSON.stringify(page.details.commonAreas, null, 2) : '[]' %></textarea>
                             <div class="form-hint">Array de objetos com <code>label</code> e <code>icon</code> (classe FontAwesome)</div>
                         </div>
@@ -1195,7 +1236,24 @@
                 const data = await parseApiJson(response);
 
                 if (data.success) {
-                    showMessage(data.message, 'success');
+                    const pagePayload = {
+                        heroSubtitle: document.getElementById('heroSubtitle').value,
+                        pageDescription: document.getElementById('pageDescription').value,
+                        detailHeadline: document.getElementById('detailHeadline').value,
+                        detailBullets: document.getElementById('detailBullets').value.split('\n').filter(h => h.trim()).map(h => h.trim())
+                    };
+                    const pageRes = await fetch(`/admin/update-project-page-content/${projectId}`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: JSON.stringify(pagePayload)
+                    });
+                    const pageData = await parseApiJson(pageRes);
+                    if (!pageData.success) {
+                        showMessage(pageData.message || 'Projeto salvo, mas conteúdo da página falhou.', 'error');
+                    } else {
+                        showMessage('Projeto e conteúdo da página salvos!', 'success');
+                    }
                     selectedFilesMain.length = 0;
                     document.getElementById('mainImagePreviewContainer').innerHTML = '';
                     setTimeout(() => window.location.reload(), 1500);
@@ -1216,6 +1274,7 @@
             e.preventDefault();
 
             const formData = {
+                plantaSectionTag: document.getElementById('plantaSectionTag').value,
                 plantaTitle: document.getElementById('plantaTitle').value,
                 plantaSubtitle: document.getElementById('plantaSubtitle').value,
                 plantaDescription: document.getElementById('plantaDescription').value,
@@ -1290,6 +1349,8 @@
             const formData = {
                 address: document.getElementById('address').value,
                 locationTitle: document.getElementById('locationTitle').value,
+                locationSubtitle: document.getElementById('locationSubtitle').value,
+                locationMapQuery: document.getElementById('locationMapQuery').value,
                 locationDescription: document.getElementById('locationDescription').value,
                 locationFeatures: document.getElementById('locationFeatures').value
             };
@@ -1358,7 +1419,12 @@
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: JSON.stringify({ commonAreas: parsedCommonAreas })
+                    body: JSON.stringify({
+                        commonAreasSectionTag: document.getElementById('commonAreasSectionTag').value,
+                        commonAreasTitle: document.getElementById('commonAreasTitle').value,
+                        commonAreasIntro: document.getElementById('commonAreasIntro').value,
+                        commonAreas: parsedCommonAreas
+                    })
                 });
                 const data = await parseApiJson(response);
 

@@ -11,10 +11,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="<%= requestUrl %>">
     <meta property="og:locale" content="pt_BR">
+    <%- include('includes/meta-og') %>
     <link rel="stylesheet" href="/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -37,18 +38,7 @@
             <div class="projects-grid">
                 <% if (projects && projects.length) { %>
                     <% projects.forEach(project => { %>
-                    <a href="<%= project.href %>" class="project-card">
-                        <div class="project-img-wrapper">
-                            <img loading="lazy" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
-                            <% if (project.badge) { %>
-                            <span class="project-badge"><%= project.badge %></span>
-                            <% } %>
-                        </div>
-                        <div class="project-info">
-                            <h4><%= project.title %></h4>
-                            <p><%= project.description %></p>
-                        </div>
-                    </a>
+                    <%- include('includes/project-card', { project }) %>
                     <% }) %>
                 <% } %>
             </div>
@@ -57,30 +47,10 @@
 
     <%- include('includes/footer', { footer }) %>
 
-    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+    <a href="<%= typeof whatsappUrl !== 'undefined' ? whatsappUrl : 'https://api.whatsapp.com/send?phone=556121958300' %>" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.querySelector('.menu-toggle');
-            const navMenu = document.querySelector('.nav-menu');
-
-            if (toggleBtn && navMenu) {
-                toggleBtn.addEventListener('click', function() {
-                    toggleBtn.classList.toggle('active');
-                    navMenu.classList.toggle('active');
-                });
-
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.addEventListener('click', function() {
-                        toggleBtn.classList.remove('active');
-                        navMenu.classList.remove('active');
-                    });
-                });
-            }
-        });
-    </script>
+    <script src="/main.js"></script>
 
 </body>
 </html>

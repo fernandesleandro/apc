@@ -124,32 +124,10 @@
     <%- include('includes/footer', { footer }) %>
 
     <!-- Botão Flutuante do WhatsApp -->
-    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+    <a href="https://api.whatsapp.com/send?phone=556121958300" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
-
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.querySelector('.menu-toggle');
-            const navMenu = document.querySelector('.nav-menu');
-            
-            if (toggleBtn && navMenu) {
-                toggleBtn.addEventListener('click', function() {
-                    toggleBtn.classList.toggle('active');
-                    navMenu.classList.toggle('active');
-                });
-                
-                const navLinks = document.querySelectorAll('.nav-link');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        toggleBtn.classList.remove('active');
-                        navMenu.classList.remove('active');
-                    });
-                });
-            }
-        });
-    </script>
+    <script src="/main.js"></script>
 
 
 </body>
