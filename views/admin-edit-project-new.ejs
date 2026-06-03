@@ -236,6 +236,116 @@
             margin-top: 6px;
         }
 
+        .field-help-box {
+            background: #f0f7ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            font-size: 0.88rem;
+            color: #334155;
+            line-height: 1.55;
+        }
+        .field-help-box strong { color: #1e40af; display: block; margin-bottom: 8px; font-size: 0.92rem; }
+        .field-help-box ul { margin: 8px 0 0 18px; padding: 0; }
+        .field-help-box li { margin-bottom: 4px; }
+        .field-help-box .help-where {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 10px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .highlight-list-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .highlight-list-row input {
+            flex: 1;
+        }
+        .highlight-list-row .row-num {
+            min-width: 28px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        .highlight-list-empty {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .admin-site-preview {
+            margin-top: 20px;
+            padding: 18px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        .admin-preview-caption {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        .preview-detail-bullets { list-style: none; padding: 0; margin: 0; }
+        .preview-detail-bullets li {
+            display: flex; gap: 10px; align-items: flex-start;
+            margin-bottom: 10px; color: #334155; font-weight: 500; font-size: 0.92rem;
+        }
+        .preview-detail-bullets li i { color: #006de5; margin-top: 3px; }
+        .preview-planta-card {
+            background: #00112c; color: #e2e8f0; border-radius: 8px;
+            padding: 16px; border-left: 4px solid #006de5; max-width: 360px;
+        }
+        .preview-planta-card ul { list-style: none; padding: 0; margin: 10px 0 0; }
+        .preview-planta-card li { display: flex; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; }
+        .preview-planta-card li i { color: #006de5; }
+        .preview-location-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
+        }
+        .preview-location-card {
+            background: #fff; border-radius: 8px; padding: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06); font-size: 0.85rem;
+        }
+        .preview-location-card .icon-circle {
+            width: 40px; height: 40px; border-radius: 50%; background: rgba(0,109,229,0.1);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+            color: #006de5;
+        }
+        .preview-location-card h5 { margin: 0 0 4px; font-size: 0.9rem; color: #00112c; }
+        .preview-location-card p { margin: 0; color: #64748b; font-size: 0.8rem; }
+        .preview-common-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;
+        }
+        .preview-common-item {
+            text-align: center; background: #fff; border-radius: 8px; padding: 14px 10px;
+            border: 1px solid #e2e8f0; font-size: 0.8rem; font-weight: 600; color: #00112c;
+        }
+        .preview-common-item i { display: block; font-size: 1.4rem; color: #006de5; margin-bottom: 8px; }
+        .preview-placeholder { color: #94a3b8; font-style: italic; font-size: 0.88rem; }
+
+        .structured-item-card {
+            border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #fff;
+        }
+        .structured-item-card .form-row { margin-bottom: 10px; }
+        .structured-item-card .card-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+        .fa-icon-custom { margin-top: 8px; display: none; }
+        .fa-icon-custom.visible { display: block; }
+
         /* UPLOAD SECTION */
         .upload-section {
             margin-top: 30px;
@@ -704,10 +814,31 @@
                         <div class="form-group form-row full">
                             <label for="detailHeadline">Título da seção Detalhes (H2)</label>
                             <input type="text" id="detailHeadline" value="<%= page && page.details && page.details.detailHeadline ? page.details.detailHeadline : '' %>" placeholder="Ex: Espaços comerciais no Lago Norte">
+                            <div class="form-hint">Título principal exibido na seção <strong>Detalhes do Projeto</strong> (diferente do subtítulo do hero).</div>
                         </div>
+
                         <div class="form-group form-row full">
-                            <label for="detailBullets">Destaques (um por linha)</label>
-                            <textarea id="detailBullets" rows="4" placeholder="Destaque 1&#10;Destaque 2"><%= page && page.details && Array.isArray(page.details.detailBullets) ? page.details.detailBullets.join('\n') : '' %></textarea>
+                            <label>Destaques do empreendimento</label>
+                            <div class="field-help-box">
+                                <strong><i class="fas fa-bullseye"></i> Para que serve?</strong>
+                                Frases curtas que resumem os <em>principais benefícios</em> do empreendimento para quem está decidindo investir, alugar ou comprar.
+                                <ul>
+                                    <li><strong>Onde aparece no site:</strong> seção <em>Detalhes do Projeto</em>, em lista com ícone ✓ logo abaixo da descrição longa.</li>
+                                    <li><strong>Objetivo:</strong> leitura rápida (3 a 6 itens) — o cliente entende o diferencial sem ler o texto inteiro.</li>
+                                    <li><strong>Como escrever:</strong> uma ideia por linha; use números quando fizer sentido (ex.: vagas, salas, m²).</li>
+                                    <li><strong>Não confundir com:</strong> Ficha técnica (barra no topo da página) nem destaques da aba <em>Distribuição de Espaços</em>.</li>
+                                </ul>
+                                <span class="help-where">Página pública → Detalhes do Projeto</span>
+                            </div>
+                            <div id="detailBulletsContainer"></div>
+                            <button type="button" id="addDetailBulletBtn" class="btn-upload" style="margin-top: 8px;">
+                                <i class="fas fa-plus"></i> Adicionar destaque
+                            </button>
+                            <div class="form-hint">Recomendado: 3 a 6 itens. Deixe em branco se preferir só a descrição longa.</div>
+                            <div class="admin-site-preview" id="detailBulletsPreviewBox">
+                                <p class="admin-preview-caption"><i class="fas fa-eye"></i> Exemplo visual no site</p>
+                                <ul class="preview-detail-bullets" id="detailBulletsPreview"></ul>
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -791,9 +922,27 @@
                         </div>
 
                         <div class="form-group form-row full">
-                            <label for="plantaHighlights">Destaques (um por linha)</label>
-                            <textarea id="plantaHighlights" name="plantaHighlights" placeholder="Destaque 1&#10;Destaque 2&#10;Destaque 3" style="font-family: monospace; font-size: 0.9rem;"><%= page && page.details && Array.isArray(page.details.plantaHighlights) ? page.details.plantaHighlights.join('\n') : '' %></textarea>
-                            <div class="form-hint">Principais características dos espaços</div>
+                            <label>Destaques da distribuição / plantas</label>
+                            <div class="field-help-box">
+                                <strong><i class="fas fa-ruler-combined"></i> Para que serve?</strong>
+                                Características <em>técnicas e de layout</em> que explicam como os espaços estão organizados — complementam as imagens das plantas e a descrição da seção.
+                                <ul>
+                                    <li><strong>Onde aparece no site:</strong> card escuro ao lado das plantas, em <em>Distribuição de Espaços</em>, com ícones automáticos (vaga, sala, lobby, etc.).</li>
+                                    <li><strong>Objetivo:</strong> traduzir a planta em benefícios concretos (módulos, pavimentos, vagas, tipologias).</li>
+                                    <li><strong>Como escrever:</strong> um item por linha; palavras como <em>vaga</em>, <em>sala</em>, <em>lobby</em>, <em>cozinha</em> ajudam o ícone correto no site.</li>
+                                    <li><strong>Não confundir com:</strong> Destaques do empreendimento (aba Informações Básicas) nem com a Ficha técnica do topo.</li>
+                                </ul>
+                                <span class="help-where">Página pública → Distribuição de Espaços (card lateral)</span>
+                            </div>
+                            <div id="plantaHighlightsContainer"></div>
+                            <button type="button" id="addPlantaHighlightBtn" class="btn-upload" style="margin-top: 8px;">
+                                <i class="fas fa-plus"></i> Adicionar característica
+                            </button>
+                            <div class="form-hint">Ex.: &quot;108 salas comerciais modernas&quot;, &quot;376 vagas (132 vinculadas / 244 autônomas)&quot;.</div>
+                            <div class="admin-site-preview" id="plantaHighlightsPreviewBox">
+                                <p class="admin-preview-caption"><i class="fas fa-eye"></i> Exemplo visual no site (card ao lado das plantas)</p>
+                                <div class="preview-planta-card" id="plantaHighlightsPreview"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -883,9 +1032,24 @@
                         </div>
 
                         <div class="form-group form-row full">
-                            <label for="locationFeatures">Características (formato JSON)</label>
-                            <textarea id="locationFeatures" name="locationFeatures" placeholder='[{"label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental", "icon": "fas fa-route"}]' style="font-family: monospace; font-size: 0.85rem;"><%= page && page.details && page.details.location && Array.isArray(page.details.location.features) ? JSON.stringify(page.details.location.features, null, 2) : '' %></textarea>
-                            <div class="form-hint">Array de objetos com label, value e icon (classe FontAwesome)</div>
+                            <label>Características do entorno</label>
+                            <div class="field-help-box">
+                                <strong><i class="fas fa-map-marked-alt"></i> Para que serve?</strong>
+                                Cards que mostram <em>vantagens da região</em> (mobilidade, saúde, comércio…) na seção de localização.
+                                <ul>
+                                    <li><strong>No site:</strong> grade de cards com ícone, título e texto abaixo da descrição do mapa.</li>
+                                    <li><strong>Campos:</strong> Título do card · Descrição · Complemento (opcional, ex. “~10 min”) · Ícone.</li>
+                                </ul>
+                                <span class="help-where">Página pública → Localização</span>
+                            </div>
+                            <div id="locationFeaturesContainer"></div>
+                            <button type="button" id="addLocationFeatureBtn" class="btn-upload" style="margin-top: 8px;">
+                                <i class="fas fa-plus"></i> Adicionar característica
+                            </button>
+                            <div class="admin-site-preview" id="locationFeaturesPreviewBox">
+                                <p class="admin-preview-caption"><i class="fas fa-eye"></i> Exemplo visual no site</p>
+                                <div class="preview-location-grid" id="locationFeaturesPreview"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -917,9 +1081,24 @@
                             <textarea id="commonAreasIntro" rows="3"><%= page && page.details && page.details.commonAreasIntro ? page.details.commonAreasIntro : '' %></textarea>
                         </div>
                         <div class="form-group form-row full">
-                            <label for="commonAreas">Itens (formato JSON)</label>
-                            <textarea id="commonAreas" name="commonAreas" placeholder='[{"label": "Rooftop Lounge", "icon": "fas fa-sun"}, {"label": "Academia Premium", "icon": "fas fa-dumbbell"}]' style="font-family: monospace; font-size: 0.85rem; min-height: 220px;"><%= page && page.details && Array.isArray(page.details.commonAreas) ? JSON.stringify(page.details.commonAreas, null, 2) : '[]' %></textarea>
-                            <div class="form-hint">Array de objetos com <code>label</code> e <code>icon</code> (classe FontAwesome)</div>
+                            <label>Itens de áreas comuns / infraestrutura</label>
+                            <div class="field-help-box">
+                                <strong><i class="fas fa-th-large"></i> Para que serve?</strong>
+                                Grade de ícones com nomes (ex.: Lobby, Academia, Segurança) na seção de áreas comuns ou infraestrutura do edifício.
+                                <ul>
+                                    <li><strong>No site:</strong> blocos com ícone + nome, em grade centralizada.</li>
+                                    <li><strong>Campos:</strong> Nome exibido · Ícone (escolha na lista ou personalizado).</li>
+                                </ul>
+                                <span class="help-where">Página pública → Conforto &amp; Lazer / Infraestrutura</span>
+                            </div>
+                            <div id="commonAreasContainer"></div>
+                            <button type="button" id="addCommonAreaBtn" class="btn-upload" style="margin-top: 8px;">
+                                <i class="fas fa-plus"></i> Adicionar item
+                            </button>
+                            <div class="admin-site-preview" id="commonAreasPreviewBox">
+                                <p class="admin-preview-caption"><i class="fas fa-eye"></i> Exemplo visual no site</p>
+                                <div class="preview-common-grid" id="commonAreasPreview"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -972,6 +1151,307 @@
         const selectedFilesPlanta = [];
         const selectedFilesGallery = [];
         const initialTechnicalSummaryItems = <%- JSON.stringify((page && page.details && Array.isArray(page.details.summaryItems) ? page.details.summaryItems : []).filter(item => item && item.label !== 'Endereço')) %>;
+        const initialDetailBullets = <%- JSON.stringify(page && page.details && Array.isArray(page.details.detailBullets) ? page.details.detailBullets : []) %>;
+        const initialPlantaHighlights = <%- JSON.stringify(page && page.details && Array.isArray(page.details.plantaHighlights) ? page.details.plantaHighlights : []) %>;
+        const initialLocationFeatures = <%- JSON.stringify(page && page.details && page.details.location && Array.isArray(page.details.location.features) ? page.details.location.features : []) %>;
+        const initialCommonAreas = <%- JSON.stringify(page && page.details && Array.isArray(page.details.commonAreas) ? page.details.commonAreas : []) %>;
+
+        const FA_ICON_PRESETS = [
+            { value: 'fas fa-route', label: 'Mobilidade / Rota' },
+            { value: 'fas fa-hospital-symbol', label: 'Saúde' },
+            { value: 'fas fa-graduation-cap', label: 'Educação' },
+            { value: 'fas fa-store', label: 'Comércio' },
+            { value: 'fas fa-palette', label: 'Cultura / Lazer' },
+            { value: 'fas fa-car', label: 'Estacionamento' },
+            { value: 'fas fa-building', label: 'Edifício / Corporativo' },
+            { value: 'fas fa-shield-alt', label: 'Segurança' },
+            { value: 'fas fa-elevator', label: 'Elevador' },
+            { value: 'fas fa-dumbbell', label: 'Academia' },
+            { value: 'fas fa-utensils', label: 'Gourmet' },
+            { value: 'fas fa-swimmer', label: 'Piscina' },
+            { value: 'fas fa-users', label: 'Convivência' },
+            { value: 'fas fa-network-wired', label: 'TI / Redes' },
+            { value: 'fas fa-sun', label: 'Área externa' },
+            { value: 'fas fa-door-open', label: 'Lobby / Salas' },
+            { value: 'fas fa-eye', label: 'Visibilidade' },
+            { value: 'fas fa-parking', label: 'Vagas' },
+            { value: 'fas fa-check', label: 'Genérico (check)' }
+        ];
+
+        function isPresetIcon(icon) {
+            return FA_ICON_PRESETS.some(p => p.value === icon);
+        }
+
+        function buildIconSelectMarkup(selectedIcon = 'fas fa-check') {
+            const isCustom = selectedIcon && !isPresetIcon(selectedIcon);
+            const options = FA_ICON_PRESETS.map(p =>
+                `<option value="${p.value}" ${(!isCustom && selectedIcon === p.value) ? 'selected' : ''}>${p.label}</option>`
+            ).join('');
+            return `
+                <select class="fa-icon-select">
+                    ${options}
+                    <option value="__custom__" ${isCustom ? 'selected' : ''}>Outro ícone (digitar classe FA)</option>
+                </select>
+                <input type="text" class="fa-icon-custom ${isCustom ? 'visible' : ''}" placeholder="Ex: fas fa-star" value="${isCustom ? String(selectedIcon).replace(/"/g, '&quot;') : ''}">
+            `;
+        }
+
+        function bindIconSelect(row) {
+            const select = row.querySelector('.fa-icon-select');
+            const custom = row.querySelector('.fa-icon-custom');
+            if (!select || !custom) return;
+            const sync = () => {
+                custom.classList.toggle('visible', select.value === '__custom__');
+                row.dispatchEvent(new CustomEvent('preview-update'));
+            };
+            select.addEventListener('change', sync);
+            custom.addEventListener('input', () => row.dispatchEvent(new CustomEvent('preview-update')));
+            sync();
+        }
+
+        function getIconFromRow(row) {
+            const select = row.querySelector('.fa-icon-select');
+            const custom = row.querySelector('.fa-icon-custom');
+            if (!select) return 'fas fa-check';
+            if (select.value === '__custom__') return (custom && custom.value.trim()) || 'fas fa-check';
+            return select.value;
+        }
+
+        function createHighlightListRow(value = '', inputClass = 'highlight-item-input') {
+            const row = document.createElement('div');
+            row.className = 'highlight-list-row';
+            const safe = String(value || '').replace(/"/g, '&quot;');
+            row.innerHTML = `
+                <span class="row-num" aria-hidden="true">•</span>
+                <input type="text" class="${inputClass}" placeholder="Ex: 198 salas modulares para escritórios" value="${safe}">
+                <button type="button" class="btn-danger remove-highlight-row" style="padding: 10px 12px;" title="Remover">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            row.querySelector('.remove-highlight-row').addEventListener('click', () => {
+                row.remove();
+                row.closest('[id$="Container"]')?.dispatchEvent(new CustomEvent('preview-update'));
+            });
+            row.querySelector('.' + inputClass).addEventListener('input', () => {
+                row.closest('[id$="Container"]')?.dispatchEvent(new CustomEvent('preview-update'));
+            });
+            return row;
+        }
+
+        function renderHighlightList(containerId, items, inputClass) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            const list = (items || []).filter(t => String(t).trim());
+            if (!list.length) {
+                const row = createHighlightListRow('', inputClass);
+                container.appendChild(row);
+            } else {
+                list.forEach(text => container.appendChild(createHighlightListRow(text, inputClass)));
+            }
+            container.dispatchEvent(new CustomEvent('preview-update'));
+        }
+
+        function collectHighlightList(containerId, inputClass) {
+            const container = document.getElementById(containerId);
+            if (!container) return [];
+            return Array.from(container.querySelectorAll('.' + inputClass))
+                .map(input => input.value.trim())
+                .filter(Boolean);
+        }
+
+        function createLocationFeatureRow(item = {}) {
+            const card = document.createElement('div');
+            card.className = 'structured-item-card location-feature-row';
+            const label = (item.label || '').replace(/"/g, '&quot;');
+            const value = (item.value || '').replace(/"/g, '&quot;');
+            const detail = (item.detail || '').replace(/"/g, '&quot;');
+            card.innerHTML = `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Título do card</label>
+                        <input type="text" class="loc-feat-label" placeholder="Ex: Mobilidade" value="${label}">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <input type="text" class="loc-feat-value" placeholder="Ex: Acesso rápido ao Eixo Monumental" value="${value}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Complemento (opcional)</label>
+                        <input type="text" class="loc-feat-detail" placeholder="Ex: ~10 min" value="${detail}">
+                    </div>
+                    <div class="form-group">
+                        <label>Ícone</label>
+                        ${buildIconSelectMarkup(item.icon || 'fas fa-route')}
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button type="button" class="btn-danger remove-structured-row" style="padding: 8px 12px;"><i class="fas fa-trash"></i> Remover</button>
+                </div>
+            `;
+            bindIconSelect(card);
+            card.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => card.dispatchEvent(new CustomEvent('preview-update'))));
+            card.querySelector('.remove-structured-row').addEventListener('click', () => {
+                card.remove();
+                document.getElementById('locationFeaturesContainer')?.dispatchEvent(new CustomEvent('preview-update'));
+            });
+            card.addEventListener('preview-update', updateLocationFeaturesPreview);
+            return card;
+        }
+
+        function createCommonAreaRow(item = {}) {
+            const card = document.createElement('div');
+            card.className = 'structured-item-card common-area-row';
+            const label = (item.label || '').replace(/"/g, '&quot;');
+            card.innerHTML = `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome exibido</label>
+                        <input type="text" class="common-area-label" placeholder="Ex: Lobby Corporativo" value="${label}">
+                    </div>
+                    <div class="form-group">
+                        <label>Ícone</label>
+                        ${buildIconSelectMarkup(item.icon || 'fas fa-building')}
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button type="button" class="btn-danger remove-structured-row" style="padding: 8px 12px;"><i class="fas fa-trash"></i> Remover</button>
+                </div>
+            `;
+            bindIconSelect(card);
+            card.querySelector('.common-area-label').addEventListener('input', () => card.dispatchEvent(new CustomEvent('preview-update')));
+            card.querySelector('.remove-structured-row').addEventListener('click', () => {
+                card.remove();
+                document.getElementById('commonAreasContainer')?.dispatchEvent(new CustomEvent('preview-update'));
+            });
+            card.addEventListener('preview-update', updateCommonAreasPreview);
+            return card;
+        }
+
+        function renderStructuredList(containerId, items, createRowFn, emptyRow = true) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            const list = items && items.length ? items : (emptyRow ? [{}] : []);
+            list.forEach(item => container.appendChild(createRowFn(item)));
+            container.dispatchEvent(new CustomEvent('preview-update'));
+        }
+
+        function collectLocationFeatures() {
+            return Array.from(document.querySelectorAll('.location-feature-row')).map(row => ({
+                label: row.querySelector('.loc-feat-label')?.value.trim() || '',
+                value: row.querySelector('.loc-feat-value')?.value.trim() || '',
+                detail: row.querySelector('.loc-feat-detail')?.value.trim() || '',
+                icon: getIconFromRow(row)
+            })).filter(f => f.label && f.value);
+        }
+
+        function collectCommonAreas() {
+            return Array.from(document.querySelectorAll('.common-area-row')).map(row => ({
+                label: row.querySelector('.common-area-label')?.value.trim() || '',
+                icon: getIconFromRow(row)
+            })).filter(a => a.label);
+        }
+
+        const PREVIEW_EXAMPLES = {
+            detailBullets: ['198 salas modulares para escritórios', '222 vagas de garagem', 'Localização no Lago Norte'],
+            plantaHighlights: ['108 salas comerciais modernas', '376 vagas (132 vinculadas / 244 autônomas)'],
+            location: [
+                { label: 'Mobilidade', value: 'Acesso ao Eixo Monumental', detail: '~10 min', icon: 'fas fa-route' },
+                { label: 'Saúde', value: 'Hospitais próximos', detail: '', icon: 'fas fa-hospital-symbol' }
+            ],
+            commonAreas: [
+                { label: 'Lobby Corporativo', icon: 'fas fa-door-open' },
+                { label: 'Segurança 24h', icon: 'fas fa-shield-alt' }
+            ]
+        };
+
+        function updateDetailBulletsPreview() {
+            const el = document.getElementById('detailBulletsPreview');
+            if (!el) return;
+            const items = collectHighlightList('detailBulletsContainer', 'detail-bullet-input');
+            const list = items.length ? items : PREVIEW_EXAMPLES.detailBullets;
+            const isExample = !items.length;
+            el.innerHTML = list.map(text =>
+                `<li class="${isExample ? 'preview-example' : ''}"><i class="fas fa-check" aria-hidden="true"></i> ${text}${isExample ? ' <small style="color:#94a3b8;font-weight:400">(exemplo)</small>' : ''}</li>`
+            ).join('');
+        }
+
+        function updatePlantaHighlightsPreview() {
+            const el = document.getElementById('plantaHighlightsPreview');
+            if (!el) return;
+            const items = collectHighlightList('plantaHighlightsContainer', 'planta-highlight-input');
+            const list = items.length ? items : PREVIEW_EXAMPLES.plantaHighlights;
+            const isExample = !items.length;
+            el.innerHTML = `<p style="font-size:0.85rem;color:#94a3b8;margin:0 0 8px;">Distribuição de Espaços</p><ul>${
+                list.map(text => `<li><i class="fas fa-check-circle" aria-hidden="true"></i> ${text}${isExample ? ' <small style="opacity:0.7">(exemplo)</small>' : ''}</li>`).join('')
+            }</ul>`;
+        }
+
+        function updateLocationFeaturesPreview() {
+            const el = document.getElementById('locationFeaturesPreview');
+            if (!el) return;
+            const items = collectLocationFeatures();
+            const list = items.length ? items : PREVIEW_EXAMPLES.location;
+            const isExample = !items.length;
+            el.innerHTML = list.map(f => `
+                <div class="preview-location-card ${isExample ? 'preview-example' : ''}" style="${isExample ? 'opacity:0.85' : ''}">
+                    <div class="icon-circle"><i class="${f.icon}" aria-hidden="true"></i></div>
+                    <h5>${f.label}</h5>
+                    <p>${f.value}${f.detail ? ' · ' + f.detail : ''}${isExample ? ' <em>(exemplo)</em>' : ''}</p>
+                </div>
+            `).join('') || '<p class="preview-placeholder">Adicione características acima.</p>';
+        }
+
+        function updateCommonAreasPreview() {
+            const el = document.getElementById('commonAreasPreview');
+            if (!el) return;
+            const items = collectCommonAreas();
+            const list = items.length ? items : PREVIEW_EXAMPLES.commonAreas;
+            const isExample = !items.length;
+            el.innerHTML = list.map(a => `
+                <div class="preview-common-item ${isExample ? 'preview-example' : ''}" style="${isExample ? 'opacity:0.85' : ''}">
+                    <i class="${a.icon}" aria-hidden="true"></i>
+                    ${a.label}${isExample ? '<br><small style="color:#94a3b8;font-weight:400">(exemplo)</small>' : ''}
+                </div>
+            `).join('') || '<p class="preview-placeholder">Adicione itens acima.</p>';
+        }
+
+        renderHighlightList('detailBulletsContainer', initialDetailBullets, 'detail-bullet-input');
+        renderHighlightList('plantaHighlightsContainer', initialPlantaHighlights, 'planta-highlight-input');
+        renderStructuredList('locationFeaturesContainer', initialLocationFeatures, createLocationFeatureRow);
+        renderStructuredList('commonAreasContainer', initialCommonAreas, createCommonAreaRow);
+
+        document.getElementById('detailBulletsContainer')?.addEventListener('preview-update', updateDetailBulletsPreview);
+        document.getElementById('plantaHighlightsContainer')?.addEventListener('preview-update', updatePlantaHighlightsPreview);
+        document.getElementById('locationFeaturesContainer')?.addEventListener('preview-update', updateLocationFeaturesPreview);
+        document.getElementById('commonAreasContainer')?.addEventListener('preview-update', updateCommonAreasPreview);
+
+        document.getElementById('addDetailBulletBtn').addEventListener('click', () => {
+            document.getElementById('detailBulletsContainer').appendChild(createHighlightListRow('', 'detail-bullet-input'));
+            updateDetailBulletsPreview();
+        });
+        document.getElementById('addPlantaHighlightBtn').addEventListener('click', () => {
+            document.getElementById('plantaHighlightsContainer').appendChild(createHighlightListRow('', 'planta-highlight-input'));
+            updatePlantaHighlightsPreview();
+        });
+        document.getElementById('addLocationFeatureBtn').addEventListener('click', () => {
+            const row = createLocationFeatureRow({});
+            document.getElementById('locationFeaturesContainer').appendChild(row);
+            updateLocationFeaturesPreview();
+        });
+        document.getElementById('addCommonAreaBtn').addEventListener('click', () => {
+            const row = createCommonAreaRow({});
+            document.getElementById('commonAreasContainer').appendChild(row);
+            updateCommonAreasPreview();
+        });
+
+        updateDetailBulletsPreview();
+        updatePlantaHighlightsPreview();
+        updateLocationFeaturesPreview();
+        updateCommonAreasPreview();
 
         // ===== TABS =====
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1240,7 +1720,7 @@
                         heroSubtitle: document.getElementById('heroSubtitle').value,
                         pageDescription: document.getElementById('pageDescription').value,
                         detailHeadline: document.getElementById('detailHeadline').value,
-                        detailBullets: document.getElementById('detailBullets').value.split('\n').filter(h => h.trim()).map(h => h.trim())
+                        detailBullets: collectHighlightList('detailBulletsContainer', 'detail-bullet-input')
                     };
                     const pageRes = await fetch(`/admin/update-project-page-content/${projectId}`, {
                         method: 'POST',
@@ -1278,7 +1758,7 @@
                 plantaTitle: document.getElementById('plantaTitle').value,
                 plantaSubtitle: document.getElementById('plantaSubtitle').value,
                 plantaDescription: document.getElementById('plantaDescription').value,
-                plantaHighlights: document.getElementById('plantaHighlights').value.split('\n').filter(h => h.trim()).map(h => h.trim())
+                plantaHighlights: collectHighlightList('plantaHighlightsContainer', 'planta-highlight-input')
             };
 
             try {
@@ -1352,23 +1832,8 @@
                 locationSubtitle: document.getElementById('locationSubtitle').value,
                 locationMapQuery: document.getElementById('locationMapQuery').value,
                 locationDescription: document.getElementById('locationDescription').value,
-                locationFeatures: document.getElementById('locationFeatures').value
+                locationFeatures: collectLocationFeatures()
             };
-
-            const featuresRaw = formData.locationFeatures.trim();
-            if (featuresRaw) {
-                try {
-                    const parsed = JSON.parse(featuresRaw);
-                    if (!Array.isArray(parsed)) {
-                        throw new Error('locationFeatures deve ser um array JSON');
-                    }
-                } catch (parseError) {
-                    showMessage('JSON inválido em Características: ' + parseError.message, 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Localização';
-                    return;
-                }
-            }
 
             try {
                 const response = await fetch(`/admin/update-location-info/${projectId}`, {
@@ -1400,19 +1865,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Salvando...';
 
-            const commonAreasRaw = document.getElementById('commonAreas').value.trim();
-            let parsedCommonAreas;
-            try {
-                parsedCommonAreas = commonAreasRaw ? JSON.parse(commonAreasRaw) : [];
-                if (!Array.isArray(parsedCommonAreas)) {
-                    throw new Error('commonAreas deve ser um array JSON');
-                }
-            } catch (parseError) {
-                showMessage('JSON inválido em Áreas Comuns: ' + parseError.message, 'error');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Áreas Comuns';
-                return;
-            }
+            const parsedCommonAreas = collectCommonAreas();
 
             try {
                 const response = await fetch(`/admin/update-common-areas/${projectId}`, {
