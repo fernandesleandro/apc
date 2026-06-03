@@ -6,8 +6,10 @@ const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const { MongoStore } = require('connect-mongo');
 
 const app = express();
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ap_construcoes';
 
 // ===== CONFIGURAÇÃO MULTER E PATHS DE IMAGENS =====
 const UPLOAD_DIR_FALLBACK = path.join(__dirname, 'public', 'uploads'); // Fallback para uploads genéricos
@@ -484,16 +486,23 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1);
 
-// ===== SESSION CONFIGURATION =====
+// ===== SESSION CONFIGURATION (persistida no MongoDB — evita logout ao reiniciar servidor) =====
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    secure: process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1',
+  store: new MongoStore({
+    mongoUrl: MONGO_URI,
+    collectionName: 'admin_sessions',
+    ttl: 24 * 60 * 60
+  }),
+  name: 'apc.sid',
+  cookie: {
+    secure: process.env.COOKIE_SECURE === 'true',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 horas
-    sameSite: 'lax'
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax',
+    path: '/'
   }
 }));
 
@@ -544,8 +553,6 @@ const handleMulterError = (err, req, res, next) => {
   }
   next();
 };
-
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ap_construcoes';
 
 // Simplified database initialization function
 async function ensureDatabase() {

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Administrativo | AP Construções</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,19 +23,12 @@
         .admin-header {
             background: linear-gradient(135deg, #0073ff 0%, #005bc2 100%);
             box-shadow: 0 8px 24px rgba(0, 115, 255, 0.25);
-            padding: 30px 40px;
+            padding: 24px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
-        }
-
-        .admin-header h1 {
-            font-size: 2rem;
-            color: white;
-            font-weight: 800;
-            letter-spacing: 0.5px;
         }
 
         .admin-user {
@@ -453,9 +447,6 @@
                 padding: 20px;
             }
 
-            .admin-header h1 {
-                font-size: 1.5rem;
-            }
 
             .admin-user {
                 width: 100%;
@@ -500,10 +491,6 @@
                 padding: 16px;
             }
 
-            .admin-header h1 {
-                font-size: 1.2rem;
-            }
-
             .admin-container {
                 padding: 0 12px;
             }
@@ -536,8 +523,10 @@
 </head>
 <body>
     <!-- HEADER -->
-    <div class="admin-header">
-        <h1><i class="fas fa-cog"></i> Dashboard Administrativo</h1>
+    <div class="admin-header admin-header--with-logo">
+        <div class="admin-header-brand">
+            <%- include('includes/admin-brand', { variant: 'light', subtitle: 'Painel administrativo', link: '/admin/dashboard' }) %>
+        </div>
         <div class="admin-user">
             <div class="admin-user-info">
                 <div class="admin-user-avatar"><%= username.charAt(0).toUpperCase() %></div>
