@@ -1,0 +1,18 @@
+<a href="<%= project.href %>" class="project-card">
+    <div class="project-img-wrapper">
+        <img loading="lazy" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
+        <% if (project.badge) { %>
+            <span class="project-badge"><%= project.badge %></span>
+        <% } %>
+        <% if (project.categoryLabel) { %>
+            <span class="project-category-chip"><%= project.categoryLabel %></span>
+        <% } %>
+    </div>
+    <div class="project-info">
+        <h4><%= project.title %></h4>
+        <% if (project.locationChip) { %>
+            <p class="project-location-chip"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> <%= project.locationChip %></p>
+        <% } %>
+        <p><%= project.description %></p>
+    </div>
+</a>

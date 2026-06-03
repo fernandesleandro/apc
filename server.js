@@ -160,7 +160,20 @@ const ProjectGallery = mongoose.model('ProjectGallery', new mongoose.Schema({
 
 const Admin = mongoose.model('Admin', AdminSchema);
 
+const ContactMessage = mongoose.model('ContactMessage', new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: String,
+  message: { type: String, required: true },
+  projectInterest: String,
+  ip: String,
+  createdAt: { type: Date, default: Date.now }
+}));
+
 const PORT = process.env.PORT || 3000;
+const SITE_URL = (process.env.SITE_URL || 'https://www.apconstrucoes.com.br').replace(/\/$/, '');
+const WHATSAPP_PHONE = (process.env.WHATSAPP_PHONE || '556121958300').replace(/\D/g, '');
+const contactRateLimit = new Map();
 const isVercel = Boolean(process.env.VERCEL);
 const defaultSettings = {
   nav: [
@@ -197,8 +210,156 @@ function normalizeProjectRecord(project) {
   return {
     ...object,
     href: object.href || `/obras/${object.id}`,
-    image: normalizePublicPath(object.image) || fallbackImage
+    image: normalizePublicPath(object.image) || fallbackImage,
+    categoryLabel: formatCategoryLabel(object.category)
   };
+}
+
+function formatCategoryLabel(category) {
+  if (!category) return '';
+  const map = {
+    residencial: 'Residencial',
+    comercial: 'Comercial',
+    corporativo: 'Corporativo',
+    misto: 'Misto',
+    outro: 'Outro'
+  };
+  const key = String(category).trim().toLowerCase();
+  return map[key] || String(category).trim();
+}
+
+function absoluteAssetUrl(req, assetPath) {
+  if (!assetPath) return null;
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+  const host = `${req.protocol}://${req.get('host')}`;
+  return `${host}${normalizePublicPath(assetPath)}`;
+}
+
+function buildWhatsappUrl(text) {
+  const encoded = encodeURIComponent(text || 'Olá! Gostaria de mais informações sobre os empreendimentos da AP Construções.');
+  return `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${encoded}`;
+}
+
+function normalizeDetailData(detailData, page, project) {
+  const d = detailData || {};
+  const details = page?.details || {};
+  return {
+    ...d,
+    detailHeadline: d.detailHeadline || details.detailHeadline || '',
+    detailBullets: Array.isArray(d.detailBullets) ? d.detailBullets : (Array.isArray(details.detailBullets) ? details.detailBullets : []),
+    plantaSectionTag: d.plantaSectionTag || details.plantaSectionTag || 'Distribuição de Espaços',
+    plantaTitle: d.plantaTitle || details.plantaTitle || 'Distribuição de Espaços',
+    commonAreasSectionTag: d.commonAreasSectionTag || details.commonAreasSectionTag || 'Conforto & Lazer',
+    commonAreasTitle: d.commonAreasTitle || details.commonAreasTitle || 'Áreas Comuns do Empreendimento',
+    commonAreasIntro: d.commonAreasIntro || details.commonAreasIntro || '',
+    location: {
+      title: d.location?.title || details.location?.title || 'Localização',
+      subtitle: d.location?.subtitle || details.location?.subtitle || 'Estilo de Vida e Comodidade',
+      description: d.location?.description || details.location?.description || '',
+      mapQuery: d.location?.mapQuery || details.location?.mapQuery || '',
+      features: d.location?.features || details.location?.features || []
+    }
+  };
+}
+
+function buildProjectSections(detailData) {
+  const sections = [];
+  if (detailData.summaryItems?.length) sections.push({ id: 'ficha', label: 'Ficha Técnica' });
+  sections.push({ id: 'detalhes', label: 'Detalhes' });
+  if ((detailData.plantaGallery?.length) || detailData.plantaImage) sections.push({ id: 'plantas', label: 'Plantas' });
+  if (detailData.commonAreas?.length) sections.push({ id: 'areas', label: 'Áreas Comuns' });
+  if (detailData.location && (detailData.location.description || detailData.location.features?.length)) {
+    sections.push({ id: 'localizacao', label: 'Localização' });
+  }
+  return sections;
+}
+
+function buildProjectSchemaJson(page, project, detailData, requestUrl) {
+  const addressItem = (detailData.summaryItems || []).find(i =>
+    i && ['Endereço', 'Localização'].includes(i.label)
+  );
+  const category = (project?.category || '').toLowerCase();
+  const schemaType = category === 'comercial' || category === 'corporativo' ? 'OfficeBuilding' : 'Residence';
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': schemaType,
+    name: page?.hero?.title || project?.title,
+    description: page?.description,
+    url: requestUrl,
+    image: detailData.heroImage || project?.image
+  };
+  if (addressItem?.value) {
+    schema.address = {
+      '@type': 'PostalAddress',
+      streetAddress: addressItem.value,
+      addressLocality: 'Brasília',
+      addressRegion: 'DF',
+      addressCountry: 'BR'
+    };
+  }
+  return JSON.stringify(schema);
+}
+
+async function enrichProjectsForListing(projects) {
+  if (!projects?.length) return [];
+  const ids = projects.map(p => p.id);
+  const pages = await Page.find({ id: { $in: ids } }).lean();
+  const pageById = Object.fromEntries(pages.map(p => [p.id, p]));
+  return projects.map((project) => {
+    const page = pageById[project.id];
+    const details = page?.details || {};
+    const summary = details.summaryItems || [];
+    const address = summary.find(i => i && ['Endereço', 'Localização'].includes(i.label));
+    const metragem = summary.find(i => i && /metr|m²|m2|área/i.test(i.label || ''));
+    const locationChip = address?.value
+      ? String(address.value).split('-')[0].split(',')[0].trim().slice(0, 48)
+      : (metragem?.value ? String(metragem.value).slice(0, 48) : '');
+    return {
+      ...project,
+      locationChip,
+      whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`)
+    };
+  });
+}
+
+function checkContactRateLimit(ip) {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000;
+  const maxRequests = 8;
+  const entry = contactRateLimit.get(ip) || { count: 0, start: now };
+  if (now - entry.start > windowMs) {
+    contactRateLimit.set(ip, { count: 1, start: now });
+    return true;
+  }
+  if (entry.count >= maxRequests) return false;
+  entry.count += 1;
+  contactRateLimit.set(ip, entry);
+  return true;
+}
+
+async function sendContactEmail(payload) {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return false;
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+    });
+    const to = process.env.CONTACT_EMAIL || process.env.SMTP_USER;
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      replyTo: payload.email,
+      subject: `[AP Construções] Contato — ${payload.name}`,
+      text: `Nome: ${payload.name}\nE-mail: ${payload.email}\nTelefone: ${payload.phone || '-'}\nInteresse: ${payload.projectInterest || '-'}\n\n${payload.message}`
+    });
+    return true;
+  } catch (err) {
+    console.error('[CONTACT] Falha ao enviar e-mail:', err.message);
+    return false;
+  }
 }
 
 function parseJsonField(value, fallback = null) {
@@ -250,7 +411,9 @@ function mergeDetails(existing, incoming) {
     if (key === 'location' && incoming.location && typeof incoming.location === 'object') {
       base.location = base.location || {};
       if (incoming.location.title !== undefined) base.location.title = incoming.location.title;
+      if (incoming.location.subtitle !== undefined) base.location.subtitle = incoming.location.subtitle;
       if (incoming.location.description !== undefined) base.location.description = incoming.location.description;
+      if (incoming.location.mapQuery !== undefined) base.location.mapQuery = incoming.location.mapQuery;
       if (Array.isArray(incoming.location.features)) {
         base.location.features = incoming.location.features.map(f => ({ ...f }));
       }
@@ -293,12 +456,16 @@ async function getSettings() {
   };
 }
 
-// ===== MIDDLEWARE DE DESABILITAR CACHE (DESENVOLVIMENTO) =====
+// Cache: desabilitado só em desenvolvimento local
 app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  res.set('ETag', '');
+  const isDev = process.env.NODE_ENV !== 'production';
+  if (isDev) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  } else if (req.method === 'GET' && !req.path.startsWith('/admin')) {
+    res.set('Cache-Control', 'public, max-age=300');
+  }
   next();
 });
 
@@ -507,14 +674,18 @@ app.get('/', async (req, res) => {
   try {
     const settings = await getSettings();
     const page = await Page.findOne({ id: 'home' }).lean();
-    const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+    const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+    const projects = await enrichProjectsForListing(rawProjects);
+    const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     res.render('home', {
       page: page || { title: 'AP Construções', hero: { title: 'AP Construções', subtitle: 'Construção civil com qualidade, confiança e excelência.' } },
       nav: settings.nav,
       footer: settings.footer,
       projects,
       active: req.path,
-      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`
+      requestUrl,
+      ogImage: absoluteAssetUrl(req, '/logo.png'),
+      whatsappUrl: buildWhatsappUrl()
     });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar home:', error);
@@ -537,7 +708,17 @@ app.get('/contato', async (req, res) => {
   try {
     const settings = await getSettings();
     const page = await Page.findOne({ id: 'contato' }).lean();
-    res.render('contato', { page: page || { title: 'Contato', description: '' }, nav: settings.nav, footer: settings.footer, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+    const interest = typeof req.query.obra === 'string' ? req.query.obra : '';
+    res.render('contato', {
+      page: page || { title: 'Contato', description: '' },
+      nav: settings.nav,
+      footer: settings.footer,
+      active: req.path,
+      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      ogImage: absoluteAssetUrl(req, '/logo.png'),
+      projectInterest: interest,
+      whatsappUrl: buildWhatsappUrl(interest ? `Olá! Tenho interesse no empreendimento ${interest}.` : undefined)
+    });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar contato:', error);
     res.status(500).send('Erro ao carregar página');
@@ -547,60 +728,160 @@ app.get('/contato', async (req, res) => {
 app.get('/obras', async (req, res) => {
   try {
     const settings = await getSettings();
-    const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
-    res.render('obras', { nav: settings.nav, footer: settings.footer, projects, active: '/obras', requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+    const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+    const projects = await enrichProjectsForListing(rawProjects);
+    res.render('obras', {
+      nav: settings.nav,
+      footer: settings.footer,
+      projects,
+      active: '/obras',
+      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      ogImage: absoluteAssetUrl(req, rawProjects[0]?.image || '/logo.png'),
+      whatsappUrl: buildWhatsappUrl()
+    });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar obras:', error);
     res.status(500).send('Erro ao carregar obras');
   }
 });
 
-// Generic route to serve project details under /obras/:slug
-app.get('/obras/:slug', async (req, res) => {
-  try {
-  const settings = await getSettings();
-  const slug = req.params.slug;
+async function loadProjectDetailContext(slug, req) {
   const project = normalizeProjectRecord(await Project.findOne({ id: slug }).lean());
   let page = await Page.findOne({ id: slug }).lean();
 
-  if (!page) {
-    if (project) {
-      // If no specific page for the project, try to use a default page structure
-      const defaultPage = await Page.findOne({ id: 'default-project-template' }) || await Page.findOne({ id: 'monumental' });
-      if (defaultPage) {
-        const detailData = JSON.parse(JSON.stringify(defaultPage.details || {}));
-        detailData.heroImage = project.image || (defaultPage.hero && defaultPage.hero.image);
-
-        const plantaGallery = await PlantaGallery.findOne({ projectId: project.id }).lean();
-        if (plantaGallery) {
-          detailData.plantaGallery = (plantaGallery.images || []).map(normalizeImageRecord);
-        }
-        const projectGallery = await ProjectGallery.findOne({ projectId: project.id }).lean();
-        if (projectGallery) {
-          detailData.galleryImages = (projectGallery.images || []).map(normalizeImageRecord);
-        }
-        return res.render('project', { page: defaultPage, nav: settings.nav, footer: settings.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
-      }
-    }
-    return res.status(404).send('Página não encontrada');
+  if (!page && project) {
+    page = await Page.findOne({ id: 'default-project-template' }).lean()
+      || await Page.findOne({ id: 'monumental' }).lean();
   }
+  if (!page) return null;
 
-  const detailData = JSON.parse(JSON.stringify(page.details || {}));
+  const detailData = normalizeDetailData(
+    JSON.parse(JSON.stringify(page.details || {})),
+    page,
+    project
+  );
   detailData.heroImage = (project && project.image) || (page.hero && page.hero.image);
 
-  const plantaGallery = await PlantaGallery.findOne({ projectId: page.id }).lean();
+  const plantaGallery = await PlantaGallery.findOne({ projectId: slug }).lean();
   if (plantaGallery) {
     detailData.plantaGallery = (plantaGallery.images || []).map(normalizeImageRecord);
   }
-  const projectGallery = await ProjectGallery.findOne({ projectId: page.id }).lean();
+  const projectGallery = await ProjectGallery.findOne({ projectId: slug }).lean();
   if (projectGallery) {
     detailData.galleryImages = (projectGallery.images || []).map(normalizeImageRecord);
   }
 
-  res.render('project', { page, nav: settings.nav, footer: settings.footer, detailData, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+  if (!detailData.location.mapQuery) {
+    const addr = (detailData.summaryItems || []).find(i => i && ['Endereço', 'Localização'].includes(i.label));
+    if (addr?.value) detailData.location.mapQuery = addr.value;
+  }
+
+  const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  const ogImage = absoluteAssetUrl(req, detailData.heroImage || project?.image);
+  const whatsappUrl = buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${page.hero?.title || project?.title || slug}.`);
+  const sectionsNav = buildProjectSections(detailData);
+  const schemaJson = buildProjectSchemaJson(page, project, detailData, requestUrl);
+
+  return { project, page, detailData, requestUrl, ogImage, whatsappUrl, sectionsNav, schemaJson };
+}
+
+// Generic route to serve project details under /obras/:slug
+app.get('/obras/:slug', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    const ctx = await loadProjectDetailContext(req.params.slug, req);
+    if (!ctx) return res.status(404).send('Página não encontrada');
+
+    res.render('project', {
+      page: ctx.page,
+      project: ctx.project,
+      nav: settings.nav,
+      footer: settings.footer,
+      detailData: ctx.detailData,
+      sectionsNav: ctx.sectionsNav,
+      active: req.path,
+      requestUrl: ctx.requestUrl,
+      ogImage: ctx.ogImage,
+      whatsappUrl: ctx.whatsappUrl,
+      schemaJson: ctx.schemaJson
+    });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar projeto:', error);
     res.status(500).send('Erro ao carregar projeto');
+  }
+});
+
+app.post('/api/contato', async (req, res) => {
+  try {
+    const { name, email, phone, message, projectInterest, website } = req.body || {};
+    if (website) {
+      return res.json({ success: true, message: 'Mensagem recebida com sucesso!' });
+    }
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+    if (!checkContactRateLimit(ip)) {
+      return res.status(429).json({ success: false, message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' });
+    }
+    const cleanName = String(name || '').trim();
+    const cleanEmail = String(email || '').trim();
+    const cleanMessage = String(message || '').trim();
+    if (!cleanName || cleanName.length < 2) {
+      return res.status(400).json({ success: false, message: 'Informe seu nome completo.' });
+    }
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: 'Informe um e-mail válido.' });
+    }
+    if (!cleanMessage || cleanMessage.length < 10) {
+      return res.status(400).json({ success: false, message: 'Descreva sua necessidade com pelo menos 10 caracteres.' });
+    }
+
+    const payload = {
+      name: cleanName,
+      email: cleanEmail,
+      phone: String(phone || '').trim(),
+      message: cleanMessage,
+      projectInterest: String(projectInterest || '').trim(),
+      ip
+    };
+
+    await ContactMessage.create(payload);
+    const emailed = await sendContactEmail(payload);
+
+    res.json({
+      success: true,
+      message: emailed
+        ? 'Mensagem enviada! Nossa equipe responderá em breve.'
+        : 'Mensagem registrada! Nossa equipe responderá em breve.'
+    });
+  } catch (error) {
+    console.error('[CONTACT] Erro:', error);
+    res.status(500).json({ success: false, message: 'Não foi possível enviar sua mensagem. Tente WhatsApp ou telefone.' });
+  }
+});
+
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const projects = await Project.find().lean();
+    const staticPaths = ['/', '/sobre', '/obras', '/contato'];
+    const urls = staticPaths.map(p => ({
+      loc: `${SITE_URL}${p}`,
+      changefreq: p === '/' ? 'weekly' : 'monthly',
+      priority: p === '/' ? '1.0' : '0.8'
+    }));
+    for (const p of projects) {
+      urls.push({
+        loc: `${SITE_URL}/obras/${p.id}`,
+        changefreq: 'monthly',
+        priority: '0.7'
+      });
+    }
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url><loc>${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`).join('\n')}
+</urlset>`;
+    res.type('application/xml').send(xml);
+  } catch (error) {
+    console.error('[SITEMAP] Erro:', error);
+    res.status(500).type('text/plain').send('Erro ao gerar sitemap');
   }
 });
 
@@ -888,11 +1169,58 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
   }
 });
 
+app.post('/admin/update-project-page-content/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const {
+      heroSubtitle,
+      pageDescription,
+      detailHeadline,
+      detailBullets,
+      plantaSectionTag
+    } = req.body;
+    const projectId = req.params.projectId;
+    const page = await Page.findOne({ id: projectId });
+    if (!page) {
+      return res.status(404).json({ success: false, message: 'Página do projeto não encontrada' });
+    }
+
+    let needsPageSave = false;
+    if (heroSubtitle !== undefined) {
+      page.hero = page.hero || {};
+      page.hero.subtitle = heroSubtitle || '';
+      page.markModified('hero');
+      needsPageSave = true;
+    }
+    if (pageDescription !== undefined) {
+      page.description = pageDescription || '';
+      needsPageSave = true;
+    }
+
+    await updatePageDetails(projectId, (details) => {
+      if (detailHeadline !== undefined) details.detailHeadline = detailHeadline || '';
+      if (plantaSectionTag !== undefined) details.plantaSectionTag = plantaSectionTag || 'Distribuição de Espaços';
+      if (detailBullets !== undefined) {
+        details.detailBullets = Array.isArray(detailBullets)
+          ? detailBullets
+          : (detailBullets ? String(detailBullets).split('\n').map(s => s.trim()).filter(Boolean) : []);
+      }
+    });
+
+    if (needsPageSave) await page.save();
+
+    res.json({ success: true, message: 'Conteúdo da página salvo com sucesso!' });
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar conteúdo da página:', error);
+    res.status(500).json({ success: false, message: 'Erro ao salvar conteúdo: ' + error.message });
+  }
+});
+
 app.post('/admin/update-planta-details/:projectId', isAuthenticated, async (req, res) => {
   try {
-    const { plantaTitle, plantaSubtitle, plantaDescription, plantaHighlights } = req.body;
+    const { plantaSectionTag, plantaTitle, plantaSubtitle, plantaDescription, plantaHighlights } = req.body;
 
     const page = await updatePageDetails(req.params.projectId, (details) => {
+      if (plantaSectionTag !== undefined) details.plantaSectionTag = plantaSectionTag || 'Distribuição de Espaços';
       if (plantaTitle !== undefined) details.plantaTitle = plantaTitle || '';
       if (plantaSubtitle !== undefined) details.plantaSubtitle = plantaSubtitle || '';
       if (plantaDescription !== undefined) details.plantaDescription = plantaDescription || '';
@@ -1004,7 +1332,7 @@ app.post('/admin/update-technical-info/:projectId', isAuthenticated, async (req,
 
 app.post('/admin/update-location-info/:projectId', isAuthenticated, async (req, res) => {
   try {
-    const { address, locationTitle, locationDescription, locationFeatures } = req.body;
+    const { address, locationTitle, locationSubtitle, locationDescription, locationMapQuery, locationFeatures } = req.body;
     const projectId = req.params.projectId;
 
     const parsedFeatures = parseJsonField(locationFeatures, null);
@@ -1020,7 +1348,9 @@ app.post('/admin/update-location-info/:projectId', isAuthenticated, async (req, 
       const currentLocation = details.location && typeof details.location === 'object' ? details.location : {};
       details.location = {
         title: locationTitle !== undefined ? (locationTitle || 'Localização') : (currentLocation.title || 'Localização'),
+        subtitle: locationSubtitle !== undefined ? (locationSubtitle || '') : (currentLocation.subtitle || ''),
         description: locationDescription !== undefined ? (locationDescription || '') : (currentLocation.description || ''),
+        mapQuery: locationMapQuery !== undefined ? (locationMapQuery || '') : (currentLocation.mapQuery || ''),
         features: Array.isArray(parsedFeatures)
           ? parsedFeatures
           : (Array.isArray(currentLocation.features) ? currentLocation.features : [])
@@ -1041,7 +1371,7 @@ app.post('/admin/update-location-info/:projectId', isAuthenticated, async (req, 
 
 app.post('/admin/update-common-areas/:projectId', isAuthenticated, async (req, res) => {
   try {
-    const { commonAreas } = req.body;
+    const { commonAreasSectionTag, commonAreasTitle, commonAreasIntro, commonAreas } = req.body;
     const projectId = req.params.projectId;
 
     const parsedCommonAreas = parseJsonField(commonAreas, null);
@@ -1050,10 +1380,14 @@ app.post('/admin/update-common-areas/:projectId', isAuthenticated, async (req, r
     }
 
     const page = await updatePageDetails(projectId, (details) => {
+      if (commonAreasSectionTag !== undefined) details.commonAreasSectionTag = commonAreasSectionTag || 'Conforto & Lazer';
+      if (commonAreasTitle !== undefined) details.commonAreasTitle = commonAreasTitle || '';
+      if (commonAreasIntro !== undefined) details.commonAreasIntro = commonAreasIntro || '';
       if (Array.isArray(parsedCommonAreas)) {
         details.commonAreas = parsedCommonAreas.map(area => ({
           label: area.label || '',
-          icon: area.icon || 'fas fa-check'
+          icon: area.icon || 'fas fa-check',
+          group: area.group || ''
         }));
       }
     });
