@@ -1,0 +1,12 @@
+<% const brandVariant = typeof variant !== 'undefined' ? variant : 'dark'; %>
+<% const brandLink = typeof link !== 'undefined' ? link : '/admin/dashboard'; %>
+<% const brandSubtitle = typeof subtitle !== 'undefined' ? subtitle : ''; %>
+<a href="<%= brandLink %>" class="admin-brand admin-brand--<%= brandVariant %>">
+    <img src="/logo.png" alt="AP Construções" class="admin-brand__logo">
+    <div class="admin-brand__text">
+        <span class="admin-brand__name">AP Construções</span>
+        <% if (brandSubtitle) { %>
+            <span class="admin-brand__sub"><%= brandSubtitle %></span>
+        <% } %>
+    </div>
+</a>

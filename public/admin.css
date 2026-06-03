@@ -1,0 +1,92 @@
+/* Marca AP Construções — painel administrativo */
+.admin-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+.admin-brand:hover { opacity: 0.92; }
+
+.admin-brand__logo {
+    height: 52px;
+    width: auto;
+    max-width: 180px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.admin-brand__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.admin-brand__name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+.admin-brand__sub {
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-top: 2px;
+}
+
+/* Sobre fundo escuro / azul (header do dashboard) */
+.admin-brand--light .admin-brand__logo {
+    filter: brightness(1.2) contrast(1.05);
+}
+.admin-brand--light .admin-brand__name,
+.admin-brand--light .admin-brand__sub {
+    color: #ffffff;
+}
+
+/* Sobre fundo claro (login, cards, topbar) */
+.admin-brand--dark .admin-brand__name {
+    color: #00112c;
+}
+.admin-brand--dark .admin-brand__sub {
+    color: #64748b;
+}
+
+.admin-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-header--with-logo {
+    justify-content: space-between;
+}
+
+.login-brand-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.login-brand-wrap .admin-brand {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+}
+
+.login-brand-wrap .admin-brand__logo {
+    height: 64px;
+}
+
+.admin-topbar-brand {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+@media (max-width: 640px) {
+    .admin-brand__text { display: none; }
+    .admin-brand__logo { height: 44px; }
+    .login-brand-wrap .admin-brand__text { display: flex; }
+}

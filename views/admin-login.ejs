@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Admin | AP Construções</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -145,8 +146,9 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>AP Construções</h1>
-            <p>Painel Administrativo</p>
+            <div class="login-brand-wrap">
+                <%- include('includes/admin-brand', { variant: 'dark', subtitle: 'Painel administrativo', link: '/' }) %>
+            </div>
         </div>
 
         <% if (error) { %>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Projeto: <%= project.title %> | AP Construções</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -62,6 +63,69 @@
             background: #cbd5e0;
             transform: translateX(-3px);
         }
+
+        .admin-topbar {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .admin-topbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .admin-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        .admin-breadcrumb a { color: #0073ff; font-weight: 600; text-decoration: none; }
+        .admin-breadcrumb a:hover { text-decoration: underline; }
+        .admin-breadcrumb .sep { color: #cbd5e1; }
+        .admin-topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-preview-site {
+            background: #eef2ff;
+            color: #0073ff;
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .btn-preview-site:hover { background: #dbeafe; }
+
+        .highlights-editor { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+        .highlights-editor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .highlights-editor-header label { margin: 0; font-size: 1rem; }
+        .label-optional { font-weight: 400; color: #94a3b8; font-size: 0.85rem; }
+        .form-hint-inline { font-size: 0.85rem; color: #64748b; margin: 4px 0 0; }
+        .help-toggle-btn {
+            background: none; border: 1px solid #cbd5e1; border-radius: 50%;
+            width: 28px; height: 28px; cursor: pointer; color: #64748b; font-size: 0.85rem;
+        }
+        .help-toggle-btn:hover { border-color: #0073ff; color: #0073ff; }
+        .help-panel-compact {
+            display: none; font-size: 0.85rem; color: #475569; line-height: 1.5;
+            margin-bottom: 14px; padding: 12px; background: #fff; border-radius: 8px; border-left: 3px solid #0073ff;
+        }
+        .help-panel-compact.is-open { display: block; }
+        .admin-preview-details { margin-top: 14px; }
+        .admin-preview-details summary {
+            cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0073ff;
+            margin-bottom: 8px; user-select: none;
+        }
+        .admin-site-preview.compact { margin-top: 0; padding: 12px; border-style: solid; border-width: 1px; }
 
         /* MENSAGENS DE STATUS */
         .message-container {
@@ -730,16 +794,32 @@
 </head>
 <body style="background-color: #001a4d !important; background: #001a4d !important;">
     <div class="edit-container" style="background-color: #001a4d !important;">
-        <!-- HEADER -->
-        <div class="page-header">
-            <div>
-                <h1><i class="fas fa-edit"></i> Editar Projeto</h1>
-                <p style="color: #718096; margin-top: 5px;">
-                    <strong><%= project.title %></strong> | ID: <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;"><%= project.id %></code>
-                </p>
+        <nav class="admin-topbar" aria-label="Navegação do admin">
+            <div class="admin-topbar-brand">
+                <%- include('includes/admin-brand', { variant: 'dark', subtitle: 'Administração de obras', link: '/admin/dashboard' }) %>
             </div>
-            <div class="page-header-meta">
-                <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <div class="admin-topbar-row">
+                <div class="admin-breadcrumb">
+                    <a href="/admin/dashboard" data-admin-back><i class="fas fa-th-large"></i> Painel</a>
+                    <span class="sep">/</span>
+                    <span>Editar obra</span>
+                    <span class="sep">/</span>
+                    <strong style="color:#2d3748;"><%= project.title %></strong>
+                </div>
+                <div class="admin-topbar-actions">
+                    <a href="/admin/dashboard" class="back-btn" data-admin-back><i class="fas fa-arrow-left"></i> Voltar ao painel</a>
+                    <a href="<%= project.href || '/obras/' + project.id %>" class="btn-preview-site" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Ver no site</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="page-header" style="margin-bottom: 10px;">
+            <div>
+                <h1 style="margin-bottom: 6px;"><i class="fas fa-edit"></i> <%= project.title %></h1>
+                <p style="color: #718096; margin: 0; font-size: 0.9rem;">
+                    ID: <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;"><%= project.id %></code>
+                    <% if (typeof username !== 'undefined' && username) { %> · Logado como <strong><%= username %></strong><% } %>
+                </p>
             </div>
         </div>
 
@@ -817,28 +897,27 @@
                             <div class="form-hint">Título principal exibido na seção <strong>Detalhes do Projeto</strong> (diferente do subtítulo do hero).</div>
                         </div>
 
-                        <div class="form-group form-row full">
-                            <label>Destaques do empreendimento</label>
-                            <div class="field-help-box">
-                                <strong><i class="fas fa-bullseye"></i> Para que serve?</strong>
-                                Frases curtas que resumem os <em>principais benefícios</em> do empreendimento para quem está decidindo investir, alugar ou comprar.
-                                <ul>
-                                    <li><strong>Onde aparece no site:</strong> seção <em>Detalhes do Projeto</em>, em lista com ícone ✓ logo abaixo da descrição longa.</li>
-                                    <li><strong>Objetivo:</strong> leitura rápida (3 a 6 itens) — o cliente entende o diferencial sem ler o texto inteiro.</li>
-                                    <li><strong>Como escrever:</strong> uma ideia por linha; use números quando fizer sentido (ex.: vagas, salas, m²).</li>
-                                    <li><strong>Não confundir com:</strong> Ficha técnica (barra no topo da página) nem destaques da aba <em>Distribuição de Espaços</em>.</li>
-                                </ul>
-                                <span class="help-where">Página pública → Detalhes do Projeto</span>
+                        <div class="form-group form-row full highlights-editor">
+                            <div class="highlights-editor-header">
+                                <div>
+                                    <label>Destaques do empreendimento <span class="label-optional">(opcional)</span></label>
+                                    <p class="form-hint-inline">3 a 6 frases curtas · lista com ✓ na seção <em>Detalhes do Projeto</em></p>
+                                </div>
+                                <button type="button" class="help-toggle-btn" id="toggleDetailBulletsHelp" title="Ajuda" aria-label="Mostrar ajuda">?</button>
+                            </div>
+                            <div class="help-panel-compact" id="detailBulletsHelpPanel">
+                                Resuma os principais benefícios (ex.: vagas, salas, localização). Não repete a ficha técnica do topo nem os itens da aba <em>Distribuição de Espaços</em>.
                             </div>
                             <div id="detailBulletsContainer"></div>
-                            <button type="button" id="addDetailBulletBtn" class="btn-upload" style="margin-top: 8px;">
-                                <i class="fas fa-plus"></i> Adicionar destaque
+                            <button type="button" id="addDetailBulletBtn" class="btn-upload" style="margin-top: 10px;">
+                                <i class="fas fa-plus"></i> Adicionar linha
                             </button>
-                            <div class="form-hint">Recomendado: 3 a 6 itens. Deixe em branco se preferir só a descrição longa.</div>
-                            <div class="admin-site-preview" id="detailBulletsPreviewBox">
-                                <p class="admin-preview-caption"><i class="fas fa-eye"></i> Exemplo visual no site</p>
-                                <ul class="preview-detail-bullets" id="detailBulletsPreview"></ul>
-                            </div>
+                            <details class="admin-preview-details">
+                                <summary><i class="fas fa-eye"></i> Prévia no site</summary>
+                                <div class="admin-site-preview compact">
+                                    <ul class="preview-detail-bullets" id="detailBulletsPreview"></ul>
+                                </div>
+                            </details>
                         </div>
 
                         <div class="form-row">
@@ -887,7 +966,7 @@
 
                     <div class="btn-group">
                         <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Informações</button>
-                        <a href="/admin/dashboard" class="btn-secondary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i> Cancelar</a>
+                        <a href="/admin/dashboard" data-admin-back class="btn-secondary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i> Voltar ao painel</a>
                     </div>
                 </form>
             </div>
@@ -1490,8 +1569,8 @@
         async function parseApiJson(response) {
             const contentType = response.headers.get('content-type') || '';
             if (response.status === 401 || response.status === 403) {
-                // Fluxo simples: se não autorizado, volta para login.
-                window.location.href = '/admin/login';
+                showMessage('Sessão expirada. Faça login novamente.', 'error');
+                setTimeout(() => { window.location.href = '/admin/login'; }, 1200);
                 throw new Error('Não autorizado.');
             }
 
@@ -2163,10 +2242,27 @@
         }
 
         // ===== INICIALIZAÇÃO =====
-        async function init() {
+        async         function setupAdminBackLinks() {
+            document.querySelectorAll('[data-admin-back]').forEach((link) => {
+                link.addEventListener('click', (e) => {
+                    const ref = document.referrer || '';
+                    if (ref.includes('/admin/dashboard')) {
+                        e.preventDefault();
+                        window.location.assign('/admin/dashboard');
+                    }
+                });
+            });
+        }
+
+        function init() {
             loadPlantaGallery();
             loadGeneralGallery();
             renderTechnicalItems(initialTechnicalSummaryItems);
+            setupAdminBackLinks();
+
+            document.getElementById('toggleDetailBulletsHelp')?.addEventListener('click', () => {
+                document.getElementById('detailBulletsHelpPanel')?.classList.toggle('is-open');
+            });
 
             const hash = window.location.hash.replace('#', '');
             if (hash) {

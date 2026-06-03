@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Página | AP Construções</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -182,9 +183,10 @@
 <body>
     <div class="edit-container">
         <div class="header">
-            <h1>Editar: <%= page.title %></h1>
+            <%- include('includes/admin-brand', { variant: 'dark', subtitle: 'Editar página institucional', link: '/admin/dashboard' }) %>
             <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
         </div>
+        <h1 style="font-size:1.35rem;color:#1a202c;margin-bottom:20px;">Editar: <%= page.title %></h1>
 
         <div id="message" class="message"></div>
 
