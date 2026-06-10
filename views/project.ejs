@@ -87,7 +87,9 @@
                 <% }) %>
             </ul>
             <% } %>
+            <% if (typeof showSalesCta !== 'undefined' && showSalesCta) { %>
             <a href="/contato?obra=<%= encodeURIComponent(page.hero.title) %>" class="btn btn-filled">Solicitar Informações <i class="fas fa-chevron-right" style="margin-left:5px;"></i></a>
+            <% } %>
         </div>
         <div class="showcase-gallery">
             <% if (detailData.galleryImages && detailData.galleryImages.length) { %>
@@ -210,6 +212,7 @@
     </section>
     <% } %>
 
+    <% if (typeof showSalesCta !== 'undefined' && showSalesCta) { %>
     <section class="project-bottom-cta">
         <div class="container project-bottom-cta-inner">
             <h3>Interessado em <%= page.hero.title %>?</h3>
@@ -220,12 +223,15 @@
             </div>
         </div>
     </section>
+    <% } %>
 
     <%- include('includes/footer', { footer }) %>
 
+    <% if (typeof showSalesCta !== 'undefined' && showSalesCta) { %>
     <a href="<%= whatsappUrl %>" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
+    <% } %>
 
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.js"></script>
     <script>

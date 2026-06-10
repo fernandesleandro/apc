@@ -1,26 +1,72 @@
 {
   "nav": [
-    { "title": "Início", "url": "/" },
-    { "title": "Sobre Nós", "url": "/sobre" },
-    { "title": "Serviços", "url": "/#servicos" },
-    { "title": "Obras", "url": "/obras" },
-    { "title": "Contato", "url": "/contato" }
+    {
+      "title": "Início",
+      "url": "/"
+    },
+    {
+      "title": "Sobre Nós",
+      "url": "/sobre"
+    },
+    {
+      "title": "Serviços",
+      "url": "/#servicos"
+    },
+    {
+      "title": "Obras",
+      "url": "/obras"
+    },
+    {
+      "title": "Contato",
+      "url": "/contato"
+    }
   ],
   "footer": {
     "company": "AP Construções",
     "description": "Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.",
     "links": [
-      { "title": "Início", "url": "/" },
-      { "title": "Sobre Nós", "url": "/sobre" },
-      { "title": "Serviços", "url": "/#servicos" },
-      { "title": "Obras", "url": "/obras" },
-      { "title": "Contato", "url": "/contato" }
+      {
+        "title": "Início",
+        "url": "/"
+      },
+      {
+        "title": "Sobre Nós",
+        "url": "/sobre"
+      },
+      {
+        "title": "Serviços",
+        "url": "/#servicos"
+      },
+      {
+        "title": "Obras",
+        "url": "/obras"
+      },
+      {
+        "title": "Contato",
+        "url": "/contato"
+      }
     ],
     "contact": [
-      { "icon": "fas fa-phone-alt", "label": "Telefone Central", "value": "(61) 2195-8300" },
-      { "icon": "fab fa-whatsapp", "label": "WhatsApp Comercial", "value": "(61) 2195-8300" },
-      { "icon": "fas fa-envelope", "label": "E-mail", "value": "contato@apconstrucoes.com.br" },
-      { "icon": "fas fa-map-marker-alt", "label": "Endereço Corporativo", "value": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF" }
+      {
+        "icon": "fas fa-phone-alt",
+        "label": "Telefone Central",
+        "value": "(61) 2195-8300"
+      },
+      {
+        "icon": "fab fa-whatsapp",
+        "label": "WhatsApp Comercial",
+        "value": "(61) 2195-8300"
+      },
+      {
+        "icon": "fas fa-envelope",
+        "label": "E-mail",
+        "value": "contato@apconstrucoes.com.br"
+      },
+      {
+        "icon": "fas fa-map-marker-alt",
+        "label": "Endereço Corporativo",
+        "value": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF"
+      }
     ]
   },
   "pages": [
@@ -48,9 +94,21 @@
           "A filosofia da AP Construções é aliar soluções inovadoras ao mais alto padrão de qualidade, excelência na execução e responsabilidade em cada entrega."
         ],
         "pilares": [
-          { "label": "Missão", "icon": "fa-bullseye", "text": "Trabalhar de forma ética e competente, transformando projetos complexos em realidades tangíveis." },
-          { "label": "Visão", "icon": "fa-eye", "text": "Ser referência em solidez e excelência construtiva em Brasília." },
-          { "label": "Valores", "icon": "fa-gem", "text": "Rigor técnico, transparência total e compromisso com a segurança jurídica." }
+          {
+            "label": "Missão",
+            "icon": "fa-bullseye",
+            "text": "Trabalhar de forma ética e competente, transformando projetos complexos em realidades tangíveis."
+          },
+          {
+            "label": "Visão",
+            "icon": "fa-eye",
+            "text": "Ser referência em solidez e excelência construtiva em Brasília."
+          },
+          {
+            "label": "Valores",
+            "icon": "fa-gem",
+            "text": "Rigor técnico, transparência total e compromisso com a segurança jurídica."
+          }
         ]
       }
     },
@@ -69,7 +127,8 @@
       "description": "Edifício comercial multiusuário no Lago Norte com 198 salas, 2 lojas, 222 vagas e infraestrutura corporativa completa. Ideal para escritórios, consultórios e varejo de apoio em uma das regiões mais valorizadas de Brasília.",
       "hero": {
         "title": "Monumental Center",
-        "subtitle": "Empreendimento comercial multiusuário — salas, lojas e infraestrutura de alto padrão no Lago Norte"
+        "subtitle": "Empreendimento comercial multiusuário — salas, lojas e infraestrutura de alto padrão no Lago Norte",
+        "image": "/images/gallery/monumental/ficha-tecnica.png"
       },
       "details": {
         "detailTag": "Lançamento Exclusivo",
@@ -81,11 +140,26 @@
           "Infraestrutura preparada para empresas em expansão"
         ],
         "summaryItems": [
-          { "label": "Endereço", "value": "SHIN CA 02 Lote B - Lago Norte / DF" },
-          { "label": "Área de Construção", "value": "13.889,35 m²" },
-          { "label": "Área do Terreno", "value": "1.875,00 m²" },
-          { "label": "Unidades", "value": "198 salas + 2 lojas" },
-          { "label": "Vagas de Garagem", "value": "222 vagas" }
+          {
+            "label": "Endereço",
+            "value": "SHIN CA 02 Lote B - Lago Norte / DF"
+          },
+          {
+            "label": "Área de Construção",
+            "value": "13.889,35 m²"
+          },
+          {
+            "label": "Área do Terreno",
+            "value": "1.875,00 m²"
+          },
+          {
+            "label": "Unidades",
+            "value": "198 salas + 2 lojas"
+          },
+          {
+            "label": "Vagas de Garagem",
+            "value": "222 vagas"
+          }
         ],
         "plantaSectionTag": "Distribuição de Espaços",
         "plantaTitle": "Distribuição de Espaços",
@@ -101,12 +175,30 @@
         "commonAreasTitle": "Diferenciais para Empresas e Investidores",
         "commonAreasIntro": "Ambientes e serviços pensados para operação comercial contínua, conforto dos usuários e valorização do ativo.",
         "commonAreas": [
-          { "label": "Lobby Corporativo", "icon": "fas fa-door-open" },
-          { "label": "Segurança e Controle de Acesso", "icon": "fas fa-shield-alt" },
-          { "label": "Elevadores de Alto Desempenho", "icon": "fas fa-elevator" },
-          { "label": "Estacionamento Amplo", "icon": "fas fa-car" },
-          { "label": "Infraestrutura para TI", "icon": "fas fa-network-wired" },
-          { "label": "Áreas de Convivência", "icon": "fas fa-users" }
+          {
+            "label": "Lobby Corporativo",
+            "icon": "fas fa-door-open"
+          },
+          {
+            "label": "Segurança e Controle de Acesso",
+            "icon": "fas fa-shield-alt"
+          },
+          {
+            "label": "Elevadores de Alto Desempenho",
+            "icon": "fas fa-elevator"
+          },
+          {
+            "label": "Estacionamento Amplo",
+            "icon": "fas fa-car"
+          },
+          {
+            "label": "Infraestrutura para TI",
+            "icon": "fas fa-network-wired"
+          },
+          {
+            "label": "Áreas de Convivência",
+            "icon": "fas fa-users"
+          }
         ],
         "location": {
           "title": "Localização Estratégica",
@@ -114,10 +206,30 @@
           "description": "Localizado no Lago Norte, o empreendimento se beneficia de uma das regiões mais valorizadas de Brasília, com acesso facilitado ao eixo central, serviços de alto padrão e fluxo qualificado para negócios.",
           "mapQuery": "SHIN CA 02 Lote B Lago Norte Brasília DF",
           "features": [
-            { "label": "Mobilidade", "value": "Acesso rápido ao Eixo Monumental e vias principais", "detail": "~10 min", "icon": "fas fa-route" },
-            { "label": "Saúde", "value": "Proximidade a hospitais e clínicas de referência", "detail": "Região consolidada", "icon": "fas fa-hospital-symbol" },
-            { "label": "Educação", "value": "Instituições de ensino e comércio de apoio", "detail": "Entorno completo", "icon": "fas fa-graduation-cap" },
-            { "label": "Cultura", "value": "Museus, teatros e eixos de lazer da capital", "detail": "Curta distância", "icon": "fas fa-palette" }
+            {
+              "label": "Mobilidade",
+              "value": "Acesso rápido ao Eixo Monumental e vias principais",
+              "detail": "~10 min",
+              "icon": "fas fa-route"
+            },
+            {
+              "label": "Saúde",
+              "value": "Proximidade a hospitais e clínicas de referência",
+              "detail": "Região consolidada",
+              "icon": "fas fa-hospital-symbol"
+            },
+            {
+              "label": "Educação",
+              "value": "Instituições de ensino e comércio de apoio",
+              "detail": "Entorno completo",
+              "icon": "fas fa-graduation-cap"
+            },
+            {
+              "label": "Cultura",
+              "value": "Museus, teatros e eixos de lazer da capital",
+              "detail": "Curta distância",
+              "icon": "fas fa-palette"
+            }
           ]
         }
       }
@@ -125,15 +237,15 @@
     {
       "id": "cosmopolitan",
       "title": "Cosmopolitan | AP Construções",
-      "description": "Empreendimento corporativo no Setor Comercial Sul com salas modulares, lobby executivo e infraestrutura de alto desempenho para empresas que priorizam localização, imagem e eficiência operacional.",
+      "description": "Empreendimento misto em Águas Claras com apartamentos, lojas e salas comerciais. Habite-se obtido em 2014.",
       "hero": {
         "title": "Cosmopolitan",
-        "subtitle": "Edifício corporativo premium no Setor Comercial Sul — Brasília",
-        "image": "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80"
+        "subtitle": "Águas Claras — apartamentos, lojas e salas comerciais",
+        "image": "/images/gallery/cosmopolitan/fachada.png"
       },
       "details": {
-        "detailTag": "Espaço Corporativo",
-        "detailHeadline": "Performance empresarial no coração do SCS",
+        "detailTag": "Empreendimento Misto",
+        "detailHeadline": "Apartamentos, lojas e salas em Águas Claras",
         "detailBullets": [
           "Salas modulares de 30 a 100 m²",
           "Lobby executivo e imagem institucional",
@@ -141,9 +253,18 @@
           "Localização estratégica para empresas consolidadas"
         ],
         "summaryItems": [
-          { "label": "Tipologia", "value": "Salas de 30 a 100 m²" },
-          { "label": "Endereço", "value": "Rua das Paineiras, Lote 3 – Norte (Águas Claras) - Taguatinga/DF" },
-          { "label": "Perfil", "value": "Corporativo / Comercial" }
+          {
+            "label": "Tipologia",
+            "value": "Salas de 30 a 100 m²"
+          },
+          {
+            "label": "Endereço",
+            "value": "Rua das Paineiras, Lote 3 — Águas Claras/DF"
+          },
+          {
+            "label": "Perfil",
+            "value": "Corporativo / Comercial"
+          }
         ],
         "plantaSectionTag": "Distribuição de Espaços",
         "plantaTitle": "Distribuição de Espaços",
@@ -159,23 +280,57 @@
         "commonAreasTitle": "Ambientes de Suporte ao Negócio",
         "commonAreasIntro": "Espaços que reforçam produtividade, recepção de clientes e operação diária das empresas instaladas.",
         "commonAreas": [
-          { "label": "Lobby Executivo", "icon": "fas fa-building" },
-          { "label": "Salão de Reuniões", "icon": "fas fa-handshake" },
-          { "label": "Área Gourmet", "icon": "fas fa-utensils" },
-          { "label": "Academia", "icon": "fas fa-dumbbell" },
-          { "label": "Piscina", "icon": "fas fa-swimmer" },
-          { "label": "Quadra / Lazer", "icon": "fas fa-table-tennis" }
+          {
+            "label": "Lobby Executivo",
+            "icon": "fas fa-building"
+          },
+          {
+            "label": "Salão de Reuniões",
+            "icon": "fas fa-handshake"
+          },
+          {
+            "label": "Área Gourmet",
+            "icon": "fas fa-utensils"
+          },
+          {
+            "label": "Academia",
+            "icon": "fas fa-dumbbell"
+          },
+          {
+            "label": "Piscina",
+            "icon": "fas fa-swimmer"
+          },
+          {
+            "label": "Quadra / Lazer",
+            "icon": "fas fa-table-tennis"
+          }
         ],
         "location": {
           "title": "Localização Estratégica",
-          "subtitle": "Taguatinga Norte: expansão e fluxo comercial",
+          "subtitle": "Águas Claras: região consolidada e em expansão",
           "description": "Endereço com fácil acesso às principais vias da região, com serviços, comércio e transporte que favorecem a rotina de equipes e clientes.",
           "mapQuery": "Rua das Paineiras Lote 3 Águas Claras Taguatinga DF",
           "features": [
-            { "label": "Acesso", "value": "Conexão rápida com vias da região Norte", "icon": "fas fa-road" },
-            { "label": "Comércio", "value": "Serviços e varejo no entorno imediato", "icon": "fas fa-store" },
-            { "label": "Transporte", "value": "Facilidade para deslocamento de equipes", "icon": "fas fa-bus" },
-            { "label": "Expansão", "value": "Região em constante desenvolvimento", "icon": "fas fa-chart-line" }
+            {
+              "label": "Acesso",
+              "value": "Conexão rápida com vias da região Norte",
+              "icon": "fas fa-road"
+            },
+            {
+              "label": "Comércio",
+              "value": "Serviços e varejo no entorno imediato",
+              "icon": "fas fa-store"
+            },
+            {
+              "label": "Transporte",
+              "value": "Facilidade para deslocamento de equipes",
+              "icon": "fas fa-bus"
+            },
+            {
+              "label": "Expansão",
+              "value": "Região em constante desenvolvimento",
+              "icon": "fas fa-chart-line"
+            }
           ]
         }
       }
@@ -186,10 +341,11 @@
       "description": "Empreendimento comercial no SIG com 108 salas, 2 lojas, 2 salões e 376 vagas em 15.076 m² de área construída. Solução robusta para empresas que buscam escala, estacionamento e localização consolidada.",
       "hero": {
         "title": "Barão Mauá",
-        "subtitle": "Complexo comercial de grande porte no SIG — Brasília/DF"
+        "subtitle": "Complexo comercial de grande porte no SIG — Brasília/DF",
+        "image": "/images/gallery/barao-maua/fachada-externa.png"
       },
       "details": {
-        "detailTag": "Empreendimento Consolidado",
+        "detailTag": "Empreendimento Entregue",
         "detailHeadline": "Escala comercial com 376 vagas no SIG",
         "detailBullets": [
           "108 salas comerciais com padrão moderno",
@@ -198,11 +354,26 @@
           "Terreno de 3.000 m² com implantação otimizada"
         ],
         "summaryItems": [
-          { "label": "Endereço", "value": "SIG Quadra 04 Lote 25 - Brasília / DF" },
-          { "label": "Área de Construção", "value": "15.076,68 m²" },
-          { "label": "Área do Terreno", "value": "3.000,00 m²" },
-          { "label": "Unidades", "value": "108 salas, 02 lojas, 02 salões" },
-          { "label": "Vagas de Garagem", "value": "376 (132 vinculadas + 244 autônomas)" }
+          {
+            "label": "Endereço",
+            "value": "SIG Quadra 04 Lote 25 - Brasília / DF"
+          },
+          {
+            "label": "Área de Construção",
+            "value": "15.076,68 m²"
+          },
+          {
+            "label": "Área do Terreno",
+            "value": "3.000,00 m²"
+          },
+          {
+            "label": "Unidades",
+            "value": "108 salas, 02 lojas, 02 salões"
+          },
+          {
+            "label": "Vagas de Garagem",
+            "value": "376 (132 vinculadas + 244 autônomas)"
+          }
         ],
         "plantaSectionTag": "Distribuição de Espaços",
         "plantaTitle": "Distribuição de Espaços",
@@ -218,12 +389,30 @@
         "commonAreasTitle": "Suporte Operacional do Empreendimento",
         "commonAreasIntro": "Infraestrutura voltada à operação comercial diária e à experiência de colaboradores e visitantes.",
         "commonAreas": [
-          { "label": "Controle de Acesso", "icon": "fas fa-shield-alt" },
-          { "label": "Elevadores", "icon": "fas fa-elevator" },
-          { "label": "Estacionamento Robusto", "icon": "fas fa-car" },
-          { "label": "Salões Multiuso", "icon": "fas fa-th-large" },
-          { "label": "Lojas de Grande Fluxo", "icon": "fas fa-store" },
-          { "label": "Rede e Infraestrutura", "icon": "fas fa-network-wired" }
+          {
+            "label": "Controle de Acesso",
+            "icon": "fas fa-shield-alt"
+          },
+          {
+            "label": "Elevadores",
+            "icon": "fas fa-elevator"
+          },
+          {
+            "label": "Estacionamento Robusto",
+            "icon": "fas fa-car"
+          },
+          {
+            "label": "Salões Multiuso",
+            "icon": "fas fa-th-large"
+          },
+          {
+            "label": "Lojas de Grande Fluxo",
+            "icon": "fas fa-store"
+          },
+          {
+            "label": "Rede e Infraestrutura",
+            "icon": "fas fa-network-wired"
+          }
         ],
         "location": {
           "title": "Localização Estratégica",
@@ -231,12 +420,120 @@
           "description": "O SIG reúne empresas, serviços e excelente conectividade viária, sendo uma das regiões mais reconhecidas para operações comerciais em Brasília.",
           "mapQuery": "SIG Quadra 04 Lote 25 Brasília DF",
           "features": [
-            { "label": "Visibilidade", "value": "Região com forte presença corporativa", "icon": "fas fa-eye" },
-            { "label": "Acesso", "value": "Conexão com vias principais do Plano Piloto", "icon": "fas fa-route" },
-            { "label": "Serviços", "value": "Comércio, bancos e apoio no entorno", "icon": "fas fa-store" },
-            { "label": "Estacionamento", "value": "Capacidade superior a 370 vagas", "icon": "fas fa-parking" }
+            {
+              "label": "Visibilidade",
+              "value": "Região com forte presença corporativa",
+              "icon": "fas fa-eye"
+            },
+            {
+              "label": "Acesso",
+              "value": "Conexão com vias principais do Plano Piloto",
+              "icon": "fas fa-route"
+            },
+            {
+              "label": "Serviços",
+              "value": "Comércio, bancos e apoio no entorno",
+              "icon": "fas fa-store"
+            },
+            {
+              "label": "Estacionamento",
+              "value": "Capacidade superior a 370 vagas",
+              "icon": "fas fa-parking"
+            }
           ]
         }
+      }
+    },
+    {
+      "id": "barao-rio-branco",
+      "title": "Barão do Rio Branco | AP Construções",
+      "description": "Salas comerciais no SIG — SIG Quadra 01, lotes 495, 505 e 515. Empreendimento entregue.",
+      "hero": {
+        "title": "Barão do Rio Branco",
+        "subtitle": "Salas comerciais no SIG — Brasília/DF",
+        "image": "/images/gallery/barao-rio-branco/capa.jpg"
+      },
+      "details": {
+        "detailTag": "Empreendimento Entregue",
+        "summaryItems": [
+          {
+            "label": "Endereço",
+            "value": "SIG Quadra 01, lotes 495, 505 e 515 — Brasília/DF"
+          },
+          {
+            "label": "Tipologia",
+            "value": "Salas comerciais"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chateau-valois",
+      "title": "Chateau Valois | AP Construções",
+      "description": "Apartamentos de 2 e 3 quartos em Águas Claras. Empreendimento entregue.",
+      "hero": {
+        "title": "Chateau Valois",
+        "subtitle": "Residencial em Águas Claras — Brasília/DF",
+        "image": "/images/gallery/chateau-valois/capa.jpg"
+      },
+      "details": {
+        "detailTag": "Empreendimento Entregue",
+        "summaryItems": [
+          {
+            "label": "Endereço",
+            "value": "Rua 36 Sul, Lote 17 — Águas Claras/DF"
+          },
+          {
+            "label": "Tipologia",
+            "value": "Apartamentos de 2 e 3 quartos"
+          }
+        ]
+      }
+    },
+    {
+      "id": "metropolitan",
+      "title": "Metropolitan | AP Construções",
+      "description": "Apartamentos de 2 e 3 quartos em Águas Claras. Empreendimento entregue.",
+      "hero": {
+        "title": "Metropolitan",
+        "subtitle": "Residencial em Águas Claras — Brasília/DF",
+        "image": "/images/gallery/metropolitan/capa.jpg"
+      },
+      "details": {
+        "detailTag": "Empreendimento Entregue",
+        "summaryItems": [
+          {
+            "label": "Endereço",
+            "value": "Rua das Pitangueiras, Lote 10 — Águas Claras/DF"
+          },
+          {
+            "label": "Tipologia",
+            "value": "Apartamentos de 2 e 3 quartos"
+          }
+        ]
+      }
+    },
+    {
+      "id": "olympique",
+      "title": "Olympique | AP Construções",
+      "description": "Apartamentos de 2 e 3 quartos no Guará. Empreendimento entregue.",
+      "hero": {
+        "title": "Olympique",
+        "subtitle": "Residencial no Guará — Brasília/DF",
+        "image": "/images/gallery/olympique/ficha-tecnica.png"
+      },
+      "details": {
+        "detailTag": "Empreendimento Entregue",
+        "summaryItems": [
+          {
+            "label": "Endereço",
+            "value": "Área Especial 04, Lotes G/H — Av. Contorno, Guará/DF"
+          },
+          {
+            "label": "Tipologia",
+            "value": "Apartamentos de 2 e 3 quartos"
+          }
+        ]
       }
     }
   ],
@@ -245,7 +542,7 @@
       "id": "monumental",
       "title": "Monumental Center",
       "description": "Comercial multiusuário no Lago Norte — 198 salas, 2 lojas e 222 vagas.",
-      "image": "/images/gallery/monumental/monumental.jpg",
+      "image": "/images/gallery/monumental/ficha-tecnica.png",
       "href": "/obras/monumental",
       "badge": "Lançamento",
       "category": "comercial"
@@ -253,50 +550,172 @@
     {
       "id": "cosmopolitan",
       "title": "Cosmopolitan",
-      "description": "Corporativo premium com salas modulares e infraestrutura executiva.",
-      "image": "/images/gallery/cosmopolitan/cosmopolitan.png",
+      "description": "Empreendimento misto em Águas Claras — apartamentos, lojas e salas comerciais.",
+      "image": "/images/gallery/cosmopolitan/fachada.png",
       "href": "/obras/cosmopolitan",
-      "category": "corporativo"
+      "category": "misto"
     },
     {
       "id": "barao-maua",
       "title": "Barão Mauá",
       "description": "108 salas, 2 lojas, 2 salões e 376 vagas no SIG.",
-      "image": "/images/gallery/barao-maua/aerea1.png",
+      "image": "/images/gallery/barao-maua/fachada-externa.png",
       "href": "/obras/barao-maua",
-      "category": "comercial"
+      "category": "comercial",
+      "badge": "Entregue"
+    },
+    {
+      "id": "barao-rio-branco",
+      "title": "Barão do Rio Branco",
+      "description": "Salas comerciais no SIG — empreendimento entregue.",
+      "image": "/images/gallery/barao-rio-branco/capa.jpg",
+      "href": "/obras/barao-rio-branco",
+      "category": "comercial",
+      "badge": "Entregue"
+    },
+    {
+      "id": "chateau-valois",
+      "title": "Chateau Valois",
+      "description": "Apartamentos de 2 e 3 quartos em Águas Claras — entregue.",
+      "image": "/images/gallery/chateau-valois/capa.jpg",
+      "href": "/obras/chateau-valois",
+      "category": "residencial",
+      "badge": "Entregue"
+    },
+    {
+      "id": "metropolitan",
+      "title": "Metropolitan",
+      "description": "Apartamentos de 2 e 3 quartos em Águas Claras — entregue.",
+      "image": "/images/gallery/metropolitan/capa.jpg",
+      "href": "/obras/metropolitan",
+      "category": "residencial",
+      "badge": "Entregue"
+    },
+    {
+      "id": "olympique",
+      "title": "Olympique",
+      "description": "Apartamentos de 2 e 3 quartos no Guará — entregue.",
+      "image": "/images/gallery/olympique/ficha-tecnica.png",
+      "href": "/obras/olympique",
+      "category": "residencial",
+      "badge": "Entregue"
     }
   ],
   "plantaGalleries": {
     "monumental": [
-      { "src": "/images/planta/monumental/planta1.png", "alt": "Planta Unidade Tipo A", "title": "Planta Tipo A" },
-      { "src": "/images/planta/monumental/planta2.png", "alt": "Planta Unidade Tipo B", "title": "Planta Tipo B" }
+      {
+        "src": "/images/planta/monumental/planta-quadrada.jpg",
+        "alt": "Planta quadrada",
+        "title": "Planta Quadrada"
+      },
+      {
+        "src": "/images/planta/monumental/planta-retangular.jpg",
+        "alt": "Planta retangular",
+        "title": "Planta Retangular"
+      }
     ],
     "cosmopolitan": [
-      { "src": "/images/planta/cosmopolitan/planta1.png", "alt": "Pavimento Corporativo", "title": "Pavimento Corporativo" },
-      { "src": "/images/planta/cosmopolitan/planta2.png", "alt": "Layout de Escritórios", "title": "Layout de Escritórios" }
+      {
+        "src": "/images/planta/cosmopolitan/planta-tipo-1.png",
+        "alt": "Planta tipo 1",
+        "title": "Planta Tipo 1"
+      }
     ],
     "barao-maua": [
-      { "src": "/images/planta/barao-maua/planta1.png", "alt": "Planta Comercial Nível 1", "title": "Planta Comercial Nível 1" },
-      { "src": "/images/planta/barao-maua/planta2.png", "alt": "Implantação Geral", "title": "Implantação Geral" }
+      {
+        "src": "/images/planta/barao-maua/planta-nivel-1.png",
+        "alt": "Planta comercial nível 1",
+        "title": "Planta Comercial Nível 1"
+      },
+      {
+        "src": "/images/planta/barao-maua/planta-implantacao.png",
+        "alt": "Implantação geral",
+        "title": "Implantação Geral"
+      }
     ]
   },
   "projectGalleries": {
     "monumental": [
-      { "src": "/images/gallery/monumental/monumental.jpg", "alt": "Monumental Center" },
-      { "src": "/images/gallery/monumental/fachada.jpg", "alt": "Fachada do Monumental Center" },
-      { "src": "/images/gallery/monumental/piscina.jpg", "alt": "Área de lazer" },
-      { "src": "/images/gallery/monumental/salao.jpg", "alt": "Salão de eventos" }
+      {
+        "src": "/images/gallery/monumental/ficha-tecnica.png",
+        "alt": "Monumental Center — apresentação"
+      },
+      {
+        "src": "/images/gallery/monumental/listagem.jpg",
+        "alt": "Monumental Center — Lago Norte"
+      }
     ],
     "cosmopolitan": [
-      { "src": "/images/gallery/cosmopolitan/cosmopolitan.png", "alt": "Fachada Cosmopolitan" },
-      { "src": "/images/gallery/cosmopolitan/piscina.jpg", "alt": "Área de lazer" },
-      { "src": "/images/gallery/cosmopolitan/gourmet.jpg", "alt": "Área gourmet" },
-      { "src": "/images/gallery/cosmopolitan/quadra.jpg", "alt": "Área esportiva" }
+      {
+        "src": "/images/gallery/cosmopolitan/fachada.png",
+        "alt": "Fachada Cosmopolitan"
+      },
+      {
+        "src": "/images/gallery/cosmopolitan/piscina.jpg",
+        "alt": "Área de lazer — piscina"
+      },
+      {
+        "src": "/images/gallery/cosmopolitan/gourmet.jpg",
+        "alt": "Área gourmet"
+      },
+      {
+        "src": "/images/gallery/cosmopolitan/quadra.jpg",
+        "alt": "Área esportiva"
+      }
     ],
     "barao-maua": [
-      { "src": "/images/gallery/barao-maua/aerea1.png", "alt": "Vista aérea 1" },
-      { "src": "/images/gallery/barao-maua/aerea2.png", "alt": "Vista aérea 2" }
+      {
+        "src": "/images/gallery/barao-maua/listagem.jpg",
+        "alt": "Barão Mauá — vista do empreendimento"
+      },
+      {
+        "src": "/images/gallery/barao-maua/vista-aerea-1.png",
+        "alt": "Vista aérea 1"
+      },
+      {
+        "src": "/images/gallery/barao-maua/vista-aerea-2.png",
+        "alt": "Vista aérea 2"
+      },
+      {
+        "src": "/images/gallery/barao-maua/fachada-externa.png",
+        "alt": "Fachada externa"
+      },
+      {
+        "src": "/images/gallery/barao-maua/fachada-noturna.png",
+        "alt": "Fachada noturna"
+      }
+    ],
+    "barao-rio-branco": [
+      {
+        "src": "/images/gallery/barao-rio-branco/capa.jpg",
+        "alt": "Barão do Rio Branco — SIG"
+      }
+    ],
+    "chateau-valois": [
+      {
+        "src": "/images/gallery/chateau-valois/capa.jpg",
+        "alt": "Chateau Valois — Águas Claras"
+      },
+      {
+        "src": "/images/gallery/chateau-valois/listagem.jpg",
+        "alt": "Chateau Valois — listagem"
+      }
+    ],
+    "metropolitan": [
+      {
+        "src": "/images/gallery/metropolitan/capa.jpg",
+        "alt": "Metropolitan — Águas Claras"
+      },
+      {
+        "src": "/images/gallery/metropolitan/listagem.jpg",
+        "alt": "Metropolitan — vista"
+      }
+    ],
+    "olympique": [
+      {
+        "src": "/images/gallery/olympique/ficha-tecnica.png",
+        "alt": "Olympique — apresentação"
+      }
     ]
   }
 }
