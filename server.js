@@ -242,6 +242,12 @@ function buildWhatsappUrl(text) {
   return `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${encoded}`;
 }
 
+function isDeliveredProject(project, detailData) {
+  const badge = (project?.badge || '').trim();
+  const tag = (detailData?.detailTag || '').trim();
+  return badge === 'Entregue' || /entregue/i.test(tag);
+}
+
 function normalizeDetailData(detailData, page, project) {
   const d = detailData || {};
   const details = page?.details || {};
@@ -788,8 +794,9 @@ async function loadProjectDetailContext(slug, req) {
   const whatsappUrl = buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${page.hero?.title || project?.title || slug}.`);
   const sectionsNav = buildProjectSections(detailData);
   const schemaJson = buildProjectSchemaJson(page, project, detailData, requestUrl);
+  const showSalesCta = !isDeliveredProject(project, detailData);
 
-  return { project, page, detailData, requestUrl, ogImage, whatsappUrl, sectionsNav, schemaJson };
+  return { project, page, detailData, requestUrl, ogImage, whatsappUrl, sectionsNav, schemaJson, showSalesCta };
 }
 
 // Generic route to serve project details under /obras/:slug
@@ -810,7 +817,8 @@ app.get('/obras/:slug', async (req, res) => {
       requestUrl: ctx.requestUrl,
       ogImage: ctx.ogImage,
       whatsappUrl: ctx.whatsappUrl,
-      schemaJson: ctx.schemaJson
+      schemaJson: ctx.schemaJson,
+      showSalesCta: ctx.showSalesCta !== false
     });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar projeto:', error);

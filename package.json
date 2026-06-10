@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "sync-pages": "node scripts/sync-project-pages.js"
+    "sync-pages": "node scripts/sync-project-pages.js",
+    "migrate-porto-images": "node scripts/migrate-porto-images.js",
+    "migrate-porto-images:apply": "node scripts/migrate-porto-images.js --apply --sync"
   },
   "repository": {
     "type": "git",
