@@ -54,7 +54,7 @@
             <span class="section-tag">Destaques</span>
             <h2 class="section-title">Nossos Empreendimentos</h2>
             <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 40px; font-size: 1.1rem;">Conheça lançamentos inspirados nas melhores tendências globais de design urbano.</p>
-            <%- include('includes/projects-filters', { categoryOptions, statusOptions }) %>
+            <%- include('includes/projects-filters', { categoryOptions, statusOptions, hideStatusFilter: false, presetStatus: '' }) %>
             <div class="projects-grid">
                 <% if (projects && projects.length) { %>
                     <% projects.forEach(project => { %>

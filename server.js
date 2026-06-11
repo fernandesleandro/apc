@@ -180,6 +180,7 @@ const isVercel = Boolean(process.env.VERCEL);
 const defaultSettings = {
   nav: [
     { title: 'Sobre', url: '/sobre' },
+    { title: 'Lançamento', url: '/lancamentos' },
     { title: 'Empreendimentos', url: '/obras' },
     { title: 'Contato', url: '/contato' }
   ],
@@ -515,6 +516,17 @@ function normalizeSiteLabel(title) {
   return title;
 }
 
+function normalizeNavItem(item) {
+  if (!item || typeof item !== 'object') return item;
+  const title = String(item.title || '').trim();
+  const url = String(item.url || '').trim();
+  const titleKey = title.toLowerCase();
+  if (titleKey === 'serviços' || titleKey === 'servicos' || url.includes('#servicos')) {
+    return { ...item, title: 'Lançamento', url: '/lancamentos' };
+  }
+  return { ...item, title: normalizeSiteLabel(title), url };
+}
+
 function isHomeNavItem(item) {
   if (!item || typeof item !== 'object') return false;
   const title = String(item.title || '').trim().toLowerCase();
@@ -525,18 +537,12 @@ function isHomeNavItem(item) {
 function normalizeSiteSettings(settings) {
   const nav = (settings.nav || [])
     .filter((item) => !isHomeNavItem(item))
-    .map((item) => ({
-      ...item,
-      title: normalizeSiteLabel(item.title)
-    }));
+    .map((item) => normalizeNavItem(item));
   const footer = settings.footer ? {
     ...settings.footer,
     links: (settings.footer.links || [])
       .filter((link) => !isHomeNavItem(link))
-      .map((link) => ({
-        ...link,
-        title: normalizeSiteLabel(link.title)
-      }))
+      .map((link) => normalizeNavItem(link))
   } : settings.footer;
   return { nav, footer };
 }
@@ -858,28 +864,60 @@ app.get('/contato', async (req, res) => {
   }
 });
 
+const LAUNCH_STATUS = 'Lançamento';
+
+function filterProjectsByStatus(projects, status) {
+  if (!status) return projects;
+  return projects.filter((project) => (project.badge || '').trim() === status);
+}
+
+async function renderProjectsListing(req, res, options = {}) {
+  const settings = await getSettings();
+  const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+  const allProjects = await enrichProjectsForListing(rawProjects);
+  const presetStatus = options.presetStatus || '';
+  const projects = filterProjectsByStatus(allProjects, presetStatus);
+  const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
+  const isLaunchListing = presetStatus === LAUNCH_STATUS;
+
+  res.render('obras', {
+    nav: settings.nav,
+    footer: settings.footer,
+    projects,
+    categoryOptions,
+    statusOptions,
+    presetStatus,
+    hideStatusFilter: isLaunchListing,
+    listingTitle: isLaunchListing ? 'Lançamentos' : 'Empreendimentos',
+    listingSubtitle: isLaunchListing
+      ? 'Conheça os empreendimentos em lançamento da AP Construções'
+      : 'Conheça os principais empreendimentos realizados pela AP Construções',
+    sectionTitle: isLaunchListing ? 'Empreendimentos em Lançamento' : 'Empreendimentos',
+    sectionIntro: isLaunchListing
+      ? 'Oportunidades exclusivas para investir ou morar com o padrão AP Construções.'
+      : 'Conheça lançamentos inspirados nas melhores tendências globais de design urbano.',
+    active: isLaunchListing ? '/lancamentos' : '/obras',
+    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    ogImage: absoluteAssetUrl(req, projects[0]?.image || rawProjects[0]?.image || '/logo.png'),
+    whatsappUrl: buildWhatsappUrl()
+  });
+}
+
 app.get('/obras', async (req, res) => {
   try {
-    const settings = await getSettings();
-    const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
-    const projects = await enrichProjectsForListing(rawProjects);
-
-    const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
-
-    res.render('obras', {
-      nav: settings.nav,
-      footer: settings.footer,
-      projects,
-      categoryOptions,
-      statusOptions,
-      active: '/obras',
-      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
-      ogImage: absoluteAssetUrl(req, rawProjects[0]?.image || '/logo.png'),
-      whatsappUrl: buildWhatsappUrl()
-    });
+    await renderProjectsListing(req, res);
   } catch (error) {
     console.error('[ERROR] Erro ao carregar obras:', error);
     res.status(500).send('Erro ao carregar obras');
+  }
+});
+
+app.get('/lancamentos', async (req, res) => {
+  try {
+    await renderProjectsListing(req, res, { presetStatus: LAUNCH_STATUS });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar lançamentos:', error);
+    res.status(500).send('Erro ao carregar lançamentos');
   }
 });
 
@@ -1001,7 +1039,7 @@ app.post('/api/contato', async (req, res) => {
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const projects = await Project.find().lean();
-    const staticPaths = ['/', '/sobre', '/obras', '/contato'];
+    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/contato'];
     const urls = staticPaths.map(p => ({
       loc: `${SITE_URL}${p}`,
       changefreq: p === '/' ? 'weekly' : 'monthly',

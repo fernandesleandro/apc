@@ -94,11 +94,12 @@
       const clearBtn = filters.querySelector('[data-filter-clear]');
       const emptyMsg = section.querySelector('[data-projects-filter-empty]');
       const cards = grid.querySelectorAll('.project-card');
-      if (!categorySelect || !statusSelect || !cards.length) return;
+      if (!categorySelect || !cards.length) return;
 
       function applyFilters() {
         const category = categorySelect.value;
-        const status = statusSelect.value;
+        const lockedStatus = !statusSelect && section.dataset.initialStatus ? section.dataset.initialStatus : '';
+        const status = statusSelect ? statusSelect.value : lockedStatus;
         let visibleCount = 0;
 
         cards.forEach(function (card) {
@@ -109,21 +110,29 @@
           if (visible) visibleCount += 1;
         });
 
-        const hasActiveFilter = Boolean(category || status);
+        const hasActiveFilter = Boolean(category || (statusSelect && status));
         if (clearBtn) clearBtn.hidden = !hasActiveFilter;
         if (emptyMsg) emptyMsg.hidden = visibleCount > 0;
       }
 
+      if (statusSelect) {
+        statusSelect.addEventListener('change', applyFilters);
+      }
+
       categorySelect.addEventListener('change', applyFilters);
-      statusSelect.addEventListener('change', applyFilters);
 
       if (clearBtn) {
         clearBtn.addEventListener('click', function () {
           categorySelect.value = '';
-          statusSelect.value = '';
+          if (statusSelect) statusSelect.value = '';
           applyFilters();
         });
       }
+
+      if (section.dataset.initialStatus && statusSelect) {
+        statusSelect.value = section.dataset.initialStatus;
+      }
+      applyFilters();
     });
   }
 

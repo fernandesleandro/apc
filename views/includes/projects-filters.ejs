@@ -1,3 +1,5 @@
+<% const showStatusFilter = typeof hideStatusFilter === 'undefined' ? true : !hideStatusFilter; %>
+<% const initialStatus = typeof presetStatus !== 'undefined' ? presetStatus : ''; %>
 <div class="projects-filters">
     <div class="projects-filter-group">
         <label>Categoria</label>
@@ -10,17 +12,19 @@
             <% } %>
         </select>
     </div>
+    <% if (showStatusFilter) { %>
     <div class="projects-filter-group">
         <label>Status</label>
         <select data-filter-status aria-label="Filtrar por status">
             <option value="">Todos os status</option>
             <% if (statusOptions && statusOptions.length) { %>
                 <% statusOptions.forEach(function(status) { %>
-                    <option value="<%= status %>"><%= status %></option>
+                    <option value="<%= status %>"<%= initialStatus === status ? ' selected' : '' %>><%= status %></option>
                 <% }); %>
             <% } %>
         </select>
     </div>
+    <% } %>
     <button type="button" class="projects-filter-clear" data-filter-clear hidden>Limpar filtros</button>
 </div>
 <p class="projects-filter-empty" data-projects-filter-empty hidden>Nenhum empreendimento encontrado com os filtros selecionados.</p>
