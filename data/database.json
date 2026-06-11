@@ -114,6 +114,32 @@
       }
     },
     {
+      "id": "servicos",
+      "title": "Serviços | AP Construções",
+      "description": "Conheça as soluções da AP Construções: construções de alto padrão, reformas corporativas e projetos de engenharia em Brasília.",
+      "content": {
+        "tag": "Soluções Completas",
+        "title": "Nossa Atuação",
+        "items": [
+          {
+            "icon": "fa-building",
+            "title": "Construções de Alto Padrão",
+            "description": "Execução impecável com materiais de primeira linha e rigor técnico absoluto em todas as etapas."
+          },
+          {
+            "icon": "fa-tools",
+            "title": "Reformas Corporativas",
+            "description": "Modernização de escritórios e layouts comerciais com foco em funcionalidade e sofisticação."
+          },
+          {
+            "icon": "fa-pencil-ruler",
+            "title": "Projetos de Engenharia",
+            "description": "Desenho arquitetônico e estrutural integrado para otimizar espaço, custos e prazos."
+          }
+        ]
+      }
+    },
+    {
       "id": "monumental",
       "title": "Monumental Center | AP Construções",
       "description": "Edifício comercial multiusuário no Lago Norte com 198 salas, 2 lojas, 222 vagas e infraestrutura corporativa completa. Ideal para escritórios, consultórios e varejo de apoio em uma das regiões mais valorizadas de Brasília.",
