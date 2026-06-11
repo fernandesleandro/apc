@@ -1367,8 +1367,14 @@ async function loadProjectDetailContext(slug, req) {
     detailData.plantaGallery = (plantaGallery.images || []).map(normalizeImageRecord);
   }
   const projectGallery = await ProjectGallery.findOne({ projectId: slug }).lean();
-  if (projectGallery) {
-    detailData.galleryImages = (projectGallery.images || []).map(normalizeImageRecord);
+  const galleryFromDb = (projectGallery?.images || []).map(normalizeImageRecord).filter((img) => img && img.src);
+  const mainImageSrc = normalizePublicPath(detailData.heroImage);
+  const mainImageAlt = page.hero?.title || project?.title || slug;
+
+  if (galleryFromDb.length) {
+    detailData.galleryImages = galleryFromDb;
+  } else if (mainImageSrc) {
+    detailData.galleryImages = [{ src: mainImageSrc, alt: mainImageAlt }];
   }
 
   if (!detailData.location.mapQuery) {
