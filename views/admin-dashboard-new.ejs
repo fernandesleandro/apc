@@ -608,17 +608,16 @@
             </div>
             <% } %>
             <div class="card">
-                <h2><i class="fas fa-share-alt"></i> Redes Sociais & WhatsApp</h2>
+                <h2><i class="fas fa-share-alt"></i> Redes Sociais</h2>
                 <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
-                    Links exibidos no rodapé e botão flutuante do WhatsApp. Deixe em branco para ocultar a rede (exceto WhatsApp).
+                    Links exibidos no rodapé. Deixe em branco para ocultar a rede.
                 </p>
                 <form action="/admin/save-site-settings" method="POST">
-                    <% const socialItems = (footer && footer.social && footer.social.length) ? footer.social : [
+                    <% const socialItems = ((footer && footer.social && footer.social.length) ? footer.social : [
                         { platform: 'facebook', label: 'Facebook', icon: 'fab fa-facebook-f', url: '' },
                         { platform: 'instagram', label: 'Instagram', icon: 'fab fa-instagram', url: '' },
-                        { platform: 'linkedin', label: 'LinkedIn', icon: 'fab fa-linkedin-in', url: '' },
-                        { platform: 'whatsapp', label: 'WhatsApp', icon: 'fab fa-whatsapp', url: '' }
-                    ]; %>
+                        { platform: 'linkedin', label: 'LinkedIn', icon: 'fab fa-linkedin-in', url: '' }
+                    ]).filter(function(item) { return item.platform !== 'whatsapp'; }); %>
                     <% socialItems.forEach(function(item, index) { %>
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label for="social-<%= item.platform %>"><i class="<%= item.icon %>"></i> <%= item.label %></label>
@@ -635,13 +634,12 @@
                     </p>
                     <% const contactSlots = [
                         { icon: 'fas fa-phone-alt', defaultLabel: 'Telefone Central', valuePlaceholder: '(61) 2195-8300' },
-                        { icon: 'fab fa-whatsapp', defaultLabel: 'WhatsApp Comercial', valuePlaceholder: '(61) 2195-8300' },
                         { icon: 'fas fa-envelope', defaultLabel: 'E-mail', valuePlaceholder: 'contato@apconstrucoes.com.br' },
                         { icon: 'fas fa-map-marker-alt', defaultLabel: 'Endereço Corporativo', valuePlaceholder: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
                     ]; %>
-                    <% const savedContact = (footer && footer.contact) ? footer.contact : []; %>
+                    <% const savedContact = (footer && footer.contact) ? footer.contact.filter(function(item) { return !(item.icon || '').includes('whatsapp'); }) : []; %>
                     <% contactSlots.forEach(function(slot, index) {
-                        const item = savedContact[index] || {};
+                        const item = savedContact.find(function(entry) { return entry.icon === slot.icon; }) || savedContact[index] || {};
                         const labelValue = item.label || slot.defaultLabel;
                         const valueValue = item.value || '';
                     %>

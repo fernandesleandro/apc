@@ -17,7 +17,7 @@
         </div>
         <div class="footer-contact-col">
             <h4>Sede Corporativa</h4>
-            <% footer.contact.forEach(item => { 
+            <% footer.contact.filter(function(item) { return !(item.icon || '').includes('whatsapp'); }).forEach(item => {
                 let iconClass = item.icon || 'fas fa-info-circle';
                 // Identificação e validação dos ícones específicos conforme solicitado
                 if (iconClass.includes('map-marker')) iconClass = 'fas fa-map-marker-alt';

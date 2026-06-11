@@ -58,11 +58,6 @@
         "value": "(61) 2195-8300"
       },
       {
-        "icon": "fab fa-whatsapp",
-        "label": "WhatsApp Comercial",
-        "value": "(61) 2195-8300"
-      },
-      {
         "icon": "fas fa-envelope",
         "label": "E-mail",
         "value": "contato@apconstrucoes.com.br"
@@ -91,12 +86,6 @@
         "icon": "fab fa-linkedin-in",
         "label": "LinkedIn",
         "url": ""
-      },
-      {
-        "platform": "whatsapp",
-        "icon": "fab fa-whatsapp",
-        "label": "WhatsApp",
-        "url": "https://api.whatsapp.com/send?phone=556121958300"
       }
     ],
     "hr": {

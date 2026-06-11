@@ -82,24 +82,19 @@
 
             <div class="info-card">
                 <h3>Informações de Contato</h3>
-                <% const contacts = (footer && footer.contact && footer.contact.length) ? footer.contact : [
+                <% const contacts = ((footer && footer.contact && footer.contact.length) ? footer.contact : [
                     { icon: 'fas fa-phone-alt', label: 'Telefone', value: '(61) 2195-8300' },
-                    { icon: 'fab fa-whatsapp', label: 'WhatsApp', value: '(61) 2195-8300' },
+                    { icon: 'fas fa-envelope', label: 'E-mail', value: 'contato@apconstrucoes.com.br' },
                     { icon: 'fas fa-map-marker-alt', label: 'Endereço', value: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
-                ]; %>
-                <% contacts.forEach(function(item, idx) {
-                    const isWhatsapp = (item.icon || '').includes('whatsapp');
-                    const title = item.label || (isWhatsapp ? 'WhatsApp Comercial' : (idx === 0 ? 'Telefone Central' : 'Endereço Corporativo'));
+                ]).filter(function(item) { return !(item.icon || '').includes('whatsapp'); }); %>
+                <% contacts.forEach(function(item) {
+                    const title = item.label || 'Contato';
                 %>
                 <div class="info-row">
                     <i class="<%= item.icon %>"></i>
                     <div>
                         <h4><%= title %></h4>
-                        <% if (isWhatsapp) { %>
-                            <p><a href="<%= typeof whatsappUrl !== 'undefined' ? whatsappUrl : 'https://api.whatsapp.com/send?phone=556121958300' %>" target="_blank" rel="noopener" style="color:#94a3b8;"><%= item.value %></a></p>
-                        <% } else { %>
-                            <p><%= item.value %></p>
-                        <% } %>
+                        <p><%= item.value %></p>
                     </div>
                 </div>
                 <% }) %>
