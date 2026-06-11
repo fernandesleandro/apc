@@ -1,4 +1,4 @@
-<a href="<%= project.href %>" class="project-card">
+<a href="<%= project.href %>" class="project-card" data-category="<%= project.category || '' %>" data-status="<%= project.badge || '' %>">
     <div class="project-img-wrapper">
         <img loading="lazy" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
         <% if (project.badge) { %>

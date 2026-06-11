@@ -83,9 +83,54 @@
     });
   }
 
+  function initProjectsFilter() {
+    document.querySelectorAll('.projects-section').forEach(function (section) {
+      const filters = section.querySelector('.projects-filters');
+      const grid = section.querySelector('.projects-grid');
+      if (!filters || !grid) return;
+
+      const categorySelect = filters.querySelector('[data-filter-category]');
+      const statusSelect = filters.querySelector('[data-filter-status]');
+      const clearBtn = filters.querySelector('[data-filter-clear]');
+      const emptyMsg = section.querySelector('[data-projects-filter-empty]');
+      const cards = grid.querySelectorAll('.project-card');
+      if (!categorySelect || !statusSelect || !cards.length) return;
+
+      function applyFilters() {
+        const category = categorySelect.value;
+        const status = statusSelect.value;
+        let visibleCount = 0;
+
+        cards.forEach(function (card) {
+          const matchesCategory = !category || card.dataset.category === category;
+          const matchesStatus = !status || card.dataset.status === status;
+          const visible = matchesCategory && matchesStatus;
+          card.classList.toggle('is-filtered-out', !visible);
+          if (visible) visibleCount += 1;
+        });
+
+        const hasActiveFilter = Boolean(category || status);
+        if (clearBtn) clearBtn.hidden = !hasActiveFilter;
+        if (emptyMsg) emptyMsg.hidden = visibleCount > 0;
+      }
+
+      categorySelect.addEventListener('change', applyFilters);
+      statusSelect.addEventListener('change', applyFilters);
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+          categorySelect.value = '';
+          statusSelect.value = '';
+          applyFilters();
+        });
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initMobileNav();
     initProjectAnchors();
     initContactForm();
+    initProjectsFilter();
   });
 })();

@@ -1,0 +1,26 @@
+<div class="projects-filters">
+    <div class="projects-filter-group">
+        <label>Categoria</label>
+        <select data-filter-category aria-label="Filtrar por categoria">
+            <option value="">Todas as categorias</option>
+            <% if (categoryOptions && categoryOptions.length) { %>
+                <% categoryOptions.forEach(function(option) { %>
+                    <option value="<%= option.value %>"><%= option.label %></option>
+                <% }); %>
+            <% } %>
+        </select>
+    </div>
+    <div class="projects-filter-group">
+        <label>Status</label>
+        <select data-filter-status aria-label="Filtrar por status">
+            <option value="">Todos os status</option>
+            <% if (statusOptions && statusOptions.length) { %>
+                <% statusOptions.forEach(function(status) { %>
+                    <option value="<%= status %>"><%= status %></option>
+                <% }); %>
+            <% } %>
+        </select>
+    </div>
+    <button type="button" class="projects-filter-clear" data-filter-clear hidden>Limpar filtros</button>
+</div>
+<p class="projects-filter-empty" data-projects-filter-empty hidden>Nenhum empreendimento encontrado com os filtros selecionados.</p>

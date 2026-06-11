@@ -179,9 +179,8 @@ const contactRateLimit = new Map();
 const isVercel = Boolean(process.env.VERCEL);
 const defaultSettings = {
   nav: [
-    { title: 'Home', url: '/' },
     { title: 'Sobre', url: '/sobre' },
-    { title: 'Obras', url: '/obras' },
+    { title: 'Empreendimentos', url: '/obras' },
     { title: 'Contato', url: '/contato' }
   ],
   footer: {
@@ -228,6 +227,17 @@ function formatCategoryLabel(category) {
   };
   const key = String(category).trim().toLowerCase();
   return map[key] || String(category).trim();
+}
+
+function buildProjectFilterOptions(rawProjects) {
+  const categoryOptions = [...new Set(rawProjects.map((p) => p.category).filter(Boolean))]
+    .map((value) => ({ value, label: formatCategoryLabel(value) }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+
+  const statusOptions = [...new Set(rawProjects.map((p) => (p.badge || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  return { categoryOptions, statusOptions };
 }
 
 function absoluteAssetUrl(req, assetPath) {
@@ -456,12 +466,45 @@ async function updatePageDetails(projectId, updater) {
   return page;
 }
 
+function normalizeSiteLabel(title) {
+  if (!title || typeof title !== 'string') return title;
+  if (title.trim() === 'Obras') return 'Empreendimentos';
+  return title;
+}
+
+function isHomeNavItem(item) {
+  if (!item || typeof item !== 'object') return false;
+  const title = String(item.title || '').trim().toLowerCase();
+  const url = String(item.url || '').trim();
+  return url === '/' || url === '/index' || title === 'início' || title === 'inicio' || title === 'home';
+}
+
+function normalizeSiteSettings(settings) {
+  const nav = (settings.nav || [])
+    .filter((item) => !isHomeNavItem(item))
+    .map((item) => ({
+      ...item,
+      title: normalizeSiteLabel(item.title)
+    }));
+  const footer = settings.footer ? {
+    ...settings.footer,
+    links: (settings.footer.links || [])
+      .filter((link) => !isHomeNavItem(link))
+      .map((link) => ({
+        ...link,
+        title: normalizeSiteLabel(link.title)
+      }))
+  } : settings.footer;
+  return { nav, footer };
+}
+
 async function getSettings() {
   const settings = await Setting.findOne().lean();
-  return {
+  const resolved = {
     nav: (settings && Array.isArray(settings.nav) && settings.nav.length) ? settings.nav : defaultSettings.nav,
     footer: (settings && settings.footer) ? settings.footer : defaultSettings.footer
   };
+  return normalizeSiteSettings(resolved);
 }
 
 // Cache: desabilitado só em desenvolvimento local
@@ -689,12 +732,15 @@ app.get('/', async (req, res) => {
     const page = await Page.findOne({ id: 'home' }).lean();
     const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
     const projects = await enrichProjectsForListing(rawProjects);
+    const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     res.render('home', {
       page: page || { title: 'AP Construções', hero: { title: 'AP Construções', subtitle: 'Construção civil com qualidade, confiança e excelência.' } },
       nav: settings.nav,
       footer: settings.footer,
       projects,
+      categoryOptions,
+      statusOptions,
       active: req.path,
       requestUrl,
       ogImage: absoluteAssetUrl(req, '/logo.png'),
@@ -743,10 +789,15 @@ app.get('/obras', async (req, res) => {
     const settings = await getSettings();
     const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
     const projects = await enrichProjectsForListing(rawProjects);
+
+    const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
+
     res.render('obras', {
       nav: settings.nav,
       footer: settings.footer,
       projects,
+      categoryOptions,
+      statusOptions,
       active: '/obras',
       requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       ogImage: absoluteAssetUrl(req, rawProjects[0]?.image || '/logo.png'),

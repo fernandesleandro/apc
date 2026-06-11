@@ -27,7 +27,7 @@
             <p class="hero-subtitle"><%= page.hero.subtitle %></p>
             <div class="hero-buttons">
                 <a href="/contato" class="btn btn-filled">Fale Conosco <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
-                <a href="#obras" class="btn btn-outline-white">Ver Portfólio</a>
+                <a href="#obras" class="btn btn-outline-white">Ver Empreendimentos</a>
             </div>
         </div>
     </section>
@@ -59,8 +59,9 @@
     <section id="obras" class="projects-section">
         <div class="container">
             <span class="section-tag">Destaques</span>
-            <h2 class="section-title">Nossas Obras</h2>
+            <h2 class="section-title">Nossos Empreendimentos</h2>
             <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 40px; font-size: 1.1rem;">Conheça lançamentos inspirados nas melhores tendências globais de design urbano.</p>
+            <%- include('includes/projects-filters', { categoryOptions, statusOptions }) %>
             <div class="projects-grid">
                 <% if (projects && projects.length) { %>
                     <% projects.forEach(project => { %>
