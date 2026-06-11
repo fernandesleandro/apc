@@ -546,6 +546,9 @@
             <button class="section-tab" data-section="projects">
                 <i class="fas fa-building"></i> Empreendimentos
             </button>
+            <button class="section-tab" data-section="settings">
+                <i class="fas fa-address-book"></i> Contato & Redes
+            </button>
         </div>
 
         <!-- SEÇÃO: PÁGINAS INSTITUCIONAIS -->
@@ -566,12 +569,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <% const instPages = pages.filter(p => ['home', 'sobre', 'contato', 'servicos'].includes(p.id)); %>
+                            <% const instPages = pages.filter(p => ['home', 'sobre', 'contato', 'servicos', 'acesso-cliente', 'trabalhe-conosco'].includes(p.id)); %>
                             <% if (instPages.length > 0) { %>
                                 <% instPages.forEach(page => { %>
                                     <tr>
                                         <td>
-                                            <strong><%= page.id === 'servicos' ? 'Serviços (Nossa Atuação)' : page.title %></strong><br>
+                                            <strong><%= page.id === 'servicos' ? 'Serviços (Nossa Atuação)' : page.id === 'acesso-cliente' ? 'Acesso ao Cliente' : page.id === 'trabalhe-conosco' ? 'Trabalhe Conosco' : page.title %></strong><br>
                                             <small style="color: #a0aec0;">ID: <%= page.id %></small>
                                         </td>
                                         <td class="truncate"><%= page.description || '(sem descrição)' %></td>
@@ -594,6 +597,99 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO: CONTATO, REDES SOCIAIS E RH -->
+        <div id="settings" class="section-content">
+            <% if (typeof settingsSaved !== 'undefined' && settingsSaved) { %>
+            <div class="card" style="margin-bottom: 20px; background: #f0fff4; border: 1px solid #9ae6b4; color: #22543d; padding: 14px 18px;">
+                Configurações salvas com sucesso.
+            </div>
+            <% } %>
+            <div class="card">
+                <h2><i class="fas fa-share-alt"></i> Redes Sociais & WhatsApp</h2>
+                <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                    Links exibidos no rodapé e botão flutuante do WhatsApp. Deixe em branco para ocultar a rede (exceto WhatsApp).
+                </p>
+                <form action="/admin/save-site-settings" method="POST">
+                    <% const socialItems = (footer && footer.social && footer.social.length) ? footer.social : [
+                        { platform: 'facebook', label: 'Facebook', icon: 'fab fa-facebook-f', url: '' },
+                        { platform: 'instagram', label: 'Instagram', icon: 'fab fa-instagram', url: '' },
+                        { platform: 'linkedin', label: 'LinkedIn', icon: 'fab fa-linkedin-in', url: '' },
+                        { platform: 'whatsapp', label: 'WhatsApp', icon: 'fab fa-whatsapp', url: '' }
+                    ]; %>
+                    <% socialItems.forEach(function(item, index) { %>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="social-<%= item.platform %>"><i class="<%= item.icon %>"></i> <%= item.label %></label>
+                        <input type="hidden" name="socialItems[<%= index %>][platform]" value="<%= item.platform %>">
+                        <input type="url" id="social-<%= item.platform %>" name="socialItems[<%= index %>][url]" value="<%= item.url || '' %>" placeholder="https://...">
+                    </div>
+                    <% }) %>
+
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;">
+
+                    <h2 style="font-size: 1.15rem; margin-bottom: 8px;"><i class="fas fa-phone-alt"></i> Informações de Contato</h2>
+                    <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                        Exibidas no rodapé (Sede Corporativa) e na página Fale Conosco. O ícone de cada item é fixo — edite apenas o <strong>título</strong> (opcional, na página Fale Conosco) e o <strong>valor</strong> (telefone, e-mail ou endereço).
+                    </p>
+                    <% const contactSlots = [
+                        { icon: 'fas fa-phone-alt', defaultLabel: 'Telefone Central', valuePlaceholder: '(61) 2195-8300' },
+                        { icon: 'fab fa-whatsapp', defaultLabel: 'WhatsApp Comercial', valuePlaceholder: '(61) 2195-8300' },
+                        { icon: 'fas fa-envelope', defaultLabel: 'E-mail', valuePlaceholder: 'contato@apconstrucoes.com.br' },
+                        { icon: 'fas fa-map-marker-alt', defaultLabel: 'Endereço Corporativo', valuePlaceholder: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
+                    ]; %>
+                    <% const savedContact = (footer && footer.contact) ? footer.contact : []; %>
+                    <% contactSlots.forEach(function(slot, index) {
+                        const item = savedContact[index] || {};
+                        const labelValue = item.label || slot.defaultLabel;
+                        const valueValue = item.value || '';
+                    %>
+                    <div style="margin-bottom: 16px; padding: 16px; background: #f7fafc; border-radius: 8px;">
+                        <p style="margin: 0 0 12px; font-weight: 600; color: #2d3748;">
+                            <i class="<%= slot.icon %>" style="width: 1.25em; text-align: center; color: #4a5568;"></i>
+                            <%= slot.defaultLabel %>
+                        </p>
+                        <input type="hidden" name="contactItems[<%= index %>][icon]" value="<%= slot.icon %>">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="contact-label-<%= index %>">Título (Fale Conosco)</label>
+                                <input type="text" id="contact-label-<%= index %>" name="contactItems[<%= index %>][label]" value="<%= labelValue %>" placeholder="<%= slot.defaultLabel %>">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="contact-value-<%= index %>">Valor</label>
+                                <input type="text" id="contact-value-<%= index %>" name="contactItems[<%= index %>][value]" value="<%= valueValue %>" placeholder="<%= slot.valuePlaceholder %>">
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
+
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;">
+
+                    <h2 style="font-size: 1.15rem; margin-bottom: 8px;"><i class="fas fa-users"></i> Recursos Humanos</h2>
+                    <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                        Opcional. Exibidos na página Trabalhe Conosco. Se todos os campos ficarem vazios, o card lateral não aparece.
+                    </p>
+                    <% const hr = (footer && footer.hr) ? footer.hr : { email: '', phone: '', note: '' }; %>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label for="hrEmail">E-mail RH</label>
+                            <input type="email" id="hrEmail" name="hrEmail" value="<%= hr.email || '' %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="hrPhone">Telefone RH</label>
+                            <input type="text" id="hrPhone" name="hrPhone" value="<%= hr.phone || '' %>">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hrNote">Observação</label>
+                        <textarea id="hrNote" name="hrNote" rows="3"><%= hr.note || '' %></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 10px; padding: 12px 24px;">
+                        <i class="fas fa-save"></i> Salvar contato e redes
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -723,6 +819,15 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // ===== TABS =====
+        const initialTab = '<%= typeof activeTab !== "undefined" ? activeTab : "pages" %>';
+        if (initialTab && document.getElementById(initialTab)) {
+            document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section-content').forEach(c => c.classList.remove('active'));
+            const tabBtn = document.querySelector(`.section-tab[data-section="${initialTab}"]`);
+            if (tabBtn) tabBtn.classList.add('active');
+            document.getElementById(initialTab).classList.add('active');
+        }
+
         document.querySelectorAll('.section-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 const sectionName = tab.getAttribute('data-section');

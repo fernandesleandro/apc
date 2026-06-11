@@ -36,9 +36,11 @@
     <div class="container footer-bottom-divider">
         <p class="footer-legal-text">© 2026 <%= footer.company %>. Todos os direitos reservados. Projetos e construções executados em conformidade técnica estrita com as diretrizes e normas regulamentadoras vigentes no território nacional.</p>
         <div class="footer-social-links">
-            <a href="#" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <% (footer.social || []).forEach(function(item) {
+                if (!item.url) return;
+            %>
+            <a href="<%= item.url %>" target="_blank" rel="noopener noreferrer" aria-label="<%= item.label || item.platform %>"><i class="<%= item.icon %>"></i></a>
+            <% }) %>
         </div>
     </div>
 </footer>

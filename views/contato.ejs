@@ -31,7 +31,7 @@
 
     <section class="container contact-layout">
         <div class="form-wrapper">
-            <h2>Fale com um Especialista</h2>
+            <h2>Fale Conosco</h2>
             <% if (typeof projectInterest !== 'undefined' && projectInterest) { %>
                 <p class="contact-interest-banner"><i class="fas fa-building" aria-hidden="true"></i> Interesse em: <strong><%= projectInterest %></strong></p>
             <% } %>
@@ -41,33 +41,45 @@
                     <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Nome Completo</label>
+                    <label for="nome">Nome</label>
                     <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required autocomplete="name">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
-                    </div>
-                    <div class="form-group">
-                        <label for="telefone">Telefone / WhatsApp</label>
-                        <input type="tel" id="telefone" name="telefone" placeholder="(61) 99999-9999" autocomplete="tel">
-                    </div>
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="email">
                 </div>
                 <div class="form-group">
-                    <label for="interesse">Empreendimento de interesse (opcional)</label>
+                    <label for="telefone">Telefone</label>
+                    <input type="tel" id="telefone" name="telefone" placeholder="(61) 99999-9999" autocomplete="tel">
+                </div>
+                <div class="form-group">
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" name="endereco" placeholder="Rua, bairro, cidade" autocomplete="street-address">
+                </div>
+                <div class="form-group">
+                    <label for="interesse">Empreendimento de interesse <span class="form-optional">(opcional)</span></label>
                     <input type="text" id="interesse" name="interesse" placeholder="Ex: Monumental Center" value="<%= typeof projectInterest !== 'undefined' ? projectInterest : '' %>">
                 </div>
                 <div class="form-group">
-                    <label for="mensagem">Como podemos ajudar?</label>
-                    <textarea id="mensagem" name="mensagem" rows="5" placeholder="Descreva sua necessidade..." required></textarea>
+                    <label for="mensagem">Mensagem</label>
+                    <textarea id="mensagem" name="mensagem" rows="5" placeholder="Escreva sua mensagem..." required></textarea>
                 </div>
                 <p id="contactFeedback" class="form-feedback" role="status" aria-live="polite"></p>
-                <button type="submit" class="btn btn-filled" style="width:100%;">Enviar Mensagem <i class="fas fa-paper-plane" style="margin-left:8px;"></i></button>
+                <button type="submit" class="btn btn-filled contact-submit-btn">Enviar <i class="fas fa-paper-plane" aria-hidden="true"></i></button>
             </form>
         </div>
 
         <div class="info-sidebar">
+            <a href="/trabalhe-conosco" class="contact-careers-card">
+                <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="Trabalhe Conosco AP Construções" loading="lazy">
+                <div class="contact-careers-card-body">
+                    <span class="section-tag">Carreiras</span>
+                    <h3>Trabalhe Conosco</h3>
+                    <p>Faça parte da equipe AP Construções.</p>
+                    <span class="contact-careers-link">Ver oportunidades <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+                </div>
+            </a>
+
             <div class="info-card">
                 <h3>Informações de Contato</h3>
                 <% const contacts = (footer && footer.contact && footer.contact.length) ? footer.contact : [

@@ -166,6 +166,7 @@ const ContactMessage = mongoose.model('ContactMessage', new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   phone: String,
+  address: String,
   message: { type: String, required: true },
   projectInterest: String,
   ip: String,
@@ -177,18 +178,49 @@ const SITE_URL = (process.env.SITE_URL || 'https://www.apconstrucoes.com.br').re
 const WHATSAPP_PHONE = (process.env.WHATSAPP_PHONE || '556121958300').replace(/\D/g, '');
 const contactRateLimit = new Map();
 const isVercel = Boolean(process.env.VERCEL);
+
+const DEFAULT_FOOTER_SOCIAL = [
+  { platform: 'facebook', icon: 'fab fa-facebook-f', label: 'Facebook', url: '' },
+  { platform: 'instagram', icon: 'fab fa-instagram', label: 'Instagram', url: '' },
+  { platform: 'linkedin', icon: 'fab fa-linkedin-in', label: 'LinkedIn', url: '' },
+  { platform: 'whatsapp', icon: 'fab fa-whatsapp', label: 'WhatsApp', url: `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}` }
+];
+
+const DEFAULT_FOOTER_HR = {
+  email: '',
+  phone: '',
+  note: ''
+};
+
+const DEFAULT_FOOTER_CONTACT = [
+  { icon: 'fas fa-phone-alt', label: 'Telefone Central', value: '(61) 2195-8300' },
+  { icon: 'fab fa-whatsapp', label: 'WhatsApp Comercial', value: '(61) 2195-8300' },
+  { icon: 'fas fa-envelope', label: 'E-mail', value: 'contato@apconstrucoes.com.br' },
+  { icon: 'fas fa-map-marker-alt', label: 'Endereço Corporativo', value: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
+];
+
 const defaultSettings = {
   nav: [
-    { title: 'Sobre', url: '/sobre' },
+    { title: 'Sobre Nós', url: '/sobre' },
     { title: 'Lançamento', url: '/lancamentos' },
     { title: 'Empreendimentos', url: '/obras' },
-    { title: 'Contato', url: '/contato' }
+    {
+      title: 'Atendimento',
+      url: '/contato',
+      children: [
+        { title: 'Acesso ao Cliente', url: '/acesso-cliente', icon: 'fa-user-shield' },
+        { title: 'Trabalhe Conosco', url: '/trabalhe-conosco', icon: 'fa-briefcase' },
+        { title: 'Fale Conosco', url: '/contato', icon: 'fa-headset' }
+      ]
+    }
   ],
   footer: {
     company: 'AP Construções',
     description: 'Construção civil com qualidade, confiança e excelência.',
     links: [],
-    contact: []
+    contact: [],
+    social: DEFAULT_FOOTER_SOCIAL,
+    hr: DEFAULT_FOOTER_HR
   }
 };
 const fallbackImage = 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80';
@@ -291,9 +323,37 @@ function absoluteAssetUrl(req, assetPath) {
   return `${host}${normalizePublicPath(assetPath)}`;
 }
 
-function buildWhatsappUrl(text) {
+function buildWhatsappUrl(text, footer) {
+  const waSocial = footer?.social?.find((item) => item.platform === 'whatsapp');
+  const configured = waSocial?.url?.trim();
+  if (configured) {
+    const base = configured.replace(/([&?])text=[^&]*/i, '').replace(/[?&]$/, '');
+    if (!text) return base;
+    const join = base.includes('?') ? '&' : '?';
+    return `${base}${join}text=${encodeURIComponent(text)}`;
+  }
   const encoded = encodeURIComponent(text || 'Olá! Gostaria de mais informações sobre os empreendimentos da AP Construções.');
   return `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${encoded}`;
+}
+
+function normalizeFooter(footer) {
+  const fromDb = readNavFooterFromDatabaseJson()?.footer;
+  const base = footer && typeof footer === 'object' ? footer : (fromDb || defaultSettings.footer);
+  const social = DEFAULT_FOOTER_SOCIAL.map((item) => {
+    const existing = (base.social || fromDb?.social || []).find((entry) => entry.platform === item.platform);
+    return existing ? { ...item, ...existing, icon: item.icon, platform: item.platform } : { ...item };
+  });
+  return {
+    ...base,
+    company: base.company || fromDb?.company || defaultSettings.footer.company,
+    description: base.description || fromDb?.description || defaultSettings.footer.description,
+    links: (base.links?.length ? base.links : (fromDb?.links || defaultSettings.footer.links || []))
+      .filter((link) => !isHomeNavItem(link))
+      .map((link) => normalizeNavItem(link)),
+    contact: base.contact?.length ? base.contact : (fromDb?.contact || []),
+    social,
+    hr: { ...DEFAULT_FOOTER_HR, ...(fromDb?.hr || {}), ...(base.hr || {}) }
+  };
 }
 
 function isDeliveredProject(project, detailData) {
@@ -362,7 +422,7 @@ function buildProjectSchemaJson(page, project, detailData, requestUrl) {
   return JSON.stringify(schema);
 }
 
-async function enrichProjectsForListing(projects) {
+async function enrichProjectsForListing(projects, footer) {
   if (!projects?.length) return [];
   const ids = projects.map(p => p.id);
   const pages = await Page.find({ id: { $in: ids } }).lean();
@@ -379,7 +439,7 @@ async function enrichProjectsForListing(projects) {
     return {
       ...project,
       locationChip,
-      whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`)
+      whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`, footer)
     };
   });
 }
@@ -415,7 +475,7 @@ async function sendContactEmail(payload) {
       to,
       replyTo: payload.email,
       subject: `[AP Construções] Contato — ${payload.name}`,
-      text: `Nome: ${payload.name}\nE-mail: ${payload.email}\nTelefone: ${payload.phone || '-'}\nInteresse: ${payload.projectInterest || '-'}\n\n${payload.message}`
+      text: `Nome: ${payload.name}\nE-mail: ${payload.email}\nTelefone: ${payload.phone || '-'}\nEndereço: ${payload.address || '-'}\nInteresse: ${payload.projectInterest || '-'}\n\n${payload.message}`
     });
     return true;
   } catch (err) {
@@ -527,6 +587,63 @@ function normalizeNavItem(item) {
   return { ...item, title: normalizeSiteLabel(title), url };
 }
 
+const ATENDIMENTO_CHILD_URLS = ['/acesso-cliente', '/trabalhe-conosco', '/contato'];
+const ATENDIMENTO_DROPDOWN = {
+  title: 'Atendimento',
+  url: '/contato',
+  children: [
+    { title: 'Acesso ao Cliente', url: '/acesso-cliente', icon: 'fa-user-shield' },
+    { title: 'Trabalhe Conosco', url: '/trabalhe-conosco', icon: 'fa-briefcase' },
+    { title: 'Fale Conosco', url: '/contato', icon: 'fa-headset' }
+  ]
+};
+
+function isAtendimentoChildUrl(url) {
+  return ATENDIMENTO_CHILD_URLS.includes(String(url || '').trim());
+}
+
+function isAtendimentoDropdown(item) {
+  return Array.isArray(item?.children)
+    && item.children.some((child) => isAtendimentoChildUrl(child.url));
+}
+
+function buildAtendimentoDropdown(nav) {
+  const list = Array.isArray(nav) ? [...nav] : [];
+  const flatChildren = list
+    .filter((item) => isAtendimentoChildUrl(item.url))
+    .map((item) => ({ title: normalizeSiteLabel(item.title), url: String(item.url).trim() }));
+
+  const existingDropdown = list.find((item) => isAtendimentoDropdown(item));
+  const filtered = list.filter((item) => {
+    if (isAtendimentoChildUrl(item.url)) return false;
+    if (isAtendimentoDropdown(item)) return false;
+    return true;
+  });
+
+  const children = ATENDIMENTO_DROPDOWN.children.map((child) => {
+    const fromFlat = flatChildren.find((item) => item.url === child.url);
+    const fromDropdown = existingDropdown?.children?.find((item) => String(item.url).trim() === child.url);
+    const title = child.url === '/contato'
+      ? 'Fale Conosco'
+      : normalizeSiteLabel(fromFlat?.title || fromDropdown?.title || child.title);
+    return { ...child, title, icon: child.icon };
+  });
+
+  const obrasIndex = filtered.findIndex((item) => String(item.url || '').trim() === '/obras');
+  const insertAt = obrasIndex >= 0 ? obrasIndex + 1 : filtered.length;
+  filtered.splice(insertAt, 0, {
+    title: existingDropdown?.title ? normalizeSiteLabel(existingDropdown.title) : ATENDIMENTO_DROPDOWN.title,
+    url: ATENDIMENTO_DROPDOWN.url,
+    children
+  });
+
+  return filtered;
+}
+
+function mergeRequiredNavItems(nav) {
+  return buildAtendimentoDropdown(Array.isArray(nav) ? nav : []);
+}
+
 function isHomeNavItem(item) {
   if (!item || typeof item !== 'object') return false;
   const title = String(item.title || '').trim().toLowerCase();
@@ -535,15 +652,12 @@ function isHomeNavItem(item) {
 }
 
 function normalizeSiteSettings(settings) {
-  const nav = (settings.nav || [])
-    .filter((item) => !isHomeNavItem(item))
-    .map((item) => normalizeNavItem(item));
-  const footer = settings.footer ? {
-    ...settings.footer,
-    links: (settings.footer.links || [])
-      .filter((link) => !isHomeNavItem(link))
-      .map((link) => normalizeNavItem(link))
-  } : settings.footer;
+  const nav = buildAtendimentoDropdown(
+    (settings.nav || [])
+      .filter((item) => !isHomeNavItem(item))
+      .map((item) => normalizeNavItem(item))
+  );
+  const footer = normalizeFooter(settings.footer);
   return { nav, footer };
 }
 
@@ -716,22 +830,132 @@ async function ensureDatabase() {
   }
 
   await ensureServicosPage();
+  await ensureInstitutionalPages(['acesso-cliente', 'trabalhe-conosco', 'manual-proprietario', 'convencao-condominio', 'pericia-olympique']);
+  await ensureClientAccessPageContent();
+  await ensureSettingsNavFromDatabase();
+  await ensureFooterSettings();
+}
+
+function readNavFooterFromDatabaseJson() {
+  const dbFile = path.join(__dirname, 'data', 'database.json');
+  if (!fs.existsSync(dbFile)) return null;
+  try {
+    const data = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+    return { nav: data.nav || [], footer: data.footer || null };
+  } catch (error) {
+    console.error('[SEED] Erro ao ler nav do database.json:', error);
+    return null;
+  }
+}
+
+async function ensureSettingsNavFromDatabase() {
+  const fromDb = readNavFooterFromDatabaseJson();
+  if (!fromDb?.nav?.length) return;
+
+  const settings = await Setting.findOne();
+  const currentNav = settings?.nav || [];
+  const sourceNav = currentNav.length ? currentNav : fromDb.nav;
+  const normalizedNav = normalizeSiteSettings({ nav: sourceNav, footer: settings?.footer }).nav;
+  const hasFlatAtendimento = sourceNav.some((item) => isAtendimentoChildUrl(item.url));
+  const dropdown = sourceNav.find((item) => isAtendimentoDropdown(item));
+  const staleDropdown = dropdown?.children?.some((item) => {
+    const expected = ATENDIMENTO_DROPDOWN.children.find((child) => child.url === String(item.url).trim());
+    if (!expected) return true;
+    if (expected.url === '/contato' && item.title !== 'Fale Conosco') return true;
+    return item.icon !== expected.icon;
+  });
+  if (!hasFlatAtendimento && dropdown && !staleDropdown) return;
+
+  const update = { nav: normalizedNav };
+  if (settings?.footer) {
+    update.footer = settings.footer;
+  } else if (fromDb.footer) {
+    update.footer = fromDb.footer;
+  }
+
+  await Setting.findOneAndUpdate({}, update, { upsert: true });
+  console.log('[SEED] Menu atualizado com dropdown Atendimento.');
+}
+
+async function ensureFooterSettings() {
+  const fromDb = readNavFooterFromDatabaseJson();
+  if (!fromDb?.footer) return;
+
+  const settings = await Setting.findOne();
+  const currentFooter = settings?.footer || {};
+  const normalizedFooter = normalizeFooter(currentFooter.company ? currentFooter : fromDb.footer);
+  const needsSocial = !Array.isArray(currentFooter.social) || currentFooter.social.length < DEFAULT_FOOTER_SOCIAL.length;
+  const needsHr = !currentFooter.hr || typeof currentFooter.hr !== 'object';
+  const needsContact = !Array.isArray(currentFooter.contact) || !currentFooter.contact.length;
+  if (!needsSocial && !needsHr && !needsContact) return;
+
+  await Setting.findOneAndUpdate({}, { footer: normalizedFooter }, { upsert: true });
+  console.log('[SEED] Rodapé atualizado com redes sociais, contato e RH.');
+}
+
+function readPageFromDatabaseJson(pageId) {
+  const dbFile = path.join(__dirname, 'data', 'database.json');
+  if (!fs.existsSync(dbFile)) return null;
+  try {
+    const data = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+    return (data.pages || []).find((p) => p.id === pageId) || null;
+  } catch (error) {
+    console.error(`[SEED] Erro ao ler página ${pageId}:`, error);
+    return null;
+  }
+}
+
+async function ensureInstitutionalPages(pageIds) {
+  for (const pageId of pageIds) {
+    const existing = await Page.findOne({ id: pageId });
+    if (existing) continue;
+    const payload = readPageFromDatabaseJson(pageId);
+    if (!payload) continue;
+    await Page.create(payload);
+    console.log(`[SEED] Página institucional criada: ${pageId}`);
+  }
+}
+
+async function ensureClientAccessPageContent() {
+  const defaults = readPageFromDatabaseJson('acesso-cliente');
+  if (!defaults?.content?.services?.length) return;
+  const existing = await Page.findOne({ id: 'acesso-cliente' });
+  if (!existing) return;
+
+  const currentServices = Array.isArray(existing.content?.services) ? existing.content.services : [];
+  const defaultsById = Object.fromEntries(defaults.content.services.map((service) => [service.id, service]));
+  const hasLegacyLinks = currentServices.some((service) => {
+    const href = String(service.href || '');
+    if (href.startsWith('/contato?')) return true;
+    if (service.id === 'manual' && !href.includes('/acesso-cliente/manual-proprietario')) return true;
+    if (service.id === 'convencao' && !href.includes('/acesso-cliente/convencao-condominio')) return true;
+    if (service.id === 'pericia-olympique' && !href.includes('/acesso-cliente/pericia-olympique')) return true;
+    if (['boletos', 'acompanhe-obra', 'manutencao'].includes(service.id) && !service.disabled) return true;
+    const expected = defaultsById[service.id];
+    return expected && expected.disabled && !service.disabled;
+  });
+  const missingIds = defaults.content.services.some(
+    (service) => !currentServices.some((item) => item.id === service.id)
+  );
+
+  if (!hasLegacyLinks && !missingIds && currentServices.some((service) => service.id)) return;
+
+  existing.content = {
+    ...(existing.content || {}),
+    intro: defaults.content.intro,
+    services: defaults.content.services
+  };
+  if (existing.content.portalNote) delete existing.content.portalNote;
+  existing.markModified('content');
+  await existing.save();
+  console.log('[SEED] Conteúdo do Acesso ao Cliente atualizado com links do portal.');
 }
 
 async function ensureServicosPage() {
   const existing = await Page.findOne({ id: 'servicos' });
   if (existing) return;
 
-  const dbFile = path.join(__dirname, 'data', 'database.json');
-  let servicosPage = null;
-  if (fs.existsSync(dbFile)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
-      servicosPage = (data.pages || []).find((p) => p.id === 'servicos');
-    } catch (error) {
-      console.error('[SEED] Erro ao ler serviços do database.json:', error);
-    }
-  }
+  const servicosPage = readPageFromDatabaseJson('servicos');
 
   const payload = servicosPage || {
     id: 'servicos',
@@ -810,7 +1034,7 @@ app.get('/', async (req, res) => {
     const servicesPage = await Page.findOne({ id: 'servicos' }).lean();
     const servicesSection = normalizeServicesSection(servicesPage?.content);
     const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
-    const projects = await enrichProjectsForListing(rawProjects);
+    const projects = await enrichProjectsForListing(rawProjects, settings.footer);
     const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     res.render('home', {
@@ -824,7 +1048,7 @@ app.get('/', async (req, res) => {
       active: req.path,
       requestUrl,
       ogImage: absoluteAssetUrl(req, '/logo.png'),
-      whatsappUrl: buildWhatsappUrl()
+      whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
     });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar home:', error);
@@ -848,6 +1072,17 @@ app.get('/contato', async (req, res) => {
     const settings = await getSettings();
     const page = await Page.findOne({ id: 'contato' }).lean();
     const interest = typeof req.query.obra === 'string' ? req.query.obra : '';
+    const assuntoLabels = {
+      '2via-boleto': '2ª via de boleto / extrato',
+      'manual-proprietario': 'Manual do proprietário',
+      'manutencao': 'Manutenção — unidade entregue',
+      'convencao-condominio': 'Convenção de condomínio',
+      'pericia-olympique': 'Laudos — Olympique',
+      'acompanhamento-obra': 'Acompanhamento de obra'
+    };
+    const assuntoKey = typeof req.query.assunto === 'string' ? req.query.assunto : '';
+    const assuntoLabel = assuntoLabels[assuntoKey] || '';
+    const projectInterest = interest || assuntoLabel;
     res.render('contato', {
       page: page || { title: 'Contato', description: '' },
       nav: settings.nav,
@@ -855,8 +1090,9 @@ app.get('/contato', async (req, res) => {
       active: req.path,
       requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       ogImage: absoluteAssetUrl(req, '/logo.png'),
-      projectInterest: interest,
-      whatsappUrl: buildWhatsappUrl(interest ? `Olá! Tenho interesse no empreendimento ${interest}.` : undefined)
+      projectInterest,
+      assuntoLabel,
+      whatsappUrl: buildWhatsappUrl(projectInterest ? `Olá! Tenho interesse: ${projectInterest}.` : undefined, settings.footer)
     });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar contato:', error);
@@ -864,7 +1100,145 @@ app.get('/contato', async (req, res) => {
   }
 });
 
+app.get('/acesso-cliente', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    let page = await Page.findOne({ id: 'acesso-cliente' }).lean();
+    if (!page) {
+      page = readPageFromDatabaseJson('acesso-cliente');
+    }
+    if (!page) {
+      return res.status(404).send('Página não encontrada');
+    }
+    res.render('acesso-cliente', {
+      page: resolveClientAccessPage(page),
+      nav: settings.nav,
+      footer: settings.footer,
+      active: '/acesso-cliente',
+      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      ogImage: absoluteAssetUrl(req, '/logo.png'),
+      whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
+    });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar acesso ao cliente:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
+});
+
+app.get('/acesso-cliente/manual-proprietario', async (req, res) => {
+  try {
+    await renderClientDocumentsPage(req, res, 'manual-proprietario');
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar manual do proprietário:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
+});
+
+app.get('/acesso-cliente/convencao-condominio', async (req, res) => {
+  try {
+    await renderClientDocumentsPage(req, res, 'convencao-condominio');
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar convenção de condomínio:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
+});
+
+app.get('/acesso-cliente/pericia-olympique', async (req, res) => {
+  try {
+    await renderClientDocumentsPage(req, res, 'pericia-olympique');
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar perícia Olympique:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
+});
+
+app.get('/trabalhe-conosco', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    let page = await Page.findOne({ id: 'trabalhe-conosco' }).lean();
+    if (!page) {
+      page = readPageFromDatabaseJson('trabalhe-conosco');
+    }
+    if (!page) {
+      return res.status(404).send('Página não encontrada');
+    }
+    res.render('trabalhe-conosco', {
+      page,
+      nav: settings.nav,
+      footer: settings.footer,
+      active: '/trabalhe-conosco',
+      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      ogImage: absoluteAssetUrl(req, '/logo.png'),
+      whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
+    });
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar trabalhe conosco:', error);
+    res.status(500).send('Erro ao carregar página');
+  }
+});
+
 const LAUNCH_STATUS = 'Lançamento';
+const DEFAULT_CLIENT_MANUAL_URL = '/acesso-cliente/manual-proprietario';
+
+function resolveClientAccessPage(page) {
+  if (!page?.content?.services?.length) return page;
+
+  const overrides = {
+    manual: {
+      href: DEFAULT_CLIENT_MANUAL_URL,
+      external: false,
+      cta: 'Ver manuais'
+    },
+    convencao: {
+      href: '/acesso-cliente/convencao-condominio',
+      external: false,
+      cta: 'Ver documentos'
+    },
+    'pericia-olympique': {
+      href: '/acesso-cliente/pericia-olympique',
+      external: false,
+      cta: 'Ver laudos'
+    }
+  };
+
+  const services = page.content.services.map((service) => {
+    const patch = overrides[service.id];
+    const merged = patch ? { ...service, ...patch } : { ...service };
+    const defaults = readPageFromDatabaseJson('acesso-cliente');
+    const defaultService = defaults?.content?.services?.find((item) => item.id === service.id);
+    if (defaultService?.disabled) {
+      merged.disabled = true;
+      merged.disabledLabel = defaultService.disabledLabel || 'Indisponível';
+    }
+    return merged;
+  });
+
+  const content = { ...page.content, services };
+  if (content.portalNote) delete content.portalNote;
+
+  return { ...page, content };
+}
+
+async function renderClientDocumentsPage(req, res, pageId) {
+  const settings = await getSettings();
+  let page = await Page.findOne({ id: pageId }).lean();
+  if (!page) {
+    page = readPageFromDatabaseJson(pageId);
+  }
+  if (!page) {
+    return res.status(404).send('Página não encontrada');
+  }
+
+  res.render('client-documents', {
+    page,
+    nav: settings.nav,
+    footer: settings.footer,
+    active: '/acesso-cliente',
+    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    ogImage: absoluteAssetUrl(req, '/logo.png'),
+    whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
+  });
+}
 
 function filterProjectsByStatus(projects, status) {
   if (!status) return projects;
@@ -874,7 +1248,7 @@ function filterProjectsByStatus(projects, status) {
 async function renderProjectsListing(req, res, options = {}) {
   const settings = await getSettings();
   const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
-  const allProjects = await enrichProjectsForListing(rawProjects);
+  const allProjects = await enrichProjectsForListing(rawProjects, settings.footer);
   const presetStatus = options.presetStatus || '';
   const projects = filterProjectsByStatus(allProjects, presetStatus);
   const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
@@ -899,7 +1273,7 @@ async function renderProjectsListing(req, res, options = {}) {
     active: isLaunchListing ? '/lancamentos' : '/obras',
     requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
     ogImage: absoluteAssetUrl(req, projects[0]?.image || rawProjects[0]?.image || '/logo.png'),
-    whatsappUrl: buildWhatsappUrl()
+    whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
   });
 }
 
@@ -922,6 +1296,7 @@ app.get('/lancamentos', async (req, res) => {
 });
 
 async function loadProjectDetailContext(slug, req) {
+  const settings = await getSettings();
   const project = normalizeProjectRecord(await Project.findOne({ id: slug }).lean());
   let page = await Page.findOne({ id: slug }).lean();
 
@@ -954,7 +1329,7 @@ async function loadProjectDetailContext(slug, req) {
 
   const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   const ogImage = absoluteAssetUrl(req, detailData.heroImage || project?.image);
-  const whatsappUrl = buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${page.hero?.title || project?.title || slug}.`);
+  const whatsappUrl = buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${page.hero?.title || project?.title || slug}.`, settings.footer);
   const sectionsNav = buildProjectSections(detailData);
   const schemaJson = buildProjectSchemaJson(page, project, detailData, requestUrl);
   const showSalesCta = !isDeliveredProject(project, detailData);
@@ -991,7 +1366,7 @@ app.get('/obras/:slug', async (req, res) => {
 
 app.post('/api/contato', async (req, res) => {
   try {
-    const { name, email, phone, message, projectInterest, website } = req.body || {};
+    const { name, email, phone, address, message, projectInterest, website } = req.body || {};
     if (website) {
       return res.json({ success: true, message: 'Mensagem recebida com sucesso!' });
     }
@@ -1016,6 +1391,7 @@ app.post('/api/contato', async (req, res) => {
       name: cleanName,
       email: cleanEmail,
       phone: String(phone || '').trim(),
+      address: String(address || '').trim(),
       message: cleanMessage,
       projectInterest: String(projectInterest || '').trim(),
       ip
@@ -1039,7 +1415,7 @@ app.post('/api/contato', async (req, res) => {
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const projects = await Project.find().lean();
-    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/contato'];
+    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/acesso-cliente', '/acesso-cliente/manual-proprietario', '/acesso-cliente/convencao-condominio', '/acesso-cliente/pericia-olympique', '/trabalhe-conosco', '/contato'];
     const urls = staticPaths.map(p => ({
       loc: `${SITE_URL}${p}`,
       changefreq: p === '/' ? 'weekly' : 'monthly',
@@ -1073,7 +1449,7 @@ app.get('/admin', isAuthenticated, async (req, res) => {
 
 app.get('/admin/dashboard', isAuthenticated, async (req, res) => {
   try {
-    const settings = await Setting.findOne();
+    const settings = await getSettings();
     const pages = await Page.find();
     const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
     
@@ -1082,12 +1458,14 @@ app.get('/admin/dashboard', isAuthenticated, async (req, res) => {
     const galleries = [...plantaGalleries, ...projectGalleries];
     
     res.render('admin-dashboard-new', { 
-      nav: settings ? settings.nav : defaultSettings.nav, 
-      footer: settings ? settings.footer : defaultSettings.footer, 
+      nav: settings.nav, 
+      footer: settings.footer, 
       pages,
       projects,
       galleries,
-      username: req.session.admin.username
+      username: req.session.admin.username,
+      activeTab: req.query.tab || 'pages',
+      settingsSaved: req.query.saved === '1'
     });
   } catch (error) {
     console.error('Erro ao carregar dashboard:', error);
@@ -1788,6 +2166,54 @@ app.post('/admin/save', isAuthenticated, async (req, res) => {
   }
 
   res.redirect('/admin/dashboard'); // Redireciona para o dashboard após salvar configurações globais
+});
+
+app.post('/admin/save-site-settings', isAuthenticated, async (req, res) => {
+  try {
+    const settings = await Setting.findOne();
+    const currentFooter = normalizeFooter(settings?.footer);
+    const body = req.body || {};
+
+    const contact = [];
+    const contactItems = body.contactItems;
+    const contactList = Array.isArray(contactItems) ? contactItems : (contactItems ? [contactItems] : []);
+    contactList.forEach((item, index) => {
+      if (!item || !String(item.value || '').trim()) return;
+      const slot = DEFAULT_FOOTER_CONTACT[index] || {};
+      contact.push({
+        icon: item.icon || slot.icon || currentFooter.contact[index]?.icon || 'fas fa-info-circle',
+        label: String(item.label || '').trim() || slot.label || '',
+        value: String(item.value || '').trim()
+      });
+    });
+
+    const socialItems = body.socialItems;
+    const socialList = Array.isArray(socialItems) ? socialItems : (socialItems ? [socialItems] : []);
+    const social = DEFAULT_FOOTER_SOCIAL.map((item) => {
+      const posted = socialList.find((entry) => entry.platform === item.platform) || {};
+      return {
+        ...item,
+        url: String(posted.url || '').trim()
+      };
+    });
+
+    const footer = {
+      ...currentFooter,
+      contact: contact.length ? contact : currentFooter.contact,
+      social,
+      hr: {
+        email: String(body.hrEmail || '').trim(),
+        phone: String(body.hrPhone || '').trim(),
+        note: String(body.hrNote || '').trim()
+      }
+    };
+
+    await Setting.findOneAndUpdate({}, { footer }, { upsert: true });
+    res.redirect('/admin/dashboard?tab=settings&saved=1');
+  } catch (error) {
+    console.error('[ERROR] Erro ao salvar configurações do site:', error);
+    res.redirect('/admin/dashboard?tab=settings&error=1');
+  }
 });
 
 // ===== ROTAS PARA GERENCIAR PROJETOS (CRUD) =====
