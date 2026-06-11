@@ -182,8 +182,7 @@ const isVercel = Boolean(process.env.VERCEL);
 const DEFAULT_FOOTER_SOCIAL = [
   { platform: 'facebook', icon: 'fab fa-facebook-f', label: 'Facebook', url: '' },
   { platform: 'instagram', icon: 'fab fa-instagram', label: 'Instagram', url: '' },
-  { platform: 'linkedin', icon: 'fab fa-linkedin-in', label: 'LinkedIn', url: '' },
-  { platform: 'whatsapp', icon: 'fab fa-whatsapp', label: 'WhatsApp', url: `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}` }
+  { platform: 'linkedin', icon: 'fab fa-linkedin-in', label: 'LinkedIn', url: '' }
 ];
 
 const DEFAULT_FOOTER_HR = {
@@ -194,10 +193,18 @@ const DEFAULT_FOOTER_HR = {
 
 const DEFAULT_FOOTER_CONTACT = [
   { icon: 'fas fa-phone-alt', label: 'Telefone Central', value: '(61) 2195-8300' },
-  { icon: 'fab fa-whatsapp', label: 'WhatsApp Comercial', value: '(61) 2195-8300' },
   { icon: 'fas fa-envelope', label: 'E-mail', value: 'contato@apconstrucoes.com.br' },
   { icon: 'fas fa-map-marker-alt', label: 'Endereço Corporativo', value: 'SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF' }
 ];
+
+function isWhatsappContactItem(item) {
+  return String(item?.icon || '').includes('whatsapp');
+}
+
+function filterContactItems(contact) {
+  const list = Array.isArray(contact) ? contact.filter((item) => !isWhatsappContactItem(item)) : [];
+  return list.length ? list : DEFAULT_FOOTER_CONTACT;
+}
 
 const defaultSettings = {
   nav: [
@@ -323,15 +330,7 @@ function absoluteAssetUrl(req, assetPath) {
   return `${host}${normalizePublicPath(assetPath)}`;
 }
 
-function buildWhatsappUrl(text, footer) {
-  const waSocial = footer?.social?.find((item) => item.platform === 'whatsapp');
-  const configured = waSocial?.url?.trim();
-  if (configured) {
-    const base = configured.replace(/([&?])text=[^&]*/i, '').replace(/[?&]$/, '');
-    if (!text) return base;
-    const join = base.includes('?') ? '&' : '?';
-    return `${base}${join}text=${encodeURIComponent(text)}`;
-  }
+function buildWhatsappUrl(text) {
   const encoded = encodeURIComponent(text || 'Olá! Gostaria de mais informações sobre os empreendimentos da AP Construções.');
   return `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${encoded}`;
 }
@@ -340,7 +339,9 @@ function normalizeFooter(footer) {
   const fromDb = readNavFooterFromDatabaseJson()?.footer;
   const base = footer && typeof footer === 'object' ? footer : (fromDb || defaultSettings.footer);
   const social = DEFAULT_FOOTER_SOCIAL.map((item) => {
-    const existing = (base.social || fromDb?.social || []).find((entry) => entry.platform === item.platform);
+    const existing = (base.social || fromDb?.social || [])
+      .filter((entry) => entry.platform !== 'whatsapp')
+      .find((entry) => entry.platform === item.platform);
     return existing ? { ...item, ...existing, icon: item.icon, platform: item.platform } : { ...item };
   });
   return {
@@ -350,7 +351,7 @@ function normalizeFooter(footer) {
     links: (base.links?.length ? base.links : (fromDb?.links || defaultSettings.footer.links || []))
       .filter((link) => !isHomeNavItem(link))
       .map((link) => normalizeNavItem(link)),
-    contact: base.contact?.length ? base.contact : (fromDb?.contact || []),
+    contact: filterContactItems(base.contact?.length ? base.contact : (fromDb?.contact || DEFAULT_FOOTER_CONTACT)),
     social,
     hr: { ...DEFAULT_FOOTER_HR, ...(fromDb?.hr || {}), ...(base.hr || {}) }
   };
@@ -830,8 +831,10 @@ async function ensureDatabase() {
   }
 
   await ensureServicosPage();
-  await ensureInstitutionalPages(['acesso-cliente', 'trabalhe-conosco', 'manual-proprietario', 'convencao-condominio', 'pericia-olympique']);
+  await ensureInstitutionalPages(['acesso-cliente', 'trabalhe-conosco', 'manual-proprietario', 'convencao-condominio']);
   await ensureClientAccessPageContent();
+  await ensureRemovePericiaOlympiquePage();
+  await ensureManualProprietarioPageContent();
   await ensureSettingsNavFromDatabase();
   await ensureFooterSettings();
 }
@@ -884,10 +887,13 @@ async function ensureFooterSettings() {
   const settings = await Setting.findOne();
   const currentFooter = settings?.footer || {};
   const normalizedFooter = normalizeFooter(currentFooter.company ? currentFooter : fromDb.footer);
-  const needsSocial = !Array.isArray(currentFooter.social) || currentFooter.social.length < DEFAULT_FOOTER_SOCIAL.length;
+  const needsSocial = !Array.isArray(currentFooter.social)
+    || currentFooter.social.length < DEFAULT_FOOTER_SOCIAL.length
+    || (currentFooter.social || []).some((item) => item.platform === 'whatsapp');
   const needsHr = !currentFooter.hr || typeof currentFooter.hr !== 'object';
+  const hasLegacyWhatsappContact = (currentFooter.contact || []).some(isWhatsappContactItem);
   const needsContact = !Array.isArray(currentFooter.contact) || !currentFooter.contact.length;
-  if (!needsSocial && !needsHr && !needsContact) return;
+  if (!needsSocial && !needsHr && !needsContact && !hasLegacyWhatsappContact) return;
 
   await Setting.findOneAndUpdate({}, { footer: normalizedFooter }, { upsert: true });
   console.log('[SEED] Rodapé atualizado com redes sociais, contato e RH.');
@@ -929,16 +935,16 @@ async function ensureClientAccessPageContent() {
     if (href.startsWith('/contato?')) return true;
     if (service.id === 'manual' && !href.includes('/acesso-cliente/manual-proprietario')) return true;
     if (service.id === 'convencao' && !href.includes('/acesso-cliente/convencao-condominio')) return true;
-    if (service.id === 'pericia-olympique' && !href.includes('/acesso-cliente/pericia-olympique')) return true;
     if (['boletos', 'acompanhe-obra', 'manutencao'].includes(service.id) && !service.disabled) return true;
     const expected = defaultsById[service.id];
     return expected && expected.disabled && !service.disabled;
   });
+  const hasRemovedPericia = currentServices.some((service) => service.id === 'pericia-olympique');
   const missingIds = defaults.content.services.some(
     (service) => !currentServices.some((item) => item.id === service.id)
   );
 
-  if (!hasLegacyLinks && !missingIds && currentServices.some((service) => service.id)) return;
+  if (!hasLegacyLinks && !missingIds && !hasRemovedPericia && currentServices.some((service) => service.id)) return;
 
   existing.content = {
     ...(existing.content || {}),
@@ -949,6 +955,32 @@ async function ensureClientAccessPageContent() {
   existing.markModified('content');
   await existing.save();
   console.log('[SEED] Conteúdo do Acesso ao Cliente atualizado com links do portal.');
+}
+
+async function ensureRemovePericiaOlympiquePage() {
+  const removed = await Page.deleteOne({ id: 'pericia-olympique' });
+  if (removed.deletedCount) {
+    console.log('[SEED] Página Perícia Olympique removida.');
+  }
+}
+
+async function ensureManualProprietarioPageContent() {
+  const defaults = readPageFromDatabaseJson('manual-proprietario');
+  if (!defaults?.content?.sections?.length) return;
+  const existing = await Page.findOne({ id: 'manual-proprietario' });
+  if (!existing) return;
+
+  const currentFirst = existing.content?.sections?.[0]?.title;
+  const expectedFirst = defaults.content.sections[0]?.title;
+  if (currentFirst === expectedFirst) return;
+
+  existing.content = {
+    ...(existing.content || {}),
+    sections: defaults.content.sections
+  };
+  existing.markModified('content');
+  await existing.save();
+  console.log('[SEED] Ordem do Manual do Proprietário atualizada.');
 }
 
 async function ensureServicosPage() {
@@ -1077,7 +1109,6 @@ app.get('/contato', async (req, res) => {
       'manual-proprietario': 'Manual do proprietário',
       'manutencao': 'Manutenção — unidade entregue',
       'convencao-condominio': 'Convenção de condomínio',
-      'pericia-olympique': 'Laudos — Olympique',
       'acompanhamento-obra': 'Acompanhamento de obra'
     };
     const assuntoKey = typeof req.query.assunto === 'string' ? req.query.assunto : '';
@@ -1143,15 +1174,6 @@ app.get('/acesso-cliente/convencao-condominio', async (req, res) => {
   }
 });
 
-app.get('/acesso-cliente/pericia-olympique', async (req, res) => {
-  try {
-    await renderClientDocumentsPage(req, res, 'pericia-olympique');
-  } catch (error) {
-    console.error('[ERROR] Erro ao carregar perícia Olympique:', error);
-    res.status(500).send('Erro ao carregar página');
-  }
-});
-
 app.get('/trabalhe-conosco', async (req, res) => {
   try {
     const settings = await getSettings();
@@ -1193,11 +1215,6 @@ function resolveClientAccessPage(page) {
       href: '/acesso-cliente/convencao-condominio',
       external: false,
       cta: 'Ver documentos'
-    },
-    'pericia-olympique': {
-      href: '/acesso-cliente/pericia-olympique',
-      external: false,
-      cta: 'Ver laudos'
     }
   };
 
@@ -1415,7 +1432,7 @@ app.post('/api/contato', async (req, res) => {
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const projects = await Project.find().lean();
-    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/acesso-cliente', '/acesso-cliente/manual-proprietario', '/acesso-cliente/convencao-condominio', '/acesso-cliente/pericia-olympique', '/trabalhe-conosco', '/contato'];
+    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/acesso-cliente', '/acesso-cliente/manual-proprietario', '/acesso-cliente/convencao-condominio', '/trabalhe-conosco', '/contato'];
     const urls = staticPaths.map(p => ({
       loc: `${SITE_URL}${p}`,
       changefreq: p === '/' ? 'weekly' : 'monthly',
@@ -2178,7 +2195,7 @@ app.post('/admin/save-site-settings', isAuthenticated, async (req, res) => {
     const contactItems = body.contactItems;
     const contactList = Array.isArray(contactItems) ? contactItems : (contactItems ? [contactItems] : []);
     contactList.forEach((item, index) => {
-      if (!item || !String(item.value || '').trim()) return;
+      if (!item || isWhatsappContactItem(item) || !String(item.value || '').trim()) return;
       const slot = DEFAULT_FOOTER_CONTACT[index] || {};
       contact.push({
         icon: item.icon || slot.icon || currentFooter.contact[index]?.icon || 'fas fa-info-circle',
