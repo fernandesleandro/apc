@@ -11,7 +11,22 @@
         </button>
         <nav class="nav-menu" id="main-nav">
             <% nav.forEach(item => { %>
-                <a href="<%= item.url %>" class="nav-link <%= active === item.url ? 'active' : '' %>"><%= item.title %></a>
+                <% if (item.children && item.children.length) { %>
+                    <% const isDropdownActive = item.children.some(function(child) { return active === child.url; }); %>
+                    <div class="nav-dropdown">
+                        <button type="button" class="nav-link nav-dropdown-toggle<%= isDropdownActive ? ' active' : '' %>" aria-expanded="false" aria-haspopup="true">
+                            <%= item.title %>
+                            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="nav-dropdown-menu" role="menu">
+                            <% item.children.forEach(function(child) { %>
+                                <a href="<%= child.url %>" class="nav-dropdown-item<%= active === child.url ? ' active' : '' %>" role="menuitem"><%= child.title %></a>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="<%= item.url %>" class="nav-link <%= active === item.url ? 'active' : '' %>"><%= item.title %></a>
+                <% } %>
             <% }) %>
         </nav>
     </div>

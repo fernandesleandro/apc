@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= page.title %></title>
+    <meta name="description" content="<%= page.description %>">
+    <link rel="canonical" href="<%= requestUrl %>">
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:description" content="<%= page.description %>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= requestUrl %>">
+    <meta property="og:locale" content="pt_BR">
+    <%- include('includes/meta-og') %>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <%- include('includes/header', { nav, active }) %>
+
+    <section class="page-banner" style="background: linear-gradient(rgba(0,11,44,0.88), rgba(0,7,20,0.96)), url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;">
+        <div class="container">
+            <h1><%= page.hero.title %></h1>
+            <p><%= page.hero.subtitle %></p>
+        </div>
+    </section>
+
+    <section class="careers-section">
+        <div class="container">
+            <div class="careers-intro">
+                <span class="section-tag">Carreiras</span>
+                <h2 class="section-title">Faça parte do nosso time</h2>
+                <% if (page.content && page.content.intro) { %>
+                    <p><%= page.content.intro %></p>
+                <% } %>
+            </div>
+
+            <% if (page.content && page.content.benefits && page.content.benefits.length) { %>
+            <div class="careers-benefits">
+                <% page.content.benefits.forEach(function(item) { %>
+                    <% const iconClass = (item.icon || 'fa-star').replace(/^fas?\s+/, ''); %>
+                    <div class="careers-benefit-card">
+                        <div class="careers-benefit-icon"><i class="fas <%= iconClass %>" aria-hidden="true"></i></div>
+                        <h3><%= item.title %></h3>
+                        <p><%= item.text %></p>
+                    </div>
+                <% }); %>
+            </div>
+            <% } %>
+        </div>
+    </section>
+
+    <section class="container contact-layout careers-form-section">
+        <div class="form-wrapper">
+            <h2>Envie seu currículo</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.7;">Preencha o formulário abaixo. Nossa equipe de RH entrará em contato caso seu perfil se encaixe em uma oportunidade aberta.</p>
+            <form id="careersForm" novalidate>
+                <div class="form-honeypot" aria-hidden="true">
+                    <label for="website">Website</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="nome">Nome completo</label>
+                    <input type="text" id="nome" name="nome" required autocomplete="name">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone / WhatsApp</label>
+                        <input type="tel" id="telefone" name="telefone" autocomplete="tel">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="area">Área de interesse</label>
+                    <select id="area" name="area" required>
+                        <option value="">Selecione uma área</option>
+                        <% if (page.content && page.content.areas) { %>
+                            <% page.content.areas.forEach(function(area) { %>
+                                <option value="<%= area %>"><%= area %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="mensagem">Apresentação e experiência</label>
+                    <textarea id="mensagem" name="mensagem" rows="5" placeholder="Conte brevemente sua experiência, formação e disponibilidade..." required></textarea>
+                </div>
+                <p id="careersFeedback" class="form-feedback" role="status" aria-live="polite"></p>
+                <button type="submit" class="btn btn-filled" style="width:100%;">Enviar candidatura <i class="fas fa-paper-plane" style="margin-left:8px;"></i></button>
+            </form>
+        </div>
+
+        <div class="info-sidebar">
+            <div class="info-card">
+                <h3>Recursos Humanos</h3>
+                <% const rhEmail = (page.content && page.content.email) ? page.content.email : 'rh@apconstrucoes.com.br'; %>
+                <div class="footer-contact-item" style="margin-bottom: 16px;">
+                    <i class="fas fa-envelope"></i>
+                    <div><p><a href="mailto:<%= rhEmail %>"><%= rhEmail %></a></p></div>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <div><p>(61) 2195-8300</p></div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 20px; line-height: 1.6;">Preferencialmente utilize o formulário para registrar sua candidatura. Anexos de currículo podem ser enviados por e-mail após o primeiro contato.</p>
+            </div>
+        </div>
+    </section>
+
+    <%- include('includes/footer', { footer }) %>
+
+    <a href="<%= typeof whatsappUrl !== 'undefined' ? whatsappUrl : 'https://api.whatsapp.com/send?phone=556121958300' %>" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+    <script src="/main.js"></script>
+    <script>
+    (function () {
+        const form = document.getElementById('careersForm');
+        if (!form) return;
+        const feedback = document.getElementById('careersFeedback');
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            if (feedback) {
+                feedback.className = 'form-feedback';
+                feedback.textContent = 'Enviando...';
+            }
+            const area = form.area.value.trim();
+            const payload = {
+                name: form.nome.value.trim(),
+                email: form.email.value.trim(),
+                phone: form.telefone.value.trim(),
+                message: form.mensagem.value.trim(),
+                projectInterest: 'Trabalhe Conosco — ' + area,
+                website: form.website ? form.website.value : ''
+            };
+            try {
+                const res = await fetch('/api/contato', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (feedback) {
+                    feedback.className = 'form-feedback ' + (data.success ? 'success' : 'error');
+                    feedback.textContent = data.message || (data.success ? 'Candidatura enviada!' : 'Erro ao enviar.');
+                }
+                if (data.success) form.reset();
+            } catch (err) {
+                if (feedback) {
+                    feedback.className = 'form-feedback error';
+                    feedback.textContent = 'Falha na conexão. Tente e-mail ou telefone.';
+                }
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

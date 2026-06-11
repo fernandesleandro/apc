@@ -566,12 +566,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <% const instPages = pages.filter(p => ['home', 'sobre', 'contato', 'servicos'].includes(p.id)); %>
+                            <% const instPages = pages.filter(p => ['home', 'sobre', 'contato', 'servicos', 'acesso-cliente', 'trabalhe-conosco'].includes(p.id)); %>
                             <% if (instPages.length > 0) { %>
                                 <% instPages.forEach(page => { %>
                                     <tr>
                                         <td>
-                                            <strong><%= page.id === 'servicos' ? 'Serviços (Nossa Atuação)' : page.title %></strong><br>
+                                            <strong><%= page.id === 'servicos' ? 'Serviços (Nossa Atuação)' : page.id === 'acesso-cliente' ? 'Acesso ao Cliente' : page.id === 'trabalhe-conosco' ? 'Trabalhe Conosco' : page.title %></strong><br>
                                             <small style="color: #a0aec0;">ID: <%= page.id %></small>
                                         </td>
                                         <td class="truncate"><%= page.description || '(sem descrição)' %></td>

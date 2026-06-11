@@ -1,7 +1,7 @@
 {
-  "nav": [    
+  "nav": [
     {
-      "title": "SOBRE NÓS",
+      "title": "Sobre Nós",
       "url": "/sobre"
     },
     {
@@ -13,8 +13,13 @@
       "url": "/obras"
     },
     {
-      "title": "Contato",
-      "url": "/contato"
+      "title": "Atendimento",
+      "url": "/contato",
+      "children": [
+        { "title": "Acesso ao Cliente", "url": "/acesso-cliente" },
+        { "title": "Trabalhe Conosco", "url": "/trabalhe-conosco" },
+        { "title": "Contato", "url": "/contato" }
+      ]
     }
   ],
   "footer": {
@@ -32,6 +37,14 @@
       {
         "title": "Empreendimentos",
         "url": "/obras"
+      },
+      {
+        "title": "Acesso ao Cliente",
+        "url": "/acesso-cliente"
+      },
+      {
+        "title": "Trabalhe Conosco",
+        "url": "/trabalhe-conosco"
       },
       {
         "title": "Contato",
@@ -111,6 +124,301 @@
       "hero": {
         "title": "Canais de Atendimento",
         "subtitle": "Agende uma reunião em nossa sede corporativa ou solicite informações sobre nossos empreendimentos."
+      }
+    },
+    {
+      "id": "acesso-cliente",
+      "title": "Acesso ao Cliente | AP Construções",
+      "description": "Portal do cliente AP Construções: 2ª via de boletos, manual do proprietário, manutenção, convenção de condomínio e documentos dos empreendimentos.",
+      "hero": {
+        "title": "Acesso ao Cliente",
+        "subtitle": "Serviços exclusivos para clientes AP Construções — financeiro, pós-entrega e documentação."
+      },
+      "content": {
+        "intro": "Centralize suas solicitações como cliente AP Construções. Selecione o serviço desejado para acessar o canal correto.",
+        "services": [
+          {
+            "id": "boletos",
+            "icon": "fa-file-invoice-dollar",
+            "title": "2ª via de boletos e extrato",
+            "description": "Para clientes com unidades em construção e financiamento junto à incorporadora. Emissão de boletos, extrato de parcelas pagas e imposto de renda.",
+            "href": "https://apconstrucoes-portalcliente.sienge.com.br/PortalCliente/Welcome.do",
+            "external": true,
+            "cta": "Acessar portal",
+            "disabled": true,
+            "disabledLabel": "Indisponível"
+          },
+          {
+            "id": "acompanhe-obra",
+            "icon": "fa-hard-hat",
+            "title": "Acompanhe sua obra",
+            "description": "Acompanhe o andamento da construção, registros fotográficos e cronograma pelo Portal do Cliente.",
+            "href": "https://apconstrucoes-portalcliente.sienge.com.br/PortalCliente/Welcome.do",
+            "external": true,
+            "cta": "Acompanhar obra",
+            "disabled": true,
+            "disabledLabel": "Indisponível"
+          },
+          {
+            "id": "manutencao",
+            "icon": "fa-tools",
+            "title": "Manutenção",
+            "description": "Solicitação de manutenção de unidades entregues.",
+            "href": "http://www.portobsb.com.br/institucional/",
+            "external": true,
+            "cta": "Abrir solicitação",
+            "disabled": true,
+            "disabledLabel": "Indisponível"
+          },
+          {
+            "id": "manual",
+            "icon": "fa-book-open",
+            "title": "Manual do proprietário",
+            "description": "Apenas para unidades entregues.",
+            "href": "/acesso-cliente/manual-proprietario",
+            "cta": "Ver manuais"
+          },
+          {
+            "id": "convencao",
+            "icon": "fa-file-contract",
+            "title": "Convenção de condomínio",
+            "description": "Convenção de Condomínio.",
+            "href": "/acesso-cliente/convencao-condominio",
+            "cta": "Ver documentos"
+          },
+          {
+            "id": "pericia-olympique",
+            "icon": "fa-clipboard-check",
+            "title": "Perícia Olympique",
+            "description": "Laudos e relatórios.",
+            "href": "/acesso-cliente/pericia-olympique",
+            "cta": "Ver laudos"
+          }
+        ]
+      }
+    },
+    {
+      "id": "manual-proprietario",
+      "title": "Manual do Proprietário | AP Construções",
+      "description": "Manuais do proprietário e áreas comuns por empreendimento AP Construções — apenas para unidades entregues.",
+      "hero": {
+        "title": "Manual do Proprietário",
+        "subtitle": "Manuais organizados por empreendimento — unidades entregues."
+      },
+      "content": {
+        "intro": "Selecione o empreendimento e acesse o manual correspondente. Documentos disponíveis conforme o empreendimento.",
+        "backHref": "/acesso-cliente",
+        "backLabel": "Voltar ao Acesso ao Cliente",
+        "sections": [
+          {
+            "title": "Barão de Mauá",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/maua/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/maua/manual_areascomuns.htm" }
+            ]
+          },
+          {
+            "title": "Monumental",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/monumental/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/monumental/manual_areascomuns.htm" }
+            ]
+          },
+          {
+            "title": "Barão do Rio Branco",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/riobranco/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/riobranco/manual_areascomuns.htm" }
+            ]
+          },
+          {
+            "title": "Saphira",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/saphira/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/saphira/manual_areascomuns.htm" }
+            ]
+          },
+          {
+            "title": "Cervantes",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/cervantes/manual_proprietario.html" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/cervantes/manual_areascomuns.html" }
+            ]
+          },
+          {
+            "title": "Costa Verde",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/costaverde/manual_proprietario/proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/costaverde/areas_comuns/comuns.htm" }
+            ]
+          },
+          {
+            "title": "Château Valois",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/chateu/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/chateu/manual_areascomuns.htm" },
+              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/chateu/habitise.pdf" }
+            ]
+          },
+          {
+            "title": "Metropolitan",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/metro/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/metro/manual_areascomuns.htm" },
+              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/metro/habitise.pdf" }
+            ]
+          },
+          {
+            "title": "Olympique",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/olymp/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/olymp/manual_areascomuns.htm" },
+              { "title": "Desenhos Orientativos", "href": "http://www.portobsb.com.br/manual/olymp/proprietario/desenhos.htm" },
+              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/olymp/habitise.pdf" }
+            ]
+          },
+          {
+            "title": "Cosmopolitan",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/cosmo/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/cosmo/manual_areascomuns.htm" },
+              { "title": "Desenhos Orientativos", "href": "http://www.portobsb.com.br/manual/cosmo/proprietario/desenhos.htm" },
+              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/cosmo/habitise.pdf" }
+            ]
+          },
+          {
+            "title": "Solar do Cerrado",
+            "documents": [
+              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/solar/manual_proprietario.htm" },
+              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/solar/manual_areas_comuns.htm" },
+              { "title": "Desenhos Orientativos", "href": "http://www.portobsb.com.br/manual/solar/desenhos_orientativos.htm" },
+              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/solar/habite-se.pdf" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "convencao-condominio",
+      "title": "Convenção de Condomínio | AP Construções",
+      "description": "Documentos oficiais de convenção de condomínio dos empreendimentos AP Construções.",
+      "hero": {
+        "title": "Convenção de Condomínio",
+        "subtitle": "Acesse os PDFs oficiais de convenção por empreendimento."
+      },
+      "content": {
+        "intro": "Selecione o empreendimento e abra o documento em PDF.",
+        "backHref": "/acesso-cliente",
+        "backLabel": "Voltar ao Acesso ao Cliente",
+        "sections": [
+          {
+            "title": "Ed. Solar do Cerrado",
+            "documents": [
+              {
+                "title": "Conv. Condomínio Ed. Solar do Cerrado",
+                "href": "http://www.portobsb.com.br/institucional/memosolar/ConvRegSolardoCerrado.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Ed. Cosmopolitan",
+            "documents": [
+              {
+                "title": "Conv. Condomínio Ed. Cosmopolitan",
+                "href": "http://www.portobsb.com.br/institucional/memocosmo/conv/Conv_Condominio_Ed_COSMOPOLITAN.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Residencial Olympique",
+            "documents": [
+              {
+                "title": "Conv. Condomínio Olympique — Parte 1",
+                "href": "http://www.portobsb.com.br/institucional/memoolymp/Conv_Condominio_Olympique_PARTE_1.pdf"
+              },
+              {
+                "title": "Conv. Condomínio Olympique — Parte 2",
+                "href": "http://www.portobsb.com.br/institucional/memoolymp/Conv_Condominio_Olympique_PARTE_2.pdf"
+              },
+              {
+                "title": "Conv. Condomínio Olympique — Parte 3",
+                "href": "http://www.portobsb.com.br/institucional/memoolymp/Conv_Condominio_Olympique_PARTE_3.pdf"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pericia-olympique",
+      "title": "Perícia Residencial Olympique | AP Construções",
+      "description": "Laudos técnicos e relatórios de inspeção do Residencial Olympique.",
+      "hero": {
+        "title": "Perícia Residencial Olympique",
+        "subtitle": "Laudos e relatórios técnicos em PDF."
+      },
+      "content": {
+        "intro": "Documentos de laudo e relatórios de inspeção do empreendimento Olympique.",
+        "backHref": "/acesso-cliente",
+        "backLabel": "Voltar ao Acesso ao Cliente",
+        "sections": [
+          {
+            "title": "Laudo Olympique",
+            "documents": [
+              {
+                "title": "Laudo Técnico de Inspeção Predial",
+                "href": "http://www.portobsb.com.br/institucional/p_laudo/Laudo_de_Inspecao.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Relatórios Olympique",
+            "documents": [
+              {
+                "title": "1 — Relatório Inspeção Sistemas Construtivos",
+                "href": "http://www.portobsb.com.br/institucional/p_relat/1_Relatorio_Inspecao_Sistemas_Construtivos.pdf"
+              },
+              {
+                "title": "2 — Relatório Inspeção Sistemas Instalação",
+                "href": "http://www.portobsb.com.br/institucional/p_relat/2_Relatorio_Inspecao_Sistemas_Instalacao.pdf"
+              },
+              {
+                "title": "3 — Relatório Inspeção Sistemas Segurança",
+                "href": "http://www.portobsb.com.br/institucional/p_relat/3_Relatorio_Inspecao_Sistemas_Seguranca.pdf"
+              },
+              {
+                "title": "Laudo de Inspeção Predial",
+                "href": "http://www.portobsb.com.br/institucional/p_relat/Laudo_de_Inspecao_Predial.pdf"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "trabalhe-conosco",
+      "title": "Trabalhe Conosco | AP Construções",
+      "description": "Faça parte da equipe AP Construções. Vagas e oportunidades em engenharia, obras, administrativo e comercial em Brasília.",
+      "hero": {
+        "title": "Trabalhe Conosco",
+        "subtitle": "Construa sua carreira em uma empresa referência em engenharia e incorporação em Brasília."
+      },
+      "content": {
+        "intro": "Na AP Construções, valorizamos profissionais comprometidos com excelência técnica, segurança e entrega de resultados. Se você busca um ambiente sólido para crescer, envie seu currículo.",
+        "benefits": [
+          { "icon": "fa-users", "title": "Equipe qualificada", "text": "Trabalho colaborativo com profissionais experientes no mercado de Brasília." },
+          { "icon": "fa-shield-alt", "title": "Segurança e conformidade", "text": "Compromisso com NR, qualidade e processos transparentes em todas as etapas." },
+          { "icon": "fa-chart-line", "title": "Crescimento", "text": "Oportunidades de desenvolvimento em obras de alto padrão e empreendimentos de destaque." }
+        ],
+        "areas": [
+          "Engenharia e obras",
+          "Projetos e orçamento",
+          "Comercial e vendas",
+          "Administrativo e financeiro",
+          "Marketing",
+          "Estágio"
+        ],
+        "email": "rh@apconstrucoes.com.br"
       }
     },
     {

@@ -10,11 +10,44 @@
       toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
-    document.querySelectorAll('.nav-link').forEach(function (link) {
+    document.querySelectorAll('.nav-link, .nav-dropdown-item').forEach(function (link) {
       link.addEventListener('click', function () {
         toggleBtn.classList.remove('active');
         navMenu.classList.remove('active');
         toggleBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  function initNavDropdown() {
+    document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+      const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+      if (!toggle) return;
+
+      toggle.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const isOpen = dropdown.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+        document.querySelectorAll('.nav-dropdown').forEach(function (other) {
+          if (other === dropdown) return;
+          other.classList.remove('is-open');
+          const otherToggle = other.querySelector('.nav-dropdown-toggle');
+          if (otherToggle) otherToggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      dropdown.addEventListener('click', function (event) {
+        event.stopPropagation();
+      });
+    });
+
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.nav-dropdown.is-open').forEach(function (dropdown) {
+        dropdown.classList.remove('is-open');
+        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
       });
     });
   }
@@ -138,6 +171,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     initMobileNav();
+    initNavDropdown();
     initProjectAnchors();
     initContactForm();
     initProjectsFilter();
