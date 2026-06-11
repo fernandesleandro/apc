@@ -571,7 +571,7 @@
                                 <% instPages.forEach(page => { %>
                                     <tr>
                                         <td>
-                                            <strong><%= page.title %></strong><br>
+                                            <strong><%= page.id === 'servicos' ? 'Serviços (Nossa Atuação)' : page.title %></strong><br>
                                             <small style="color: #a0aec0;">ID: <%= page.id %></small>
                                         </td>
                                         <td class="truncate"><%= page.description || '(sem descrição)' %></td>
