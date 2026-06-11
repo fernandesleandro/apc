@@ -5,8 +5,8 @@
       "url": "/sobre"
     },
     {
-      "title": "Serviços",
-      "url": "/#servicos"
+      "title": "Lançamento",
+      "url": "/lancamentos"
     },
     {
       "title": "Empreendimentos",
@@ -26,8 +26,8 @@
         "url": "/sobre"
       },
       {
-        "title": "Serviços",
-        "url": "/#servicos"
+        "title": "Lançamento",
+        "url": "/lancamentos"
       },
       {
         "title": "Empreendimentos",

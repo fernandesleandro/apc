@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empreendimentos | AP Construções</title>
-    <meta name="description" content="Conheça os principais empreendimentos da AP Construções em Brasília.">
+    <% const pageTitle = typeof listingTitle !== 'undefined' ? listingTitle : 'Empreendimentos'; %>
+    <title><%= pageTitle %> | AP Construções</title>
+    <meta name="description" content="<%= typeof listingSubtitle !== 'undefined' ? listingSubtitle : 'Conheça os principais empreendimentos da AP Construções em Brasília.' %>">
     <link rel="canonical" href="<%= requestUrl %>">
-    <meta property="og:title" content="Empreendimentos | AP Construções">
-    <meta property="og:description" content="Conheça os principais empreendimentos da AP Construções em Brasília.">
+    <meta property="og:title" content="<%= pageTitle %> | AP Construções">
+    <meta property="og:description" content="<%= typeof listingSubtitle !== 'undefined' ? listingSubtitle : 'Conheça os principais empreendimentos da AP Construções em Brasília.' %>">
     <meta property="og:type" content="website">
     <meta property="og:url" content="<%= requestUrl %>">
     <meta property="og:locale" content="pt_BR">
@@ -24,18 +25,18 @@
 
     <section class="page-banner" style="background: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;">
         <div class="container">
-            <h1>Empreendimentos</h1>
-            <p>Conheça os principais empreendimentos realizados pela AP Construções</p>
+            <h1><%= pageTitle %></h1>
+            <p><%= typeof listingSubtitle !== 'undefined' ? listingSubtitle : 'Conheça os principais empreendimentos realizados pela AP Construções' %></p>
         </div>
     </section>
 
-    <section id="obras" class="projects-section">
+    <section id="obras" class="projects-section"<% if (typeof presetStatus !== 'undefined' && presetStatus) { %> data-initial-status="<%= presetStatus %>"<% } %>>
         <div class="container">
             <span class="section-tag">Destaques</span>
-            <h2 class="section-title">Empreendimentos</h2>
-            <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 40px; font-size: 1.1rem;">Conheça lançamentos inspirados nas melhores tendências globais de design urbano.</p>
+            <h2 class="section-title"><%= typeof sectionTitle !== 'undefined' ? sectionTitle : 'Empreendimentos' %></h2>
+            <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 40px; font-size: 1.1rem;"><%= typeof sectionIntro !== 'undefined' ? sectionIntro : 'Conheça lançamentos inspirados nas melhores tendências globais de design urbano.' %></p>
 
-            <%- include('includes/projects-filters', { categoryOptions, statusOptions }) %>
+            <%- include('includes/projects-filters', { categoryOptions, statusOptions, hideStatusFilter: typeof hideStatusFilter !== 'undefined' ? hideStatusFilter : false, presetStatus: typeof presetStatus !== 'undefined' ? presetStatus : '' }) %>
             <div class="projects-grid">
                 <% if (projects && projects.length) { %>
                     <% projects.forEach(project => { %>
