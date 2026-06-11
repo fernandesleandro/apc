@@ -796,13 +796,13 @@
     <div class="edit-container" style="background-color: #001a4d !important;">
         <nav class="admin-topbar" aria-label="Navegação do admin">
             <div class="admin-topbar-brand">
-                <%- include('includes/admin-brand', { variant: 'dark', subtitle: 'Administração de obras', link: '/admin/dashboard' }) %>
+                <%- include('includes/admin-brand', { variant: 'dark', subtitle: 'Administração de empreendimentos', link: '/admin/dashboard' }) %>
             </div>
             <div class="admin-topbar-row">
                 <div class="admin-breadcrumb">
                     <a href="/admin/dashboard" data-admin-back><i class="fas fa-th-large"></i> Painel</a>
                     <span class="sep">/</span>
-                    <span>Editar obra</span>
+                    <span>Editar empreendimento</span>
                     <span class="sep">/</span>
                     <strong style="color:#2d3748;"><%= project.title %></strong>
                 </div>
@@ -879,8 +879,8 @@
 
                         <div class="form-group form-row full">
                             <label for="description">Descrição (listagem) <span class="required">*</span></label>
-                            <textarea id="description" name="description" required placeholder="Descrição curta para cards de obras"><%= project.description %></textarea>
-                            <div class="form-hint">Texto exibido nos cards da home e /obras</div>
+                            <textarea id="description" name="description" required placeholder="Descrição curta para cards de empreendimentos"><%= project.description %></textarea>
+                            <div class="form-hint">Texto exibido nos cards da home e na página de empreendimentos</div>
                         </div>
 
                         <div class="form-group form-row full">
@@ -924,7 +924,7 @@
                             <div class="form-group">
                                 <label for="badge">Badge (Selo) — listagem</label>
                                 <input type="text" id="badge" name="badge" value="<%= project.badge || '' %>" placeholder="Ex: Em Construção">
-                                <div class="form-hint">Rótulo exibido na listagem de obras</div>
+                                <div class="form-hint">Rótulo exibido na listagem de empreendimentos</div>
                             </div>
                             <div class="form-group">
                                 <label for="detailTag">Tag do Projeto — página de detalhes</label>
@@ -945,7 +945,7 @@
                     <!-- IMAGEM PRINCIPAL -->
                     <div class="section upload-section">
                         <h3><i class="fas fa-image"></i> Imagem Principal do Projeto</h3>
-                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Esta imagem aparecerá na listagem de obras e na página do projeto</p>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Esta imagem aparecerá na listagem de empreendimentos e na página do projeto</p>
 
                         <% if (project.image) { %>
                             <div style="margin-bottom: 20px;">

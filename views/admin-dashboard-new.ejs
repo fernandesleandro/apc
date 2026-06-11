@@ -544,7 +544,7 @@
                 <i class="fas fa-file-alt"></i> Páginas Institucionais
             </button>
             <button class="section-tab" data-section="projects">
-                <i class="fas fa-building"></i> Obras / Projetos
+                <i class="fas fa-building"></i> Empreendimentos
             </button>
         </div>
 
@@ -601,22 +601,22 @@
         <div id="projects" class="section-content">
             <!-- CRIAR NOVO PROJETO -->
             <div class="card">
-                <h2><i class="fas fa-plus-circle"></i> Nova Obra</h2>
+                <h2><i class="fas fa-plus-circle"></i> Novo Empreendimento</h2>
                 <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
-                    Crie uma nova obra preenchendo os dados obrigatórios. As pastas de imagens serão criadas automaticamente.
+                    Crie um novo empreendimento preenchendo os dados obrigatórios. As pastas de imagens serão criadas automaticamente.
                     Após criar, use <strong>Editar</strong> para cadastrar os <strong>destaques do empreendimento</strong> (aba Informações) e os <strong>destaques da distribuição/plantas</strong> (aba Distribuição de Espaços) — cada um aparece em uma seção diferente no site.
                 </p>
 
                 <form id="createProjectForm">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
-                            <label for="newProjectId">ID da Obra <span class="required">*</span></label>
+                            <label for="newProjectId">ID do Empreendimento <span class="required">*</span></label>
                             <input type="text" id="newProjectId" name="id" placeholder="ex: meu-projeto" required pattern="^[a-z0-9-]+$" title="Apenas letras minúsculas, números e hífens">
                             <small style="color: #718096; font-size: 0.85rem; display: block; margin-top: 5px;">Será usado na URL: /obras/meu-projeto</small>
                         </div>
                         <div class="form-group">
                             <label for="newProjectTitle">Título <span class="required">*</span></label>
-                            <input type="text" id="newProjectTitle" name="title" placeholder="Nome da obra" required>
+                            <input type="text" id="newProjectTitle" name="title" placeholder="Nome do empreendimento" required>
                         </div>
                     </div>
 
@@ -640,12 +640,12 @@
 
                     <div class="form-group">
                         <label for="newProjectDescription">Descrição <span class="required">*</span></label>
-                        <textarea id="newProjectDescription" name="description" placeholder="Descreva brevemente a obra..." required></textarea>
+                        <textarea id="newProjectDescription" name="description" placeholder="Descreva brevemente o empreendimento..." required></textarea>
                     </div>
 
                     <div style="display: flex; gap: 12px;">
                         <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 1rem;">
-                            <i class="fas fa-plus"></i> Criar Obra
+                            <i class="fas fa-plus"></i> Criar Empreendimento
                         </button>
                         <button type="reset" class="btn btn-secondary" style="padding: 12px 24px; font-size: 1rem;">
                             <i class="fas fa-redo"></i> Limpar
@@ -656,13 +656,13 @@
 
             <!-- LISTAR PROJETOS -->
             <div class="card">
-                <h2><i class="fas fa-list"></i> Obras Cadastradas</h2>
+                <h2><i class="fas fa-list"></i> Empreendimentos Cadastrados</h2>
 
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Obra</th>
+                                <th>Empreendimento</th>
                                 <th>Categoria</th>
                                 <th>Status</th>
                                 <th>Ações</th>
@@ -708,7 +708,7 @@
                                     <td colspan="4">
                                         <div class="empty-state">
                                             <i class="fas fa-inbox"></i>
-                                            <p>Nenhuma obra cadastrada</p>
+                                            <p>Nenhum empreendimento cadastrado</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -762,14 +762,14 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    Swal.fire('Sucesso!', 'Obra criada com sucesso! Redirecionando...', 'success').then(() => {
+                    Swal.fire('Sucesso!', 'Empreendimento criado com sucesso! Redirecionando...', 'success').then(() => {
                         window.location.reload();
                     });
                 } else {
                     Swal.fire('Erro', data.message, 'error');
                 }
             } catch (error) {
-                Swal.fire('Erro', 'Erro ao criar obra: ' + error.message, 'error');
+                Swal.fire('Erro', 'Erro ao criar empreendimento: ' + error.message, 'error');
             }
         });
 
@@ -777,7 +777,7 @@
         async function deleteProject(projectId, projectTitle) {
             const result = await Swal.fire({
                 title: 'Confirmar Exclusão',
-                html: `Tem certeza que deseja deletar a obra <strong>"${projectTitle}"</strong>?<br><br><small style="color: #718096;">Esta ação é irreversível e removerá todas as imagens associadas.</small>`,
+                html: `Tem certeza que deseja deletar o empreendimento <strong>"${projectTitle}"</strong>?<br><br><small style="color: #718096;">Esta ação é irreversível e removerá todas as imagens associadas.</small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e53e3e',
@@ -795,14 +795,14 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        Swal.fire('Deletado!', 'Obra deletada com sucesso!', 'success').then(() => {
+                        Swal.fire('Deletado!', 'Empreendimento deletado com sucesso!', 'success').then(() => {
                             window.location.reload();
                         });
                     } else {
                         Swal.fire('Erro', data.message, 'error');
                     }
                 } catch (error) {
-                    Swal.fire('Erro', 'Erro ao deletar obra: ' + error.message, 'error');
+                    Swal.fire('Erro', 'Erro ao deletar empreendimento: ' + error.message, 'error');
                 }
             }
         }

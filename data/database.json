@@ -1,11 +1,7 @@
 {
-  "nav": [
+  "nav": [    
     {
-      "title": "Início",
-      "url": "/"
-    },
-    {
-      "title": "Sobre Nós",
+      "title": "SOBRE NÓS",
       "url": "/sobre"
     },
     {
@@ -13,7 +9,7 @@
       "url": "/#servicos"
     },
     {
-      "title": "Obras",
+      "title": "Empreendimentos",
       "url": "/obras"
     },
     {
@@ -26,10 +22,6 @@
     "description": "Referência em engenharia civil de alta performance e incorporações exclusivas. Desenvolvemos ecossistemas inteligentes alinhados com o futuro do morar e do investir.",
     "links": [
       {
-        "title": "Início",
-        "url": "/"
-      },
-      {
         "title": "Sobre Nós",
         "url": "/sobre"
       },
@@ -38,7 +30,7 @@
         "url": "/#servicos"
       },
       {
-        "title": "Obras",
+        "title": "Empreendimentos",
         "url": "/obras"
       },
       {
@@ -76,7 +68,7 @@
       "description": "AP Construções entrega projetos residenciais e corporativos de alto padrão em Brasília, com execução técnica, design sofisticado e atendimento personalizado.",
       "hero": {
         "title": "SOLIDEZ, INOVAÇÃO E EXCELÊNCIA EM CADA OBRA",
-        "subtitle": "Entregamos projetos com rigor técnico e compromisso com resultados duradouros."
+        "subtitle": "Empreendimentos com rigor técnico e compromisso com resultados duradouros."
       }
     },
     {
