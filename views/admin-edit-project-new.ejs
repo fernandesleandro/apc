@@ -452,6 +452,81 @@
             color: #a0aec0;
         }
 
+        .main-image-current {
+            margin-bottom: 20px;
+        }
+
+        .main-image-replace-trigger {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        .main-image-replace-trigger img {
+            display: block;
+            max-width: 400px;
+            max-height: 300px;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            transition: opacity 0.2s;
+        }
+
+        .main-image-replace-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.55);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border-radius: 8px;
+        }
+
+        .main-image-replace-trigger:hover img,
+        .main-image-replace-trigger:focus-within img {
+            opacity: 0.92;
+        }
+
+        .main-image-replace-trigger:hover .main-image-replace-overlay,
+        .main-image-replace-trigger:focus-within .main-image-replace-overlay,
+        .main-image-replace-trigger.is-uploading .main-image-replace-overlay {
+            opacity: 1;
+        }
+
+        .main-image-replace-trigger.is-uploading {
+            pointer-events: none;
+        }
+
+        .main-image-preview-simple {
+            margin-top: 16px;
+            max-width: 400px;
+        }
+
+        .main-image-preview-simple img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #0073ff;
+        }
+
+        .main-image-preview-simple p {
+            margin-top: 8px;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
         /* GALLERY */
         .gallery-container {
             display: grid;
@@ -865,13 +940,14 @@
                             </div>
                             <div class="form-group">
                                 <label for="category">Categoria <span class="required">*</span></label>
+                                <% const projectCategory = (project.category || '').toString().trim().toLowerCase(); %>
                                 <select id="category" name="category" required>
                                     <option value="">Selecionar categoria</option>
-                                    <option value="residencial" <% if (project.category === 'residencial') { %>selected<% } %>>Residencial</option>
-                                    <option value="comercial" <% if (project.category === 'comercial' || project.category === 'Comercial') { %>selected<% } %>>Comercial</option>
-                                    <option value="corporativo" <% if (project.category === 'corporativo' || project.category === 'Corporativo') { %>selected<% } %>>Corporativo</option>
-                                    <option value="misto" <% if (project.category === 'misto' || project.category === 'Misto') { %>selected<% } %>>Misto</option>
-                                    <option value="outro" <% if (project.category === 'outro') { %>selected<% } %>>Outro</option>
+                                    <option value="residencial" <% if (projectCategory === 'residencial') { %>selected<% } %>>Residencial</option>
+                                    <option value="comercial" <% if (projectCategory === 'comercial') { %>selected<% } %>>Comercial</option>
+                                    <option value="corporativo" <% if (projectCategory === 'corporativo') { %>selected<% } %>>Corporativo</option>
+                                    <option value="misto" <% if (projectCategory === 'misto') { %>selected<% } %>>Misto</option>
+                                    <option value="outro" <% if (projectCategory === 'outro') { %>selected<% } %>>Outro</option>
                                 </select>
                                 <div class="form-hint">Tipo de empreendimento</div>
                             </div>
@@ -946,21 +1022,31 @@
                     <!-- IMAGEM PRINCIPAL -->
                     <div class="section upload-section">
                         <h3><i class="fas fa-image"></i> Imagem Principal do Projeto</h3>
-                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">Esta imagem aparecerá na listagem de empreendimentos e na página do projeto</p>
+                        <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                            Esta imagem aparece na listagem e no banner do empreendimento.
+                            <% if (project.image) { %>Clique na imagem abaixo para substituir.<% } else { %>Envie uma imagem abaixo.<% } %>
+                        </p>
+
+                        <input type="file" id="mainImageInput" style="display: none;" accept="image/jpeg,image/png,image/webp,image/gif">
 
                         <% if (project.image) { %>
-                            <div style="margin-bottom: 20px;">
+                            <div class="main-image-current" id="mainImageCurrentWrap">
                                 <p style="margin-bottom: 10px; font-weight: 600; color: #2d3748;">Imagem Atual</p>
-                                <img src="<%= project.image %>" alt="<%= project.title %>" style="max-width: 400px; max-height: 300px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                                <label for="mainImageInput" class="main-image-replace-trigger" id="mainImageReplaceTrigger" title="Clique para substituir a imagem">
+                                    <img id="mainImageCurrent" src="<%= project.image %>" alt="<%= project.title %>">
+                                    <span class="main-image-replace-overlay">
+                                        <i class="fas fa-camera" aria-hidden="true"></i>
+                                        Substituir imagem
+                                    </span>
+                                </label>
                             </div>
                         <% } %>
 
                         <div class="drop-area" id="mainImageDropArea">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <p><strong>Arraste uma imagem aqui</strong></p>
-                            <p class="small">ou clique para selecionar (máximo 50MB)</p>
+                            <p><strong><%= project.image ? 'Ou arraste a nova imagem aqui' : 'Arraste uma imagem aqui' %></strong></p>
+                            <p class="small">JPG, PNG ou WebP · máx. <%= project.image ? '50MB (local) / 4MB (Vercel)' : '50MB' %></p>
                         </div>
-                        <input type="file" id="mainImageInput" style="display: none;" accept="image/*">
 
                         <div id="mainImagePreviewContainer" class="upload-preview-container"></div>
                     </div>
@@ -1745,13 +1831,109 @@
             container.appendChild(createTechnicalItemRow());
         });
 
+        function handleMainImageFile(file) {
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                showMessage('Selecione um arquivo de imagem (JPG, PNG ou WebP).', 'error');
+                return;
+            }
+            selectedFilesMain.length = 0;
+            selectedFilesMain.push(file);
+            displayMainImagePreview(file);
+            uploadMainImage(file);
+        }
+
+        function displayMainImagePreview(file) {
+            const previewContainer = document.getElementById('mainImagePreviewContainer');
+            previewContainer.innerHTML = '';
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                previewContainer.innerHTML = `
+                    <div class="main-image-preview-simple">
+                        <img src="${reader.result}" alt="Prévia da nova imagem">
+                        <p><strong>${file.name}</strong> · ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadMainImage(file) {
+            const trigger = document.getElementById('mainImageReplaceTrigger');
+            const formData = new FormData();
+            formData.append('imageFile', file);
+
+            if (trigger) {
+                trigger.classList.add('is-uploading');
+                trigger.querySelector('.main-image-replace-overlay').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            }
+
+            try {
+                const response = await fetch(`/admin/upload-main-image/${projectId}`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                const data = await parseApiJson(response);
+
+                if (data.success) {
+                    showMessage(data.message || 'Imagem principal atualizada!', 'success');
+                    const currentImg = document.getElementById('mainImageCurrent');
+                    if (currentImg && data.image) {
+                        currentImg.src = data.image;
+                    } else if (data.image) {
+                        window.location.reload();
+                        return;
+                    }
+                    selectedFilesMain.length = 0;
+                    document.getElementById('mainImagePreviewContainer').innerHTML = '';
+                    document.getElementById('mainImageInput').value = '';
+                } else {
+                    showMessage(data.message || 'Erro ao enviar imagem.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao enviar imagem: ' + error.message, 'error');
+            } finally {
+                if (trigger) {
+                    trigger.classList.remove('is-uploading');
+                    trigger.querySelector('.main-image-replace-overlay').innerHTML = '<i class="fas fa-camera" aria-hidden="true"></i> Substituir imagem';
+                }
+            }
+        }
+
         // ===== SETUP DRAG & DROP PARA CADA SEÇÃO =====
-        setupDragAndDrop(
-            document.getElementById('mainImageDropArea'),
-            document.getElementById('mainImageInput'),
-            selectedFilesMain,
-            document.getElementById('mainImagePreviewContainer')
-        );
+        (function setupMainImageUpload() {
+            const dropArea = document.getElementById('mainImageDropArea');
+            const fileInput = document.getElementById('mainImageInput');
+            if (!dropArea || !fileInput) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'));
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'));
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                handleMainImageFile(file);
+            });
+
+            dropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                handleMainImageFile(e.target.files && e.target.files[0]);
+            });
+        })();
 
         setupDragAndDrop(
             document.getElementById('plantaDropArea'),
@@ -1784,6 +1966,13 @@
 
             if (selectedFilesMain.length > 0) {
                 formData.append('imageFile', selectedFilesMain[0]);
+            }
+
+            if (!document.getElementById('category').value.trim()) {
+                showMessage('Selecione uma categoria antes de salvar.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Informações';
+                return;
             }
 
             try {

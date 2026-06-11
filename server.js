@@ -10,6 +10,7 @@ const { MongoStore } = require('connect-mongo');
 
 const app = express();
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ap_construcoes';
+const isVercel = Boolean(process.env.VERCEL);
 
 // ===== CONFIGURAÇÃO MULTER E PATHS DE IMAGENS =====
 const UPLOAD_DIR_FALLBACK = path.join(__dirname, 'public', 'uploads'); // Fallback para uploads genéricos
@@ -44,6 +45,35 @@ function toWebPath(filePath) {
   return '/' + rel.replace(/\\/g, '/');
 }
 
+const VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+
+function fileToStoredImagePath(file) {
+  if (!file) return null;
+  if (isVercel && file.buffer) {
+    if (file.size > VERCEL_MAX_IMAGE_BYTES) {
+      throw new Error('Imagem muito grande para o servidor online. Use até 4 MB (JPG, PNG ou WebP).');
+    }
+    return `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+  }
+  if (file.path) {
+    return toWebPath(file.path);
+  }
+  return null;
+}
+
+function normalizeCategoryValue(category) {
+  if (!category) return '';
+  const key = String(category).trim().toLowerCase();
+  const map = {
+    residencial: 'residencial',
+    comercial: 'comercial',
+    corporativo: 'corporativo',
+    misto: 'misto',
+    outro: 'outro'
+  };
+  return map[key] || key;
+}
+
 /**
  * Middleware factory para upload de imagens para pastas específicas de projeto.
  * @param {string} fieldName O nome do campo no formulário que contém o arquivo.
@@ -61,35 +91,37 @@ function uploadForProject(fieldName, type = 'gallery') {
     } else if (type === 'project_main') {
       dest = path.join(projectGalleryBase, folder);
     } else {
-      dest = UPLOAD_DIR_FALLBACK; // Fallback
+      dest = UPLOAD_DIR_FALLBACK;
     }
 
-    try {
-      fs.mkdirSync(dest, { recursive: true }); // Garante que a pasta exista
-    } catch (e) {
-      console.error('[ERROR] Falha ao criar pasta do projeto:', dest, e);
-    }
-
-    // Define o storage dinâmico para esta requisição
-    const dynamicStorage = multer.diskStorage({
-      destination: (r, f, cb) => {
-        console.log(`[MULTER] Uploading to: ${dest}`);
-        cb(null, dest);
-      },
-      filename: (r, f, cb) => {
-        const sanitizedName = f.originalname
-          .toLowerCase()
-          .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-          .replace(/[^a-z0-9.-]/g, '-')
-          .replace(/-+/g, '-');
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(sanitizedName);
-        const baseName = path.basename(sanitizedName, ext);
-        cb(null, `${baseName}-${uniqueSuffix}${ext}`);
+    if (!isVercel) {
+      try {
+        fs.mkdirSync(dest, { recursive: true });
+      } catch (e) {
+        console.error('[ERROR] Falha ao criar pasta do projeto:', dest, e);
       }
-    });
+    }
 
-    // Define o filtro de arquivo
+    const dynamicStorage = isVercel
+      ? multer.memoryStorage()
+      : multer.diskStorage({
+        destination: (r, f, cb) => {
+          console.log(`[MULTER] Uploading to: ${dest}`);
+          cb(null, dest);
+        },
+        filename: (r, f, cb) => {
+          const sanitizedName = f.originalname
+            .toLowerCase()
+            .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+            .replace(/[^a-z0-9.-]/g, '-')
+            .replace(/-+/g, '-');
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const ext = path.extname(sanitizedName);
+          const baseName = path.basename(sanitizedName, ext);
+          cb(null, `${baseName}-${uniqueSuffix}${ext}`);
+        }
+      });
+
     const fileFilter = (r, f, cb) => {
       if (!ALLOWED_MIMES.includes(f.mimetype)) {
         return cb(new Error(`Tipo de arquivo não permitido: ${f.mimetype}. Use JPG, PNG, WebP ou GIF.`), false);
@@ -97,17 +129,17 @@ function uploadForProject(fieldName, type = 'gallery') {
       cb(null, true);
     };
 
-    // Cria o uploader para esta requisição
-    const uploader = multer({ storage: dynamicStorage, fileFilter, limits: { fileSize: MAX_FILE_SIZE } }).single(fieldName);
-    
-    // Executa o upload
+    const maxSize = isVercel ? VERCEL_MAX_IMAGE_BYTES : MAX_FILE_SIZE;
+    const uploader = multer({ storage: dynamicStorage, fileFilter, limits: { fileSize: maxSize } }).single(fieldName);
+
     uploader(req, res, (err) => {
       if (err) {
         console.error(`[MULTER ERROR] ${err.message}`);
         return next(err);
       }
       if (req.file) {
-        console.log(`[DYNAMIC UPLOAD] field=${fieldName} saved to ${req.file.path}`);
+        const target = req.file.path || `memory:${req.file.originalname} (${req.file.size} bytes)`;
+        console.log(`[DYNAMIC UPLOAD] field=${fieldName} saved to ${target}`);
       } else {
         console.log(`[DYNAMIC UPLOAD] No file uploaded for field ${fieldName}`);
       }
@@ -177,7 +209,6 @@ const PORT = process.env.PORT || 3000;
 const SITE_URL = (process.env.SITE_URL || 'https://www.apconstrucoes.com.br').replace(/\/$/, '');
 const WHATSAPP_PHONE = (process.env.WHATSAPP_PHONE || '556121958300').replace(/\D/g, '');
 const contactRateLimit = new Map();
-const isVercel = Boolean(process.env.VERCEL);
 
 const DEFAULT_FOOTER_SOCIAL = [
   { platform: 'facebook', icon: 'fab fa-facebook-f', label: 'Facebook', url: '' },
@@ -754,7 +785,8 @@ const isNotAuthenticated = (req, res, next) => {
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'FILE_TOO_LARGE') {
-      return res.status(400).json({ success: false, message: 'Arquivo muito grande. Máximo: 50MB' });
+      const maxMb = isVercel ? 4 : 50;
+      return res.status(400).json({ success: false, message: `Arquivo muito grande. Máximo: ${maxMb}MB` });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({ success: false, message: 'Limite de arquivos excedido' });
@@ -1602,51 +1634,98 @@ app.get('/admin/edit-project-new/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile', 'project_main'), handleMulterError, async (req, res) => {
+app.post('/admin/upload-main-image/:id', isAuthenticated, uploadForProject('imageFile', 'project_main'), handleMulterError, async (req, res) => {
   try {
-    const projectData = { ...req.body };
-    
-    // Validação
-    if (!projectData.title || projectData.title.trim().length === 0) {
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ success: false, message: 'Título do projeto é obrigatório' });
-    }
-    if (!projectData.category || projectData.category.trim().length === 0) {
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ success: false, message: 'Categoria do projeto é obrigatória' });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Nenhuma imagem enviada.' });
     }
 
-    // Se um arquivo foi enviado, ele sobrescreve o campo de imagem
-    if (req.file) {
-      const webPath = toWebPath(req.file.path);
-      projectData.image = webPath;
-      console.log(`[UPLOAD] Imagem de projeto: ${req.file.originalname} → ${projectData.image}`);
-    } else if (projectData.image) {
-      projectData.image = normalizePublicPath(projectData.image);
+    let imagePath;
+    try {
+      imagePath = fileToStoredImagePath(req.file);
+    } catch (uploadError) {
+      return res.status(400).json({ success: false, message: uploadError.message });
     }
 
-    const updatedProject = await Project.findOneAndUpdate({ id: req.params.id }, projectData, { new: true });
-    
+    const updatedProject = await Project.findOneAndUpdate(
+      { id: req.params.id },
+      { image: imagePath },
+      { new: true }
+    );
+
     if (!updatedProject) {
-      if (req.file) fs.unlinkSync(req.file.path);
       return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
     }
 
-    // Sincronizar imagem com o Hero da página para garantir que a alteração apareça
-    const pageUpdate = {};
-    if (projectData.image) {
-      pageUpdate['hero.image'] = projectData.image;
+    await Page.findOneAndUpdate({ id: req.params.id }, { 'hero.image': imagePath });
+    console.log(`[UPLOAD] Imagem principal atualizada: ${req.params.id}`);
+
+    res.json({
+      success: true,
+      message: 'Imagem principal atualizada!',
+      image: imagePath
+    });
+  } catch (error) {
+    console.error('[ERROR] Erro ao enviar imagem principal:', error);
+    res.status(500).json({ success: false, message: 'Erro ao enviar imagem: ' + error.message });
+  }
+});
+
+app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile', 'project_main'), handleMulterError, async (req, res) => {
+  try {
+    const existing = await Project.findOne({ id: req.params.id });
+    if (!existing) {
+      if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
     }
 
-    // Sincronizar detailTag com badge (hero da página do projeto)
-    const detailTagValue = (req.body.detailTag !== undefined ? req.body.detailTag : projectData.badge) || '';
+    const body = req.body || {};
+    const title = String(body.title || existing.title || '').trim();
+    const category = normalizeCategoryValue(body.category || existing.category);
+
+    if (!title) {
+      if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ success: false, message: 'Título do projeto é obrigatório' });
+    }
+    if (!category) {
+      if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ success: false, message: 'Categoria do projeto é obrigatória' });
+    }
+
+    const update = {
+      title,
+      description: body.description !== undefined ? String(body.description) : existing.description,
+      category,
+      badge: body.badge !== undefined ? String(body.badge).trim() : existing.badge,
+      href: body.href !== undefined ? String(body.href).trim() : existing.href
+    };
+
+    if (req.file) {
+      try {
+        update.image = fileToStoredImagePath(req.file);
+        console.log(`[UPLOAD] Imagem de projeto: ${req.file.originalname}`);
+      } catch (uploadError) {
+        if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ success: false, message: uploadError.message });
+      }
+    } else if (existing.image) {
+      update.image = existing.image;
+    }
+
+    const updatedProject = await Project.findOneAndUpdate({ id: req.params.id }, update, { new: true });
+
+    const pageUpdate = {};
+    if (update.image) {
+      pageUpdate['hero.image'] = update.image;
+    }
+
+    const detailTagValue = (body.detailTag !== undefined ? body.detailTag : update.badge) || '';
     await updatePageDetails(req.params.id, (details) => {
       details.detailTag = detailTagValue.trim();
     });
 
-    // Se detailTag foi editado explicitamente, manter badge do projeto alinhado
-    if (req.body.detailTag !== undefined) {
-      await Project.findOneAndUpdate({ id: req.params.id }, { badge: req.body.detailTag.trim() });
+    if (body.detailTag !== undefined) {
+      await Project.findOneAndUpdate({ id: req.params.id }, { badge: body.detailTag.trim() });
     }
 
     if (Object.keys(pageUpdate).length > 0) {
@@ -1655,9 +1734,9 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
     }
 
     console.log(`[UPDATE] Projeto atualizado: ${req.params.id}`);
-    res.json({ success: true, message: 'Projeto atualizado com sucesso!' });
+    res.json({ success: true, message: 'Projeto atualizado com sucesso!', image: updatedProject.image });
   } catch (error) {
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+    if (req.file?.path && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
     console.error('[ERROR] Erro ao salvar projeto:', error);
@@ -1683,11 +1762,15 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
     console.log(`[UPLOAD-PLANTA] Caminho no disco: ${req.file.path}`);
     console.log(`[UPLOAD-PLANTA] Existe no disco: ${fs.existsSync(req.file.path)}`);
 
-    const finalFilePath = req.file.path;
     const { alt, title } = req.body;
-    const imagePath = toWebPath(finalFilePath);
+    let imagePath;
+    try {
+      imagePath = fileToStoredImagePath(req.file);
+    } catch (uploadError) {
+      return res.status(400).json({ success: false, message: uploadError.message });
+    }
 
-    console.log(`[UPLOAD-PLANTA] Path web: ${imagePath}`);
+    console.log(`[UPLOAD-PLANTA] Path web: ${imagePath.substring(0, 80)}...`);
 
     if (!alt || alt.trim().length === 0) {
       console.warn(`[UPLOAD-PLANTA] ✗ Alt text vazio para ${req.file.originalname}`);
@@ -2021,11 +2104,15 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
     console.log(`[UPLOAD-GALLERY] Caminho no disco: ${req.file.path}`);
     console.log(`[UPLOAD-GALLERY] Existe no disco: ${fs.existsSync(req.file.path)}`);
 
-    const finalFilePath = req.file.path;
     const { alt, title } = req.body;
-    const imagePath = toWebPath(finalFilePath);
+    let imagePath;
+    try {
+      imagePath = fileToStoredImagePath(req.file);
+    } catch (uploadError) {
+      return res.status(400).json({ success: false, message: uploadError.message });
+    }
 
-    console.log(`[UPLOAD-GALLERY] Path web: ${imagePath}`);
+    console.log(`[UPLOAD-GALLERY] Path web: ${imagePath.substring(0, 80)}...`);
 
     if (!alt || alt.trim().length === 0) {
       console.warn(`[UPLOAD-GALLERY] ✗ Alt text vazio para ${req.file.originalname}`);
