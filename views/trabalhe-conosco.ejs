@@ -54,7 +54,12 @@
         </div>
     </section>
 
-    <section class="container contact-layout careers-form-section">
+    <% const rh = (footer && footer.hr) ? footer.hr : {};
+        const rhEmail = String(rh.email || '').trim();
+        const rhPhone = String(rh.phone || '').trim();
+        const rhNote = String(rh.note || '').trim();
+        const showRhCard = rhEmail || rhPhone || rhNote; %>
+    <section class="container contact-layout careers-form-section<%= showRhCard ? '' : ' contact-layout--full' %>">
         <div class="form-wrapper">
             <h2>Envie seu currículo</h2>
             <p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.7;">Preencha o formulário abaixo. Nossa equipe de RH entrará em contato caso seu perfil se encaixe em uma oportunidade aberta.</p>
@@ -97,21 +102,28 @@
             </form>
         </div>
 
+        <% if (showRhCard) { %>
         <div class="info-sidebar">
             <div class="info-card">
                 <h3>Recursos Humanos</h3>
-                <% const rhEmail = (page.content && page.content.email) ? page.content.email : 'rh@apconstrucoes.com.br'; %>
+                <% if (rhEmail) { %>
                 <div class="footer-contact-item" style="margin-bottom: 16px;">
                     <i class="fas fa-envelope"></i>
                     <div><p><a href="mailto:<%= rhEmail %>"><%= rhEmail %></a></p></div>
                 </div>
-                <div class="footer-contact-item">
+                <% } %>
+                <% if (rhPhone) { %>
+                <div class="footer-contact-item"<%= rhEmail ? '' : ' style="margin-bottom: 16px;"' %>>
                     <i class="fas fa-phone-alt"></i>
-                    <div><p>(61) 2195-8300</p></div>
+                    <div><p><%= rhPhone %></p></div>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 20px; line-height: 1.6;">Preferencialmente utilize o formulário para registrar sua candidatura. Anexos de currículo podem ser enviados por e-mail após o primeiro contato.</p>
+                <% } %>
+                <% if (rhNote) { %>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 20px; line-height: 1.6;"><%= rhNote %></p>
+                <% } %>
             </div>
         </div>
+        <% } %>
     </section>
 
     <%- include('includes/footer', { footer }) %>

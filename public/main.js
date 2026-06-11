@@ -88,6 +88,7 @@
         name: form.nome.value.trim(),
         email: form.email.value.trim(),
         phone: form.telefone.value.trim(),
+        address: form.endereco ? form.endereco.value.trim() : '',
         message: form.mensagem.value.trim(),
         projectInterest: form.interesse ? form.interesse.value.trim() : '',
         website: form.website ? form.website.value : ''

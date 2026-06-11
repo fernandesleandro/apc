@@ -254,28 +254,32 @@
                 </div>
             </div>
 
-            <!-- HERO SECTION -->
+            <!-- Banner principal -->
             <% if (page.id !== 'servicos') { %>
             <div class="form-card">
                 <div class="section hero-section">
-                    <h2>Hero Section (Banner)</h2>
+                    <h2>Banner principal da página</h2>
+                    <p class="form-hint" style="margin-bottom: 16px;">Faixa grande no topo do site, com título, texto de apoio e imagem de fundo.</p>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="heroTitle">Título do Hero</label>
+                            <label for="heroTitle">Título principal</label>
                             <input type="text" id="heroTitle" name="hero[title]" 
-                                value="<%= page.hero && page.hero.title ? page.hero.title : '' %>">
+                                value="<%= page.hero && page.hero.title ? page.hero.title : '' %>"
+                                placeholder="Ex: Fale Conosco">
                         </div>
                         <div class="form-group">
-                            <label for="heroSubtitle">Subtítulo do Hero</label>
+                            <label for="heroSubtitle">Texto de apoio</label>
                             <input type="text" id="heroSubtitle" name="hero[subtitle]" 
-                                value="<%= page.hero && page.hero.subtitle ? page.hero.subtitle : '' %>">
+                                value="<%= page.hero && page.hero.subtitle ? page.hero.subtitle : '' %>"
+                                placeholder="Frase curta abaixo do título">
                         </div>
                     </div>
                     <div class="form-group form-row full">
-                        <label for="heroImage">URL da Imagem do Hero</label>
+                        <label for="heroImage">Imagem de fundo (URL)</label>
                         <input type="text" id="heroImage" name="hero[image]" 
                             value="<%= page.hero && page.hero.image ? page.hero.image : '' %>" 
                             placeholder="https://exemplo.com/imagem.jpg">
+                        <p class="form-hint">Opcional. Deixe em branco para usar o fundo padrão do site.</p>
                     </div>
                 </div>
             </div>

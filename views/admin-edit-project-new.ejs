@@ -884,8 +884,9 @@
                         </div>
 
                         <div class="form-group form-row full">
-                            <label for="heroSubtitle">Subtítulo do Hero</label>
-                            <input type="text" id="heroSubtitle" value="<%= page && page.hero && page.hero.subtitle ? page.hero.subtitle : '' %>" placeholder="Frase curta abaixo do título na página">
+                            <label for="heroSubtitle">Texto de apoio no topo da página</label>
+                            <input type="text" id="heroSubtitle" value="<%= page && page.hero && page.hero.subtitle ? page.hero.subtitle : '' %>" placeholder="Frase curta abaixo do título no banner principal">
+                            <div class="form-hint">Aparece no banner grande no início da página do empreendimento.</div>
                         </div>
                         <div class="form-group form-row full">
                             <label for="pageDescription">Descrição longa (Detalhes do Projeto)</label>
@@ -894,7 +895,7 @@
                         <div class="form-group form-row full">
                             <label for="detailHeadline">Título da seção Detalhes (H2)</label>
                             <input type="text" id="detailHeadline" value="<%= page && page.details && page.details.detailHeadline ? page.details.detailHeadline : '' %>" placeholder="Ex: Espaços comerciais no Lago Norte">
-                            <div class="form-hint">Título principal exibido na seção <strong>Detalhes do Projeto</strong> (diferente do subtítulo do hero).</div>
+                            <div class="form-hint">Título principal exibido na seção <strong>Detalhes do Projeto</strong> (diferente do texto de apoio do banner no topo).</div>
                         </div>
 
                         <div class="form-group form-row full highlights-editor">
@@ -929,7 +930,7 @@
                             <div class="form-group">
                                 <label for="detailTag">Tag do Projeto — página de detalhes</label>
                                 <input type="text" id="detailTag" name="detailTag" value="<%= page && page.details && page.details.detailTag ? page.details.detailTag : (project.badge || '') %>" placeholder="Ex: Lançamento Exclusivo">
-                                <div class="form-hint">Tag exibida no hero da página do projeto</div>
+                                <div class="form-hint">Selo exibido no banner principal da página do empreendimento</div>
                             </div>
                         </div>
 

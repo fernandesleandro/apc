@@ -16,9 +16,9 @@
       "title": "Atendimento",
       "url": "/contato",
       "children": [
-        { "title": "Acesso ao Cliente", "url": "/acesso-cliente" },
-        { "title": "Trabalhe Conosco", "url": "/trabalhe-conosco" },
-        { "title": "Contato", "url": "/contato" }
+        { "title": "Acesso ao Cliente", "url": "/acesso-cliente", "icon": "fa-user-shield" },
+        { "title": "Trabalhe Conosco", "url": "/trabalhe-conosco", "icon": "fa-briefcase" },
+        { "title": "Fale Conosco", "url": "/contato", "icon": "fa-headset" }
       ]
     }
   ],
@@ -72,7 +72,38 @@
         "label": "Endereço Corporativo",
         "value": "SCS Qd. 02 Bl. D Ed. Oscar Niemeyer, 13° andar, Sala 1301 - Brasília/DF"
       }
-    ]
+    ],
+    "social": [
+      {
+        "platform": "facebook",
+        "icon": "fab fa-facebook-f",
+        "label": "Facebook",
+        "url": ""
+      },
+      {
+        "platform": "instagram",
+        "icon": "fab fa-instagram",
+        "label": "Instagram",
+        "url": ""
+      },
+      {
+        "platform": "linkedin",
+        "icon": "fab fa-linkedin-in",
+        "label": "LinkedIn",
+        "url": ""
+      },
+      {
+        "platform": "whatsapp",
+        "icon": "fab fa-whatsapp",
+        "label": "WhatsApp",
+        "url": "https://api.whatsapp.com/send?phone=556121958300"
+      }
+    ],
+    "hr": {
+      "email": "",
+      "phone": "",
+      "note": ""
+    }
   },
   "pages": [
     {
@@ -122,8 +153,8 @@
       "title": "Contato | AP Construções",
       "description": "Fale com a AP Construções para projetos residenciais de alto padrão, reformas corporativas e consultoria de engenharia em Brasília.",
       "hero": {
-        "title": "Canais de Atendimento",
-        "subtitle": "Agende uma reunião em nossa sede corporativa ou solicite informações sobre nossos empreendimentos."
+        "title": "Fale Conosco",
+        "subtitle": "Envie sua mensagem ou fale com nossa equipe comercial e de atendimento."
       }
     },
     {

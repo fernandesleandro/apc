@@ -20,7 +20,11 @@
                         </button>
                         <div class="nav-dropdown-menu" role="menu">
                             <% item.children.forEach(function(child) { %>
-                                <a href="<%= child.url %>" class="nav-dropdown-item<%= active === child.url ? ' active' : '' %>" role="menuitem"><%= child.title %></a>
+                                <% const childIcon = (child.icon || '').replace(/^fas?\s+/, ''); %>
+                                <a href="<%= child.url %>" class="nav-dropdown-item<%= active === child.url ? ' active' : '' %><%= childIcon ? ' has-icon' : '' %>" role="menuitem">
+                                    <% if (childIcon) { %><i class="fas <%= childIcon %>" aria-hidden="true"></i><% } %>
+                                    <span><%= child.title %></span>
+                                </a>
                             <% }); %>
                         </div>
                     </div>
