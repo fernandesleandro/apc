@@ -151,48 +151,6 @@
             border-radius: 6px;
             border-left: 4px solid #667eea;
         }
-        .service-item-card {
-            background: #f7fafc;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 16px;
-        }
-        .service-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .service-item-header h3 {
-            font-size: 0.95rem;
-            color: #4a5568;
-        }
-        .btn-remove-item {
-            background: #fed7d7;
-            color: #742a2a;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-add-item {
-            background: #ebf8ff;
-            color: #2b6cb0;
-            border: 1px dashed #90cdf4;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-        }
-        .form-hint {
-            color: #718096;
-            font-size: 0.85rem;
-            margin-top: 6px;
-        }
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -255,7 +213,6 @@
             </div>
 
             <!-- HERO SECTION -->
-            <% if (page.id !== 'servicos') { %>
             <div class="form-card">
                 <div class="section hero-section">
                     <h2>Hero Section (Banner)</h2>
@@ -279,64 +236,9 @@
                     </div>
                 </div>
             </div>
-            <% } %>
-
-            <% if (page.id === 'servicos') { %>
-            <div class="form-card">
-                <div class="section">
-                    <h2>Seção Nossa Atuação (Home)</h2>
-                    <p class="form-hint" style="margin-bottom: 20px;">
-                        Este conteúdo aparece na home em <strong>/#servicos</strong>, acessível pelo menu Serviços.
-                    </p>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="servicesTag">Etiqueta da seção</label>
-                            <input type="text" id="servicesTag" name="content[tag]"
-                                value="<%= page.content && page.content.tag ? page.content.tag : 'Soluções Completas' %>">
-                        </div>
-                        <div class="form-group">
-                            <label for="servicesTitle">Título da seção</label>
-                            <input type="text" id="servicesTitle" name="content[title]"
-                                value="<%= page.content && page.content.title ? page.content.title : 'Nossa Atuação' %>">
-                        </div>
-                    </div>
-
-                    <h3 style="font-size: 1rem; margin: 20px 0 12px;">Cards de serviços</h3>
-                    <div id="servicesItems">
-                        <% const serviceItems = (page.content && page.content.items && page.content.items.length)
-                            ? page.content.items
-                            : [{ icon: 'fa-building', title: '', description: '' }]; %>
-                        <% serviceItems.forEach(function(item, index) { %>
-                            <div class="service-item-card" data-service-item>
-                                <div class="service-item-header">
-                                    <h3>Serviço <%= index + 1 %></h3>
-                                    <button type="button" class="btn-remove-item" data-remove-service>Remover</button>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Ícone (Font Awesome)</label>
-                                        <input type="text" name="content[items][<%= index %>][icon]" value="<%= item.icon || 'fa-building' %>" placeholder="fa-building">
-                                        <p class="form-hint">Ex.: fa-building, fa-tools, fa-pencil-ruler</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Título</label>
-                                        <input type="text" name="content[items][<%= index %>][title]" value="<%= item.title || '' %>" required>
-                                    </div>
-                                </div>
-                                <div class="form-group form-row full">
-                                    <label>Descrição</label>
-                                    <textarea name="content[items][<%= index %>][description]" required><%= item.description || '' %></textarea>
-                                </div>
-                            </div>
-                        <% }); %>
-                    </div>
-                    <button type="button" class="btn-add-item" id="addServiceItem">+ Adicionar serviço</button>
-                </div>
-            </div>
-            <% } %>
 
             <!-- CONTEÚDO -->
-            <% if (page.content && page.id !== 'servicos') { %>
+            <% if (page.content) { %>
             <div class="form-card">
                 <div class="section">
                     <h2>Conteúdo</h2>
@@ -439,61 +341,6 @@
     </div>
 
     <script>
-        <% if (page.id === 'servicos') { %>
-        const servicesItemsContainer = document.getElementById('servicesItems');
-
-        function reindexServiceItems() {
-            servicesItemsContainer.querySelectorAll('[data-service-item]').forEach(function (card, index) {
-                card.querySelector('h3').textContent = 'Serviço ' + (index + 1);
-                card.querySelectorAll('[name]').forEach(function (input) {
-                    input.name = input.name.replace(/content\[items\]\[\d+\]/, 'content[items][' + index + ']');
-                });
-                const removeBtn = card.querySelector('[data-remove-service]');
-                removeBtn.style.display = servicesItemsContainer.querySelectorAll('[data-service-item]').length > 1 ? 'inline-block' : 'none';
-            });
-        }
-
-        document.getElementById('addServiceItem').addEventListener('click', function () {
-            const index = servicesItemsContainer.querySelectorAll('[data-service-item]').length;
-            const card = document.createElement('div');
-            card.className = 'service-item-card';
-            card.setAttribute('data-service-item', '');
-            card.innerHTML = `
-                <div class="service-item-header">
-                    <h3>Serviço ${index + 1}</h3>
-                    <button type="button" class="btn-remove-item" data-remove-service>Remover</button>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Ícone (Font Awesome)</label>
-                        <input type="text" name="content[items][${index}][icon]" value="fa-building" placeholder="fa-building">
-                        <p class="form-hint">Ex.: fa-building, fa-tools, fa-pencil-ruler</p>
-                    </div>
-                    <div class="form-group">
-                        <label>Título</label>
-                        <input type="text" name="content[items][${index}][title]" value="" required>
-                    </div>
-                </div>
-                <div class="form-group form-row full">
-                    <label>Descrição</label>
-                    <textarea name="content[items][${index}][description]" required></textarea>
-                </div>
-            `;
-            servicesItemsContainer.appendChild(card);
-            reindexServiceItems();
-        });
-
-        servicesItemsContainer.addEventListener('click', function (event) {
-            if (!event.target.matches('[data-remove-service]')) return;
-            const cards = servicesItemsContainer.querySelectorAll('[data-service-item]');
-            if (cards.length <= 1) return;
-            event.target.closest('[data-service-item]').remove();
-            reindexServiceItems();
-        });
-
-        reindexServiceItems();
-        <% } %>
-
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 

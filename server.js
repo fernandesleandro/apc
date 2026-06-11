@@ -240,49 +240,6 @@ function buildProjectFilterOptions(rawProjects) {
   return { categoryOptions, statusOptions };
 }
 
-function getDefaultServicesSection() {
-  return {
-    tag: 'Soluções Completas',
-    title: 'Nossa Atuação',
-    items: [
-      {
-        icon: 'fa-building',
-        title: 'Construções de Alto Padrão',
-        description: 'Execução impecável com materiais de primeira linha e rigor técnico absoluto em todas as etapas.'
-      },
-      {
-        icon: 'fa-tools',
-        title: 'Reformas Corporativas',
-        description: 'Modernização de escritórios e layouts comerciais com foco em funcionalidade e sofisticação.'
-      },
-      {
-        icon: 'fa-pencil-ruler',
-        title: 'Projetos de Engenharia',
-        description: 'Desenho arquitetônico e estrutural integrado para otimizar espaço, custos e prazos.'
-      }
-    ]
-  };
-}
-
-function normalizeServicesSection(content) {
-  const defaults = getDefaultServicesSection();
-  if (!content || typeof content !== 'object') return defaults;
-  const items = Array.isArray(content.items)
-    ? content.items
-      .filter((item) => item && (item.title || item.description))
-      .map((item) => ({
-        icon: String(item.icon || 'fa-building').trim(),
-        title: String(item.title || '').trim(),
-        description: String(item.description || '').trim()
-      }))
-    : defaults.items;
-  return {
-    tag: String(content.tag || defaults.tag).trim(),
-    title: String(content.title || defaults.title).trim(),
-    items: items.length ? items : defaults.items
-  };
-}
-
 function absoluteAssetUrl(req, assetPath) {
   if (!assetPath) return null;
   if (/^https?:\/\//i.test(assetPath)) return assetPath;
@@ -708,34 +665,6 @@ async function ensureDatabase() {
     });
     console.log('Admin padrão criado: username=admin, password=admin123');
   }
-
-  await ensureServicosPage();
-}
-
-async function ensureServicosPage() {
-  const existing = await Page.findOne({ id: 'servicos' });
-  if (existing) return;
-
-  const dbFile = path.join(__dirname, 'data', 'database.json');
-  let servicosPage = null;
-  if (fs.existsSync(dbFile)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
-      servicosPage = (data.pages || []).find((p) => p.id === 'servicos');
-    } catch (error) {
-      console.error('[SEED] Erro ao ler serviços do database.json:', error);
-    }
-  }
-
-  const payload = servicosPage || {
-    id: 'servicos',
-    title: 'Serviços | AP Construções',
-    description: 'Conheça as soluções da AP Construções em Brasília.',
-    content: getDefaultServicesSection()
-  };
-
-  await Page.create(payload);
-  console.log('[SEED] Página de serviços criada para edição no admin.');
 }
 
 // --- AJUSTE CONEXÃO SERVERLESS (VERCEL) ---
@@ -801,8 +730,6 @@ app.get('/', async (req, res) => {
   try {
     const settings = await getSettings();
     const page = await Page.findOne({ id: 'home' }).lean();
-    const servicesPage = await Page.findOne({ id: 'servicos' }).lean();
-    const servicesSection = normalizeServicesSection(servicesPage?.content);
     const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
     const projects = await enrichProjectsForListing(rawProjects);
     const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
@@ -811,7 +738,6 @@ app.get('/', async (req, res) => {
       page: page || { title: 'AP Construções', hero: { title: 'AP Construções', subtitle: 'Construção civil com qualidade, confiança e excelência.' } },
       nav: settings.nav,
       footer: settings.footer,
-      servicesSection,
       projects,
       categoryOptions,
       statusOptions,
@@ -1106,10 +1032,6 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
 
     if (pageData.details && typeof pageData.details === 'object') {
       pageData.details = mergeDetails(existingPage.details || {}, pageData.details);
-    }
-
-    if (req.params.id === 'servicos' && pageData.content && typeof pageData.content === 'object') {
-      pageData.content = normalizeServicesSection(pageData.content);
     }
 
     const updatePayload = {
