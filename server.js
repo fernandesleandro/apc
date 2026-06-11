@@ -831,8 +831,10 @@ async function ensureDatabase() {
   }
 
   await ensureServicosPage();
-  await ensureInstitutionalPages(['acesso-cliente', 'trabalhe-conosco', 'manual-proprietario', 'convencao-condominio', 'pericia-olympique']);
+  await ensureInstitutionalPages(['acesso-cliente', 'trabalhe-conosco', 'manual-proprietario', 'convencao-condominio']);
   await ensureClientAccessPageContent();
+  await ensureRemovePericiaOlympiquePage();
+  await ensureManualProprietarioPageContent();
   await ensureSettingsNavFromDatabase();
   await ensureFooterSettings();
 }
@@ -933,16 +935,16 @@ async function ensureClientAccessPageContent() {
     if (href.startsWith('/contato?')) return true;
     if (service.id === 'manual' && !href.includes('/acesso-cliente/manual-proprietario')) return true;
     if (service.id === 'convencao' && !href.includes('/acesso-cliente/convencao-condominio')) return true;
-    if (service.id === 'pericia-olympique' && !href.includes('/acesso-cliente/pericia-olympique')) return true;
     if (['boletos', 'acompanhe-obra', 'manutencao'].includes(service.id) && !service.disabled) return true;
     const expected = defaultsById[service.id];
     return expected && expected.disabled && !service.disabled;
   });
+  const hasRemovedPericia = currentServices.some((service) => service.id === 'pericia-olympique');
   const missingIds = defaults.content.services.some(
     (service) => !currentServices.some((item) => item.id === service.id)
   );
 
-  if (!hasLegacyLinks && !missingIds && currentServices.some((service) => service.id)) return;
+  if (!hasLegacyLinks && !missingIds && !hasRemovedPericia && currentServices.some((service) => service.id)) return;
 
   existing.content = {
     ...(existing.content || {}),
@@ -953,6 +955,32 @@ async function ensureClientAccessPageContent() {
   existing.markModified('content');
   await existing.save();
   console.log('[SEED] Conteúdo do Acesso ao Cliente atualizado com links do portal.');
+}
+
+async function ensureRemovePericiaOlympiquePage() {
+  const removed = await Page.deleteOne({ id: 'pericia-olympique' });
+  if (removed.deletedCount) {
+    console.log('[SEED] Página Perícia Olympique removida.');
+  }
+}
+
+async function ensureManualProprietarioPageContent() {
+  const defaults = readPageFromDatabaseJson('manual-proprietario');
+  if (!defaults?.content?.sections?.length) return;
+  const existing = await Page.findOne({ id: 'manual-proprietario' });
+  if (!existing) return;
+
+  const currentFirst = existing.content?.sections?.[0]?.title;
+  const expectedFirst = defaults.content.sections[0]?.title;
+  if (currentFirst === expectedFirst) return;
+
+  existing.content = {
+    ...(existing.content || {}),
+    sections: defaults.content.sections
+  };
+  existing.markModified('content');
+  await existing.save();
+  console.log('[SEED] Ordem do Manual do Proprietário atualizada.');
 }
 
 async function ensureServicosPage() {
@@ -1081,7 +1109,6 @@ app.get('/contato', async (req, res) => {
       'manual-proprietario': 'Manual do proprietário',
       'manutencao': 'Manutenção — unidade entregue',
       'convencao-condominio': 'Convenção de condomínio',
-      'pericia-olympique': 'Laudos — Olympique',
       'acompanhamento-obra': 'Acompanhamento de obra'
     };
     const assuntoKey = typeof req.query.assunto === 'string' ? req.query.assunto : '';
@@ -1147,15 +1174,6 @@ app.get('/acesso-cliente/convencao-condominio', async (req, res) => {
   }
 });
 
-app.get('/acesso-cliente/pericia-olympique', async (req, res) => {
-  try {
-    await renderClientDocumentsPage(req, res, 'pericia-olympique');
-  } catch (error) {
-    console.error('[ERROR] Erro ao carregar perícia Olympique:', error);
-    res.status(500).send('Erro ao carregar página');
-  }
-});
-
 app.get('/trabalhe-conosco', async (req, res) => {
   try {
     const settings = await getSettings();
@@ -1197,11 +1215,6 @@ function resolveClientAccessPage(page) {
       href: '/acesso-cliente/convencao-condominio',
       external: false,
       cta: 'Ver documentos'
-    },
-    'pericia-olympique': {
-      href: '/acesso-cliente/pericia-olympique',
-      external: false,
-      cta: 'Ver laudos'
     }
   };
 
@@ -1419,7 +1432,7 @@ app.post('/api/contato', async (req, res) => {
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const projects = await Project.find().lean();
-    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/acesso-cliente', '/acesso-cliente/manual-proprietario', '/acesso-cliente/convencao-condominio', '/acesso-cliente/pericia-olympique', '/trabalhe-conosco', '/contato'];
+    const staticPaths = ['/', '/sobre', '/lancamentos', '/obras', '/acesso-cliente', '/acesso-cliente/manual-proprietario', '/acesso-cliente/convencao-condominio', '/trabalhe-conosco', '/contato'];
     const urls = staticPaths.map(p => ({
       loc: `${SITE_URL}${p}`,
       changefreq: p === '/' ? 'weekly' : 'monthly',

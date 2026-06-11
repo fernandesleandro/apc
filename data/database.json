@@ -16,9 +16,21 @@
       "title": "Atendimento",
       "url": "/contato",
       "children": [
-        { "title": "Acesso ao Cliente", "url": "/acesso-cliente", "icon": "fa-user-shield" },
-        { "title": "Trabalhe Conosco", "url": "/trabalhe-conosco", "icon": "fa-briefcase" },
-        { "title": "Fale Conosco", "url": "/contato", "icon": "fa-headset" }
+        {
+          "title": "Acesso ao Cliente",
+          "url": "/acesso-cliente",
+          "icon": "fa-user-shield"
+        },
+        {
+          "title": "Trabalhe Conosco",
+          "url": "/trabalhe-conosco",
+          "icon": "fa-briefcase"
+        },
+        {
+          "title": "Fale Conosco",
+          "url": "/contato",
+          "icon": "fa-headset"
+        }
       ]
     }
   ],
@@ -205,14 +217,6 @@
             "description": "Convenção de Condomínio.",
             "href": "/acesso-cliente/convencao-condominio",
             "cta": "Ver documentos"
-          },
-          {
-            "id": "pericia-olympique",
-            "icon": "fa-clipboard-check",
-            "title": "Perícia Olympique",
-            "description": "Laudos e relatórios.",
-            "href": "/acesso-cliente/pericia-olympique",
-            "cta": "Ver laudos"
           }
         ]
       }
@@ -231,88 +235,178 @@
         "backLabel": "Voltar ao Acesso ao Cliente",
         "sections": [
           {
-            "title": "Barão de Mauá",
+            "title": "Solar do Cerrado",
             "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/maua/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/maua/manual_areascomuns.htm" }
-            ]
-          },
-          {
-            "title": "Monumental",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/monumental/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/monumental/manual_areascomuns.htm" }
-            ]
-          },
-          {
-            "title": "Barão do Rio Branco",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/riobranco/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/riobranco/manual_areascomuns.htm" }
-            ]
-          },
-          {
-            "title": "Saphira",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/saphira/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/saphira/manual_areascomuns.htm" }
-            ]
-          },
-          {
-            "title": "Cervantes",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/cervantes/manual_proprietario.html" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/cervantes/manual_areascomuns.html" }
-            ]
-          },
-          {
-            "title": "Costa Verde",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/costaverde/manual_proprietario/proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/costaverde/areas_comuns/comuns.htm" }
-            ]
-          },
-          {
-            "title": "Château Valois",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/chateu/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/chateu/manual_areascomuns.htm" },
-              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/chateu/habitise.pdf" }
-            ]
-          },
-          {
-            "title": "Metropolitan",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/metro/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/metro/manual_areascomuns.htm" },
-              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/metro/habitise.pdf" }
-            ]
-          },
-          {
-            "title": "Olympique",
-            "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/olymp/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/olymp/manual_areascomuns.htm" },
-              { "title": "Desenhos Orientativos", "href": "http://www.portobsb.com.br/manual/olymp/proprietario/desenhos.htm" },
-              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/olymp/habitise.pdf" }
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/solar/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/solar/manual_areas_comuns.htm"
+              },
+              {
+                "title": "Desenhos Orientativos",
+                "href": "http://www.portobsb.com.br/manual/solar/desenhos_orientativos.htm"
+              },
+              {
+                "title": "Habite-se",
+                "href": "http://www.portobsb.com.br/manual/solar/habite-se.pdf"
+              }
             ]
           },
           {
             "title": "Cosmopolitan",
             "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/cosmo/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/cosmo/manual_areascomuns.htm" },
-              { "title": "Desenhos Orientativos", "href": "http://www.portobsb.com.br/manual/cosmo/proprietario/desenhos.htm" },
-              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/cosmo/habitise.pdf" }
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/cosmo/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/cosmo/manual_areascomuns.htm"
+              },
+              {
+                "title": "Desenhos Orientativos",
+                "href": "http://www.portobsb.com.br/manual/cosmo/proprietario/desenhos.htm"
+              },
+              {
+                "title": "Habite-se",
+                "href": "http://www.portobsb.com.br/manual/cosmo/habitise.pdf"
+              }
             ]
           },
           {
-            "title": "Solar do Cerrado",
+            "title": "Olympique",
             "documents": [
-              { "title": "Manual do Proprietário", "href": "http://www.portobsb.com.br/manual/solar/manual_proprietario.htm" },
-              { "title": "Manual de Áreas Comuns", "href": "http://www.portobsb.com.br/manual/solar/manual_areas_comuns.htm" },
-              { "title": "Desenhos Orientativos", "href": "http://www.portobsb.com.br/manual/solar/desenhos_orientativos.htm" },
-              { "title": "Habite-se", "href": "http://www.portobsb.com.br/manual/solar/habite-se.pdf" }
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/olymp/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/olymp/manual_areascomuns.htm"
+              },
+              {
+                "title": "Desenhos Orientativos",
+                "href": "http://www.portobsb.com.br/manual/olymp/proprietario/desenhos.htm"
+              },
+              {
+                "title": "Habite-se",
+                "href": "http://www.portobsb.com.br/manual/olymp/habitise.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Metropolitan",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/metro/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/metro/manual_areascomuns.htm"
+              },
+              {
+                "title": "Habite-se",
+                "href": "http://www.portobsb.com.br/manual/metro/habitise.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Château Valois",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/chateu/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/chateu/manual_areascomuns.htm"
+              },
+              {
+                "title": "Habite-se",
+                "href": "http://www.portobsb.com.br/manual/chateu/habitise.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Costa Verde",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/costaverde/manual_proprietario/proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/costaverde/areas_comuns/comuns.htm"
+              }
+            ]
+          },
+          {
+            "title": "Cervantes",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/cervantes/manual_proprietario.html"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/cervantes/manual_areascomuns.html"
+              }
+            ]
+          },
+          {
+            "title": "Saphira",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/saphira/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/saphira/manual_areascomuns.htm"
+              }
+            ]
+          },
+          {
+            "title": "Barão do Rio Branco",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/riobranco/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/riobranco/manual_areascomuns.htm"
+              }
+            ]
+          },
+          {
+            "title": "Monumental",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/monumental/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/monumental/manual_areascomuns.htm"
+              }
+            ]
+          },
+          {
+            "title": "Barão de Mauá",
+            "documents": [
+              {
+                "title": "Manual do Proprietário",
+                "href": "http://www.portobsb.com.br/manual/maua/manual_proprietario.htm"
+              },
+              {
+                "title": "Manual de Áreas Comuns",
+                "href": "http://www.portobsb.com.br/manual/maua/manual_areascomuns.htm"
+              }
             ]
           }
         ]
@@ -370,52 +464,6 @@
       }
     },
     {
-      "id": "pericia-olympique",
-      "title": "Perícia Residencial Olympique | AP Construções",
-      "description": "Laudos técnicos e relatórios de inspeção do Residencial Olympique.",
-      "hero": {
-        "title": "Perícia Residencial Olympique",
-        "subtitle": "Laudos e relatórios técnicos em PDF."
-      },
-      "content": {
-        "intro": "Documentos de laudo e relatórios de inspeção do empreendimento Olympique.",
-        "backHref": "/acesso-cliente",
-        "backLabel": "Voltar ao Acesso ao Cliente",
-        "sections": [
-          {
-            "title": "Laudo Olympique",
-            "documents": [
-              {
-                "title": "Laudo Técnico de Inspeção Predial",
-                "href": "http://www.portobsb.com.br/institucional/p_laudo/Laudo_de_Inspecao.pdf"
-              }
-            ]
-          },
-          {
-            "title": "Relatórios Olympique",
-            "documents": [
-              {
-                "title": "1 — Relatório Inspeção Sistemas Construtivos",
-                "href": "http://www.portobsb.com.br/institucional/p_relat/1_Relatorio_Inspecao_Sistemas_Construtivos.pdf"
-              },
-              {
-                "title": "2 — Relatório Inspeção Sistemas Instalação",
-                "href": "http://www.portobsb.com.br/institucional/p_relat/2_Relatorio_Inspecao_Sistemas_Instalacao.pdf"
-              },
-              {
-                "title": "3 — Relatório Inspeção Sistemas Segurança",
-                "href": "http://www.portobsb.com.br/institucional/p_relat/3_Relatorio_Inspecao_Sistemas_Seguranca.pdf"
-              },
-              {
-                "title": "Laudo de Inspeção Predial",
-                "href": "http://www.portobsb.com.br/institucional/p_relat/Laudo_de_Inspecao_Predial.pdf"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
       "id": "trabalhe-conosco",
       "title": "Trabalhe Conosco | AP Construções",
       "description": "Faça parte da equipe AP Construções. Vagas e oportunidades em engenharia, obras, administrativo e comercial em Brasília.",
@@ -426,9 +474,21 @@
       "content": {
         "intro": "Na AP Construções, valorizamos profissionais comprometidos com excelência técnica, segurança e entrega de resultados. Se você busca um ambiente sólido para crescer, envie seu currículo.",
         "benefits": [
-          { "icon": "fa-users", "title": "Equipe qualificada", "text": "Trabalho colaborativo com profissionais experientes no mercado de Brasília." },
-          { "icon": "fa-shield-alt", "title": "Segurança e conformidade", "text": "Compromisso com NR, qualidade e processos transparentes em todas as etapas." },
-          { "icon": "fa-chart-line", "title": "Crescimento", "text": "Oportunidades de desenvolvimento em obras de alto padrão e empreendimentos de destaque." }
+          {
+            "icon": "fa-users",
+            "title": "Equipe qualificada",
+            "text": "Trabalho colaborativo com profissionais experientes no mercado de Brasília."
+          },
+          {
+            "icon": "fa-shield-alt",
+            "title": "Segurança e conformidade",
+            "text": "Compromisso com NR, qualidade e processos transparentes em todas as etapas."
+          },
+          {
+            "icon": "fa-chart-line",
+            "title": "Crescimento",
+            "text": "Oportunidades de desenvolvimento em obras de alto padrão e empreendimentos de destaque."
+          }
         ],
         "areas": [
           "Engenharia e obras",
