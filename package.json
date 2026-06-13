@@ -9,7 +9,9 @@
     "dev": "nodemon server.js",
     "sync-pages": "node scripts/sync-project-pages.js",
     "migrate-porto-images": "node scripts/migrate-porto-images.js",
-    "migrate-porto-images:apply": "node scripts/migrate-porto-images.js --apply --sync"
+    "migrate-porto-images:apply": "node scripts/migrate-porto-images.js --apply --sync",
+    "crawl-manuals": "node scripts/crawl-manual-links.js",
+    "mirror-manuals": "node scripts/mirror-manual-content.js"
   },
   "repository": {
     "type": "git",
