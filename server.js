@@ -205,6 +205,45 @@ const ContactMessage = mongoose.model('ContactMessage', new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
+const ManualChapter = mongoose.model('ManualChapter', new mongoose.Schema({
+  sectionSlug: { type: String, required: true },
+  sectionTitle: { type: String, required: true },
+  docType: { type: String, required: true },
+  docTitle: { type: String, required: true },
+  slug: { type: String, required: true },
+  title: { type: String, required: true },
+  html: { type: String, default: '' },
+  plainText: { type: String, default: '' },
+  sourceHref: { type: String, required: true, unique: true },
+  syncedAt: { type: Date, default: Date.now }
+}));
+
+ManualChapter.schema.index({ sectionSlug: 1, docType: 1, slug: 1 }, { unique: true });
+
+const ManualDocument = mongoose.model('ManualDocument', new mongoose.Schema({
+  sectionSlug: { type: String, required: true },
+  docType: { type: String, required: true },
+  sectionTitle: { type: String, required: true },
+  docTitle: { type: String, required: true },
+  html: { type: String, default: '' },
+  chapters: [{ slug: String, title: String, html: String }],
+  toc: [{ slug: String, title: String }],
+  chapterCount: { type: Number, default: 0 },
+  layout: { type: String, default: 'tree' },
+  syncedAt: { type: Date, default: Date.now }
+}));
+
+ManualDocument.schema.index({ sectionSlug: 1, docType: 1 }, { unique: true });
+
+const {
+  chapterSlugFromHref,
+  fetchChapterContent,
+  buildManualPath,
+  buildChapterPath,
+  buildCombinedManualHtml,
+  formatManualHtml
+} = require('./lib/manual-content');
+
 const PORT = process.env.PORT || 3000;
 const SITE_URL = (process.env.SITE_URL || 'https://www.apconstrucoes.com.br').replace(/\/$/, '');
 const WHATSAPP_PHONE = (process.env.WHATSAPP_PHONE || '556121958300').replace(/\D/g, '');
@@ -1002,17 +1041,23 @@ async function ensureManualProprietarioPageContent() {
   const existing = await Page.findOne({ id: 'manual-proprietario' });
   if (!existing) return;
 
+  const enrichedDefaults = enrichManualProprietarioContent(defaults.content);
   const currentFirst = existing.content?.sections?.[0]?.title;
-  const expectedFirst = defaults.content.sections[0]?.title;
-  if (currentFirst === expectedFirst) return;
+  const expectedFirst = enrichedDefaults.sections[0]?.title;
+  const introOutdated = existing.content?.intro !== enrichedDefaults.intro;
+  const childrenOutdated = getManualChildrenCount(existing.content?.sections)
+    < getManualChildrenCount(enrichedDefaults.sections);
+
+  if (currentFirst === expectedFirst && !introOutdated && !childrenOutdated) return;
 
   existing.content = {
     ...(existing.content || {}),
-    sections: defaults.content.sections
+    intro: enrichedDefaults.intro,
+    sections: enrichedDefaults.sections
   };
   existing.markModified('content');
   await existing.save();
-  console.log('[SEED] Ordem do Manual do Proprietário atualizada.');
+  console.log('[SEED] Manual do Proprietário atualizado (ordem, capítulos e intro).');
 }
 
 async function ensureServicosPage() {
@@ -1197,6 +1242,19 @@ app.get('/acesso-cliente/manual-proprietario', async (req, res) => {
   }
 });
 
+app.get('/acesso-cliente/manual-proprietario/:sectionSlug/:docType', async (req, res) => {
+  try {
+    await renderManualDocumentPage(req, res, req.params);
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar manual completo:', error);
+    res.status(500).send('Erro ao carregar manual');
+  }
+});
+
+app.get('/acesso-cliente/manual-proprietario/:sectionSlug/:docType/:chapterSlug', (req, res) => {
+  res.redirect(301, `/acesso-cliente/manual-proprietario/${req.params.sectionSlug}/${req.params.docType}#${req.params.chapterSlug}`);
+});
+
 app.get('/acesso-cliente/convencao-condominio', async (req, res) => {
   try {
     await renderClientDocumentsPage(req, res, 'convencao-condominio');
@@ -1268,6 +1326,358 @@ function resolveClientAccessPage(page) {
   return { ...page, content };
 }
 
+const MANUAL_DOC_TYPE_ORDER = { proprietario: 1, 'areas-comuns': 2, desenhos: 3, 'habite-se': 4, documento: 5 };
+
+function inferManualDocType(title, href) {
+  const text = String(title || '').toLowerCase();
+  if (/habite|habitise/.test(text) || /\.pdf($|\?)/i.test(href || '')) return 'habite-se';
+  if (/desenhos/.test(text)) return 'desenhos';
+  if (/propriet/.test(text)) return 'proprietario';
+  if (/áreas comuns|areas comuns/.test(text)) return 'areas-comuns';
+  return 'documento';
+}
+
+function slugifyManualSection(title) {
+  return String(title || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'empreendimento';
+}
+
+function decodeHtmlEntities(text) {
+  return String(text || '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&([a-z]+);/gi, (match, name) => {
+      const entities = {
+        aacute: 'á', agrave: 'à', acirc: 'â', atilde: 'ã', auml: 'ä',
+        eacute: 'é', ecirc: 'ê', iacute: 'í', oacute: 'ó', ocirc: 'ô',
+        otilde: 'õ', ouml: 'ö', uacute: 'ú', uuml: 'ü', ccedil: 'ç',
+        Aacute: 'Á', Eacute: 'É', Iacute: 'Í', Oacute: 'Ó', Uacute: 'Ú',
+        Ccedil: 'Ç', nbsp: ' '
+      };
+      return entities[name] || match;
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function decodeManualHtml(html) {
+  return String(html || '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&([a-z]+);/gi, (match, name) => {
+      const entities = {
+        aacute: 'á', agrave: 'à', acirc: 'â', atilde: 'ã', auml: 'ä',
+        eacute: 'é', ecirc: 'ê', iacute: 'í', oacute: 'ó', ocirc: 'ô',
+        otilde: 'õ', ouml: 'ö', uacute: 'ú', uuml: 'ü', ccedil: 'ç',
+        Aacute: 'Á', Eacute: 'É', Iacute: 'Í', Oacute: 'Ó', Uacute: 'Ú',
+        Ccedil: 'Ç', nbsp: ' ', ordm: 'º', ordf: 'ª',
+        ldquo: '"', rdquo: '"', lsquo: "'", rsquo: "'"
+      };
+      return entities[name] || match;
+    });
+}
+
+function normalizeManualChapter(chapter, sectionSlug, docType) {
+  const title = decodeHtmlEntities(chapter.title);
+  const slug = chapter.slug || chapterSlugFromHref(chapter.href, title);
+  return {
+    title,
+    href: chapter.href,
+    slug,
+    internalPath: buildChapterPath(sectionSlug, docType, slug)
+  };
+}
+
+function getManualChildrenCount(sections) {
+  return (sections || []).reduce(
+    (total, section) => total + (section.documents || []).reduce(
+      (count, doc) => count + (doc.children || []).length,
+      0
+    ),
+    0
+  );
+}
+
+function enrichManualProprietarioContent(content) {
+  if (!content?.sections?.length) return content;
+  const sections = content.sections.map((section) => {
+    const sectionSlug = section.slug || slugifyManualSection(section.title);
+    const documents = (section.documents || []).map((doc) => {
+      const docType = doc.type || inferManualDocType(doc.title, doc.href);
+      const children = (doc.children || []).map((child) => normalizeManualChapter(child, sectionSlug, docType));
+      return {
+        ...doc,
+        title: decodeHtmlEntities(doc.title),
+        type: docType,
+        internalPath: buildManualPath(sectionSlug, docType),
+        chapterCount: children.length,
+        children
+      };
+    });
+    documents.sort(
+      (a, b) => (MANUAL_DOC_TYPE_ORDER[a.type] || 9) - (MANUAL_DOC_TYPE_ORDER[b.type] || 9)
+    );
+    return {
+      ...section,
+      slug: section.slug || slugifyManualSection(section.title),
+      documents
+    };
+  });
+  return {
+    ...content,
+    intro: content.intro || 'Encontre o empreendimento e abra o manual completo em uma única página, com todos os tópicos.',
+    sections
+  };
+}
+
+async function findManualChapterMeta(sectionSlug, docType, chapterSlug) {
+  const defaults = readPageFromDatabaseJson('manual-proprietario');
+  const content = enrichManualProprietarioContent(defaults?.content);
+  if (!content?.sections?.length) return null;
+
+  for (const section of content.sections) {
+    if (section.slug !== sectionSlug) continue;
+    for (const doc of section.documents || []) {
+      if (doc.type !== docType) continue;
+      for (const child of doc.children || []) {
+        if (child.slug === chapterSlug) {
+          return {
+            sectionSlug: section.slug,
+            sectionTitle: section.title,
+            docType: doc.type,
+            docTitle: doc.title,
+            slug: child.slug,
+            title: child.title,
+            sourceHref: child.href
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function presentManualChapterHtml(html) {
+  const raw = String(html || '');
+  if (raw.includes('manual-pdf-list')) {
+    return decodeManualHtml(raw);
+  }
+  return formatManualHtml(decodeManualHtml(raw));
+}
+
+function needsPdfDirectoryRefetch(chapter, sourceHref) {
+  if (!/\/(desenhos|imagens)\//i.test(String(sourceHref || ''))) return false;
+  if (!chapter?.html) return true;
+  if (chapter.html.includes('manual-pdf-list')) return false;
+  return /\/$/.test(sourceHref) || /\.pdf($|\?)/i.test(sourceHref) === false;
+}
+
+async function getOrFetchManualChapter(meta, { force = false } = {}) {
+  let chapter = await ManualChapter.findOne({
+    sectionSlug: meta.sectionSlug,
+    docType: meta.docType,
+    slug: meta.slug
+  }).lean();
+
+  const shouldRefetch = force || needsPdfDirectoryRefetch(chapter, meta.sourceHref);
+
+  if (chapter?.html && !shouldRefetch) {
+    return { ...chapter, html: presentManualChapterHtml(chapter.html) };
+  }
+
+  try {
+    const content = await fetchChapterContent(meta.sourceHref);
+    const payload = {
+      sectionSlug: meta.sectionSlug,
+      sectionTitle: meta.sectionTitle,
+      docType: meta.docType,
+      docTitle: meta.docTitle,
+      slug: meta.slug,
+      title: meta.title,
+      sourceHref: meta.sourceHref,
+      html: content.html,
+      plainText: content.plainText,
+      syncedAt: new Date()
+    };
+    chapter = await ManualChapter.findOneAndUpdate(
+      { sourceHref: meta.sourceHref },
+      payload,
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    return { ...chapter, html: presentManualChapterHtml(chapter.html) };
+  } catch (error) {
+    console.error('[MANUAL] Falha ao buscar capítulo:', meta.sourceHref, error.message);
+    return null;
+  }
+}
+
+function isManualSectionHeader(title) {
+  return /^[IVXLC]+(\s*[\.\-\)]|\s+-)\s/i.test(String(title || '').trim());
+}
+
+function isManualNavTopic(title) {
+  return /^(inicio|index|voltar|manual do propri|manual das áreas|manual de áreas|manual das areas)$/i.test(
+    String(title || '').trim().replace(/\s+/g, ' ')
+  );
+}
+
+function buildManualTreeNodes(chapters) {
+  const nodes = [];
+  let currentSection = null;
+
+  for (const chapter of chapters) {
+    if (isManualNavTopic(chapter.title)) continue;
+
+    if (isManualSectionHeader(chapter.title)) {
+      currentSection = {
+        type: 'section',
+        slug: chapter.slug,
+        title: chapter.title,
+        children: [{ type: 'topic', slug: chapter.slug, title: chapter.title }]
+      };
+      nodes.push(currentSection);
+      continue;
+    }
+
+    if (currentSection) {
+      currentSection.children.push({ type: 'topic', slug: chapter.slug, title: chapter.title });
+    } else {
+      nodes.push({ type: 'topic', slug: chapter.slug, title: chapter.title });
+    }
+  }
+
+  return nodes;
+}
+
+function findManualDocumentMeta(sectionSlug, docType) {
+  const defaults = readPageFromDatabaseJson('manual-proprietario');
+  const content = enrichManualProprietarioContent(defaults?.content);
+  if (!content?.sections?.length) return null;
+
+  for (const section of content.sections) {
+    if (section.slug !== sectionSlug) continue;
+    for (const doc of section.documents || []) {
+      if (doc.type !== docType) continue;
+      if (/\.pdf($|\?)/i.test(doc.href || '')) return null;
+      return {
+        sectionSlug: section.slug,
+        sectionTitle: section.title,
+        docType: doc.type,
+        docTitle: doc.title,
+        children: doc.children || []
+      };
+    }
+  }
+  return null;
+}
+
+async function buildManualDocumentRecord(meta) {
+  const allStored = await ManualChapter.find({
+    sectionSlug: meta.sectionSlug,
+    docType: meta.docType,
+    html: { $ne: '' }
+  }).lean();
+  const byHref = new Map(allStored.map((chapter) => [chapter.sourceHref.toLowerCase(), chapter]));
+  const chapters = [];
+
+  for (const child of meta.children) {
+    const chapterMeta = {
+      sectionSlug: meta.sectionSlug,
+      sectionTitle: meta.sectionTitle,
+      docType: meta.docType,
+      docTitle: meta.docTitle,
+      slug: child.slug,
+      title: child.title,
+      sourceHref: child.href
+    };
+    const stored = byHref.get(String(child.href).toLowerCase());
+    const force = needsPdfDirectoryRefetch(stored, child.href);
+    const fetched = await getOrFetchManualChapter(chapterMeta, { force });
+    if (!fetched?.html) continue;
+    chapters.push({
+      slug: child.slug,
+      title: child.title,
+      html: fetched.html
+    });
+  }
+
+  const filteredChapters = chapters.filter((ch) => !isManualNavTopic(ch.title));
+  const html = buildCombinedManualHtml(filteredChapters);
+  const toc = filteredChapters.map((chapter) => ({ slug: chapter.slug, title: chapter.title }));
+  const payload = {
+    sectionSlug: meta.sectionSlug,
+    docType: meta.docType,
+    sectionTitle: meta.sectionTitle,
+    docTitle: meta.docTitle,
+    html,
+    chapters: filteredChapters,
+    toc,
+    chapterCount: filteredChapters.length,
+    layout: 'tree-v2',
+    syncedAt: new Date()
+  };
+
+  return ManualDocument.findOneAndUpdate(
+    { sectionSlug: meta.sectionSlug, docType: meta.docType },
+    payload,
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  ).lean();
+}
+
+async function renderManualDocumentPage(req, res, { sectionSlug, docType }) {
+  const meta = findManualDocumentMeta(sectionSlug, docType);
+  if (!meta) {
+    return res.status(404).send('Manual não encontrado');
+  }
+
+  let manual = await ManualDocument.findOne({ sectionSlug, docType }).lean();
+  const needsRebuild = !manual?.chapters?.length
+    || manual.chapterCount < (meta.children.length || 0)
+    || manual.layout !== 'tree-v2';
+  if (needsRebuild) {
+    manual = await buildManualDocumentRecord(meta);
+  }
+
+  if (!manual?.chapters?.length) {
+    return res.status(502).send('Não foi possível carregar este manual. Tente novamente mais tarde.');
+  }
+
+  const chapters = manual.chapters.map((chapter) => ({
+    ...chapter,
+    html: presentManualChapterHtml(chapter.html)
+  }));
+  const tree = buildManualTreeNodes(chapters);
+  const settings = await getSettings();
+
+  res.render('manual-document', {
+    manual: {
+      sectionSlug: manual.sectionSlug,
+      sectionTitle: manual.sectionTitle,
+      docTitle: manual.docTitle,
+      chapterCount: manual.chapterCount
+    },
+    chapters,
+    tree,
+    nav: settings.nav,
+    footer: settings.footer,
+    active: '/acesso-cliente',
+    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
+  });
+}
+
 async function renderClientDocumentsPage(req, res, pageId) {
   const settings = await getSettings();
   let page = await Page.findOne({ id: pageId }).lean();
@@ -1278,6 +1688,13 @@ async function renderClientDocumentsPage(req, res, pageId) {
     return res.status(404).send('Página não encontrada');
   }
 
+  if (pageId === 'manual-proprietario' && page.content) {
+    page = {
+      ...page,
+      content: enrichManualProprietarioContent(page.content)
+    };
+  }
+
   res.render('client-documents', {
     page,
     nav: settings.nav,
@@ -1285,7 +1702,8 @@ async function renderClientDocumentsPage(req, res, pageId) {
     active: '/acesso-cliente',
     requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
     ogImage: absoluteAssetUrl(req, '/logo.png'),
-    whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
+    whatsappUrl: buildWhatsappUrl(undefined, settings.footer),
+    isManualHub: pageId === 'manual-proprietario'
   });
 }
 

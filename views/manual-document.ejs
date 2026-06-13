@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= manual.docTitle %> — <%= manual.sectionTitle %> | AP Construções</title>
+    <meta name="description" content="<%= manual.docTitle %> do empreendimento <%= manual.sectionTitle %>">
+    <link rel="canonical" href="<%= requestUrl %>">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <%- include('includes/header', { nav, active }) %>
+
+    <section class="page-banner page-banner--compact">
+        <div class="container">
+            <p class="manual-reader-eyebrow"><%= manual.sectionTitle %></p>
+            <h1><%= manual.docTitle %></h1>
+            <p class="manual-reader-subtitle"><%= manual.chapterCount %> tópico<%= manual.chapterCount === 1 ? '' : 's' %></p>
+        </div>
+    </section>
+
+    <section class="manual-reader-section">
+        <div class="container">
+            <nav class="manual-reader-nav" aria-label="Navegação do manual">
+                <a href="/acesso-cliente/manual-proprietario" class="manual-reader-back">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Todos os manuais
+                </a>
+                <a href="/acesso-cliente/manual-proprietario#manual-<%= manual.sectionSlug %>" class="manual-reader-back manual-reader-back--secondary">
+                    <i class="fas fa-building" aria-hidden="true"></i> <%= manual.sectionTitle %>
+                </a>
+            </nav>
+
+            <div class="manual-tree-layout">
+                <aside class="manual-tree-sidebar" aria-label="Tópicos do manual">
+                    <div class="manual-tree-sidebar-head">
+                        <h2 class="manual-tree-sidebar-title"><i class="fas fa-sitemap" aria-hidden="true"></i> Tópicos</h2>
+                        <span class="manual-tree-sidebar-count"><%= manual.chapterCount %></span>
+                    </div>
+                    <input type="search" id="manualTreeSearch" class="manual-tree-search" placeholder="Filtrar tópicos…" autocomplete="off" aria-label="Filtrar tópicos">
+                    <nav class="manual-tree-nav">
+                        <ul class="manual-tree" id="manualTree">
+                            <% const firstSlug = chapters.length ? chapters[0].slug : ''; %>
+                            <% tree.forEach(function(node) { %>
+                                <% if (node.type === 'section') { %>
+                                <li class="manual-tree-section" data-tree-section>
+                                    <button type="button" class="manual-tree-section-toggle" aria-expanded="true">
+                                        <i class="fas fa-folder-open manual-tree-section-icon" aria-hidden="true"></i>
+                                        <span><%= node.title %></span>
+                                        <i class="fas fa-chevron-down manual-tree-section-chevron" aria-hidden="true"></i>
+                                    </button>
+                                    <ul class="manual-tree-section-children">
+                                        <% node.children.forEach(function(topic) { %>
+                                        <li class="manual-tree-item" data-tree-title="<%= String(topic.title || '').toLowerCase() %>">
+                                            <button type="button" class="manual-tree-node<%= topic.slug === firstSlug ? ' is-active' : '' %>" data-slug="<%= topic.slug %>">
+                                                <i class="fas fa-file-lines" aria-hidden="true"></i>
+                                                <span><%= topic.title %></span>
+                                            </button>
+                                        </li>
+                                        <% }) %>
+                                    </ul>
+                                </li>
+                                <% } else { %>
+                                <li class="manual-tree-item" data-tree-title="<%= String(node.title || '').toLowerCase() %>">
+                                    <button type="button" class="manual-tree-node<%= node.slug === firstSlug ? ' is-active' : '' %>" data-slug="<%= node.slug %>">
+                                        <i class="fas fa-file-lines" aria-hidden="true"></i>
+                                        <span><%= node.title %></span>
+                                    </button>
+                                </li>
+                                <% } %>
+                            <% }) %>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <div class="manual-tree-main">
+                    <header class="manual-tree-content-head">
+                        <h2 class="manual-tree-content-title" id="manualContentTitle"><%= chapters.length ? chapters[0].title : manual.docTitle %></h2>
+                    </header>
+                    <article class="manual-reader-content manual-tree-content-body">
+                        <% chapters.forEach(function(chapter, index) { %>
+                        <div class="manual-tree-panel" id="panel-<%= chapter.slug %>" data-slug="<%= chapter.slug %>" data-title="<%= chapter.title %>"<%= index === 0 ? '' : ' hidden' %>>
+                            <%- chapter.html %>
+                        </div>
+                        <% }) %>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('includes/footer', { footer }) %>
+
+    <a href="<%= typeof whatsappUrl !== 'undefined' ? whatsappUrl : 'https://api.whatsapp.com/send?phone=556121958300' %>" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+    <script src="/main.js"></script>
+    <script>
+    (function () {
+        const nodes = Array.from(document.querySelectorAll('.manual-tree-node'));
+        const panels = Array.from(document.querySelectorAll('.manual-tree-panel'));
+        const titleEl = document.getElementById('manualContentTitle');
+        const searchInput = document.getElementById('manualTreeSearch');
+
+        function showTopic(slug) {
+            const panel = document.getElementById('panel-' + slug);
+            const node = nodes.find(function (btn) { return btn.getAttribute('data-slug') === slug; });
+            if (!panel || !node) return;
+
+            panels.forEach(function (p) { p.hidden = true; });
+            nodes.forEach(function (n) { n.classList.remove('is-active'); });
+
+            panel.hidden = false;
+            node.classList.add('is-active');
+
+            const title = panel.getAttribute('data-title') || node.textContent.trim();
+            if (titleEl) titleEl.textContent = title;
+
+            if (history.replaceState) {
+                history.replaceState(null, '', '#' + slug);
+            }
+
+            if (window.matchMedia('(max-width: 900px)').matches) {
+                document.querySelector('.manual-tree-content-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        nodes.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                showTopic(btn.getAttribute('data-slug'));
+            });
+        });
+
+        document.querySelectorAll('.manual-tree-section-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const section = btn.closest('.manual-tree-section');
+                const expanded = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                section.classList.toggle('is-collapsed', expanded);
+                const icon = btn.querySelector('.manual-tree-section-icon');
+                if (icon) {
+                    icon.classList.toggle('fa-folder-open', !expanded);
+                    icon.classList.toggle('fa-folder', expanded);
+                }
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const query = searchInput.value.trim().toLowerCase();
+                document.querySelectorAll('.manual-tree-item[data-tree-title]').forEach(function (item) {
+                    const match = !query || (item.getAttribute('data-tree-title') || '').includes(query);
+                    item.hidden = !match;
+                });
+                document.querySelectorAll('.manual-tree-section[data-tree-section]').forEach(function (section) {
+                    const visible = Array.from(section.querySelectorAll('.manual-tree-item[data-tree-title]')).some(function (item) { return !item.hidden; });
+                    section.hidden = !visible;
+                    if (visible && query) {
+                        section.classList.remove('is-collapsed');
+                        const toggle = section.querySelector('.manual-tree-section-toggle');
+                        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            });
+        }
+
+        const initialSlug = window.location.hash
+            ? window.location.hash.slice(1)
+            : (nodes[0] && nodes[0].getAttribute('data-slug'));
+        if (initialSlug) {
+            showTopic(initialSlug);
+        } else if (nodes[0]) {
+            nodes[0].classList.add('is-active');
+        }
+    })();
+    </script>
+</body>
+</html>
