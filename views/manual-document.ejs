@@ -44,7 +44,7 @@
                     <input type="search" id="manualTreeSearch" class="manual-tree-search" placeholder="Filtrar tópicos…" autocomplete="off" aria-label="Filtrar tópicos">
                     <nav class="manual-tree-nav">
                         <ul class="manual-tree" id="manualTree">
-                            <% const firstSlug = chapters.length ? chapters[0].slug : ''; %>
+                            <% const firstSlug = firstChapter ? firstChapter.slug : (toc.length ? toc[0].slug : ''); %>
                             <% tree.forEach(function(node) { %>
                                 <% if (node.type === 'section') { %>
                                 <li class="manual-tree-section" data-tree-section>
@@ -56,7 +56,7 @@
                                     <ul class="manual-tree-section-children">
                                         <% node.children.forEach(function(topic) { %>
                                         <li class="manual-tree-item" data-tree-title="<%= String(topic.title || '').toLowerCase() %>">
-                                            <button type="button" class="manual-tree-node<%= topic.slug === firstSlug ? ' is-active' : '' %>" data-slug="<%= topic.slug %>">
+                                            <button type="button" class="manual-tree-node<%= topic.slug === firstSlug ? ' is-active' : '' %>" data-slug="<%= topic.slug %>" data-title="<%= topic.title %>">
                                                 <i class="fas fa-file-lines" aria-hidden="true"></i>
                                                 <span><%= topic.title %></span>
                                             </button>
@@ -66,7 +66,7 @@
                                 </li>
                                 <% } else { %>
                                 <li class="manual-tree-item" data-tree-title="<%= String(node.title || '').toLowerCase() %>">
-                                    <button type="button" class="manual-tree-node<%= node.slug === firstSlug ? ' is-active' : '' %>" data-slug="<%= node.slug %>">
+                                    <button type="button" class="manual-tree-node<%= node.slug === firstSlug ? ' is-active' : '' %>" data-slug="<%= node.slug %>" data-title="<%= node.title %>">
                                         <i class="fas fa-file-lines" aria-hidden="true"></i>
                                         <span><%= node.title %></span>
                                     </button>
@@ -79,14 +79,14 @@
 
                 <div class="manual-tree-main">
                     <header class="manual-tree-content-head">
-                        <h2 class="manual-tree-content-title" id="manualContentTitle"><%= chapters.length ? chapters[0].title : manual.docTitle %></h2>
+                        <h2 class="manual-tree-content-title" id="manualContentTitle"><%= firstChapter ? firstChapter.title : manual.docTitle %></h2>
                     </header>
-                    <article class="manual-reader-content manual-tree-content-body">
-                        <% chapters.forEach(function(chapter, index) { %>
-                        <div class="manual-tree-panel" id="panel-<%= chapter.slug %>" data-slug="<%= chapter.slug %>" data-title="<%= chapter.title %>"<%= index === 0 ? '' : ' hidden' %>>
-                            <%- chapter.html %>
+                    <article class="manual-reader-content manual-tree-content-body" id="manualContentBody">
+                        <% if (firstChapter) { %>
+                        <div class="manual-tree-panel" id="panel-<%= firstChapter.slug %>" data-slug="<%= firstChapter.slug %>" data-title="<%= firstChapter.title %>" data-loaded="true">
+                            <%- firstChapter.html %>
                         </div>
-                        <% }) %>
+                        <% } %>
                     </article>
                 </div>
             </div>
@@ -101,37 +101,97 @@
     <script src="/main.js"></script>
     <script>
     (function () {
-        const nodes = Array.from(document.querySelectorAll('.manual-tree-node'));
-        const panels = Array.from(document.querySelectorAll('.manual-tree-panel'));
+        const apiBase = '<%= chapterApiBase %>';
+        const contentBody = document.getElementById('manualContentBody');
         const titleEl = document.getElementById('manualContentTitle');
         const searchInput = document.getElementById('manualTreeSearch');
+        const nodes = Array.from(document.querySelectorAll('.manual-tree-node'));
+        const loadedSlugs = new Set();
+        <% if (firstChapter) { %>loadedSlugs.add('<%= firstChapter.slug %>');<% } %>
 
-        function showTopic(slug) {
-            const panel = document.getElementById('panel-' + slug);
-            const node = nodes.find(function (btn) { return btn.getAttribute('data-slug') === slug; });
-            if (!panel || !node) return;
+        const loadingHtml = '<div class="manual-tree-loading" role="status"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Carregando tópico…</div>';
+        const errorHtml = '<p class="manual-tree-error">Não foi possível carregar este tópico. <button type="button" class="manual-tree-retry">Tentar novamente</button></p>';
 
-            panels.forEach(function (p) { p.hidden = true; });
-            nodes.forEach(function (n) { n.classList.remove('is-active'); });
+        function getPanel(slug) {
+            return document.getElementById('panel-' + slug);
+        }
 
+        function hideAllPanels() {
+            contentBody.querySelectorAll('.manual-tree-panel').forEach(function (panel) {
+                panel.hidden = true;
+            });
+        }
+
+        function setActiveNode(slug) {
+            nodes.forEach(function (node) {
+                node.classList.toggle('is-active', node.getAttribute('data-slug') === slug);
+            });
+        }
+
+        function updateTitle(title) {
+            if (titleEl && title) titleEl.textContent = title;
+        }
+
+        function showPanel(panel, slug, title) {
+            hideAllPanels();
             panel.hidden = false;
-            node.classList.add('is-active');
-
-            const title = panel.getAttribute('data-title') || node.textContent.trim();
-            if (titleEl) titleEl.textContent = title;
-
+            setActiveNode(slug);
+            updateTitle(title || panel.getAttribute('data-title'));
             if (history.replaceState) {
                 history.replaceState(null, '', '#' + slug);
             }
-
             if (window.matchMedia('(max-width: 900px)').matches) {
-                document.querySelector('.manual-tree-content-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                contentBody.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        async function loadTopic(slug, title) {
+            const node = nodes.find(function (btn) { return btn.getAttribute('data-slug') === slug; });
+            const resolvedTitle = title || (node && node.getAttribute('data-title')) || '';
+            let panel = getPanel(slug);
+
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.className = 'manual-tree-panel';
+                panel.id = 'panel-' + slug;
+                panel.dataset.slug = slug;
+                panel.dataset.title = resolvedTitle;
+                contentBody.appendChild(panel);
+            }
+
+            showPanel(panel, slug, resolvedTitle);
+
+            if (loadedSlugs.has(slug)) return;
+
+            panel.innerHTML = loadingHtml;
+            panel.dataset.loaded = 'false';
+
+            try {
+                const response = await fetch(apiBase + '/' + encodeURIComponent(slug), {
+                    headers: { Accept: 'application/json' }
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                panel.innerHTML = data.html;
+                panel.dataset.title = data.title;
+                panel.dataset.loaded = 'true';
+                loadedSlugs.add(slug);
+                updateTitle(data.title);
+            } catch (err) {
+                panel.innerHTML = errorHtml;
+                panel.dataset.loaded = 'false';
+                const retryBtn = panel.querySelector('.manual-tree-retry');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', function () {
+                        loadTopic(slug, resolvedTitle);
+                    });
+                }
             }
         }
 
         nodes.forEach(function (btn) {
             btn.addEventListener('click', function () {
-                showTopic(btn.getAttribute('data-slug'));
+                loadTopic(btn.getAttribute('data-slug'), btn.getAttribute('data-title'));
             });
         });
 
@@ -168,13 +228,21 @@
             });
         }
 
-        const initialSlug = window.location.hash
-            ? window.location.hash.slice(1)
-            : (nodes[0] && nodes[0].getAttribute('data-slug'));
+        const hashSlug = window.location.hash ? window.location.hash.slice(1) : '';
+        const initialSlug = hashSlug || (nodes[0] && nodes[0].getAttribute('data-slug'));
         if (initialSlug) {
-            showTopic(initialSlug);
-        } else if (nodes[0]) {
-            nodes[0].classList.add('is-active');
+            const initialNode = nodes.find(function (btn) { return btn.getAttribute('data-slug') === initialSlug; });
+            if (hashSlug && !loadedSlugs.has(hashSlug)) {
+                loadTopic(initialSlug, initialNode && initialNode.getAttribute('data-title'));
+            } else if (hashSlug) {
+                const panel = getPanel(initialSlug);
+                if (panel) showPanel(panel, initialSlug);
+            } else if (!loadedSlugs.has(initialSlug)) {
+                loadTopic(initialSlug, initialNode && initialNode.getAttribute('data-title'));
+            } else {
+                const panel = getPanel(initialSlug);
+                if (panel) showPanel(panel, initialSlug);
+            }
         }
     })();
     </script>
