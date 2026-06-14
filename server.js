@@ -300,7 +300,7 @@ const defaultSettings = {
     hr: DEFAULT_FOOTER_HR
   }
 };
-const fallbackImage = 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80';
+const fallbackImage = '/images/banners/banner-empreendimento.jpg';
 
 function normalizePublicPath(value) {
   if (!value || typeof value !== 'string') return '';
