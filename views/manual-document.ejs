@@ -44,7 +44,7 @@
                     <input type="search" id="manualTreeSearch" class="manual-tree-search" placeholder="Filtrar tópicos…" autocomplete="off" aria-label="Filtrar tópicos">
                     <nav class="manual-tree-nav">
                         <ul class="manual-tree" id="manualTree">
-                            <% const firstSlug = firstChapter ? firstChapter.slug : (toc.length ? toc[0].slug : ''); %>
+                            <% const firstSlug = initialSlug || (toc.length ? toc[0].slug : ''); %>
                             <% tree.forEach(function(node) { %>
                                 <% if (node.type === 'section') { %>
                                 <li class="manual-tree-section" data-tree-section>
@@ -79,14 +79,9 @@
 
                 <div class="manual-tree-main">
                     <header class="manual-tree-content-head">
-                        <h2 class="manual-tree-content-title" id="manualContentTitle"><%= firstChapter ? firstChapter.title : manual.docTitle %></h2>
+                        <h2 class="manual-tree-content-title" id="manualContentTitle"><%= manual.docTitle %></h2>
                     </header>
                     <article class="manual-reader-content manual-tree-content-body" id="manualContentBody">
-                        <% if (firstChapter) { %>
-                        <div class="manual-tree-panel" id="panel-<%= firstChapter.slug %>" data-slug="<%= firstChapter.slug %>" data-title="<%= firstChapter.title %>" data-loaded="true">
-                            <%- firstChapter.html %>
-                        </div>
-                        <% } %>
                     </article>
                 </div>
             </div>
@@ -107,7 +102,6 @@
         const searchInput = document.getElementById('manualTreeSearch');
         const nodes = Array.from(document.querySelectorAll('.manual-tree-node'));
         const loadedSlugs = new Set();
-        <% if (firstChapter) { %>loadedSlugs.add('<%= firstChapter.slug %>');<% } %>
 
         const loadingHtml = '<div class="manual-tree-loading" role="status"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Carregando tópico…</div>';
         const errorHtml = '<p class="manual-tree-error">Não foi possível carregar este tópico. <button type="button" class="manual-tree-retry">Tentar novamente</button></p>';
@@ -229,20 +223,10 @@
         }
 
         const hashSlug = window.location.hash ? window.location.hash.slice(1) : '';
-        const initialSlug = hashSlug || (nodes[0] && nodes[0].getAttribute('data-slug'));
+        const initialSlug = hashSlug || '<%= firstSlug %>';
         if (initialSlug) {
             const initialNode = nodes.find(function (btn) { return btn.getAttribute('data-slug') === initialSlug; });
-            if (hashSlug && !loadedSlugs.has(hashSlug)) {
-                loadTopic(initialSlug, initialNode && initialNode.getAttribute('data-title'));
-            } else if (hashSlug) {
-                const panel = getPanel(initialSlug);
-                if (panel) showPanel(panel, initialSlug);
-            } else if (!loadedSlugs.has(initialSlug)) {
-                loadTopic(initialSlug, initialNode && initialNode.getAttribute('data-title'));
-            } else {
-                const panel = getPanel(initialSlug);
-                if (panel) showPanel(panel, initialSlug);
-            }
+            loadTopic(initialSlug, initialNode && initialNode.getAttribute('data-title'));
         }
     })();
     </script>

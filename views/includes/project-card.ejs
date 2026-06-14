@@ -1,6 +1,6 @@
 <a href="<%= project.href %>" class="project-card" data-category="<%= project.category || '' %>" data-status="<%= project.badge || '' %>">
     <div class="project-img-wrapper">
-        <img loading="lazy" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
+        <img loading="<%= typeof eagerImage !== 'undefined' && eagerImage ? 'eager' : 'lazy' %>"<% if (typeof eagerImage !== 'undefined' && eagerImage) { %> fetchpriority="high"<% } %> decoding="async" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
         <% if (project.badge) { %>
             <span class="project-badge"><%= project.badge %></span>
         <% } %>

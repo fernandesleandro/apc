@@ -52,7 +52,7 @@
             <div class="manual-hub-toolbar">
                 <div class="manual-hub-search-wrap">
                     <i class="fas fa-search" aria-hidden="true"></i>
-                    <input type="search" id="manualHubSearch" class="manual-hub-search" placeholder="Buscar empreendimento ou capítulo…" autocomplete="off" aria-label="Buscar empreendimento ou capítulo">
+                    <input type="search" id="manualHubSearch" class="manual-hub-search" placeholder="Buscar empreendimento ou manual…" autocomplete="off" aria-label="Buscar empreendimento ou manual">
                 </div>
                 <p class="manual-hub-count" id="manualHubCount"><%= page.content.sections.length %> empreendimentos</p>
             </div>
@@ -66,19 +66,11 @@
             <p class="manual-hub-note"><i class="fas fa-sitemap" aria-hidden="true"></i> Abra o manual e clique no tópico na árvore para ler. PDFs de habite-se abrem em nova aba.</p>
 
             <div class="manual-hub-list" id="manualHubList">
-                <% page.content.sections.forEach(function(section, index) {
-                    const sectionKeywords = [section.title.toLowerCase()];
-                    (section.documents || []).forEach(function(doc) {
-                        (doc.children || []).forEach(function(ch) {
-                            sectionKeywords.push(String(ch.title || '').toLowerCase());
-                        });
-                    });
-                %>
-                <article class="manual-hub-card" id="manual-<%= section.slug %>" data-manual-title="<%= section.title.toLowerCase() %>" data-manual-keywords="<%= sectionKeywords.join(' ') %>">
+                <% page.content.sections.forEach(function(section, index) { %>
+                <article class="manual-hub-card" id="manual-<%= section.slug %>" data-manual-title="<%= section.title.toLowerCase() %>" data-manual-keywords="<%= section.searchKeywords || section.title.toLowerCase() %>">
                     <button type="button" class="manual-hub-card-toggle" aria-expanded="<%= index === 0 ? 'true' : 'false' %>" aria-controls="manual-panel-<%= section.slug %>">
                         <span class="manual-hub-card-title"><%= section.title %></span>
-                        <% const chapterCount = (section.documents || []).reduce(function(n, d) { return n + (d.children || []).length; }, 0); %>
-                        <span class="manual-hub-card-meta"><%= (section.documents || []).length %> manual<%= (section.documents || []).length === 1 ? '' : 'is' %><% if (chapterCount) { %> · <%= chapterCount %> capítulos<% } %></span>
+                        <span class="manual-hub-card-meta"><%= section.manualCount || (section.documents || []).length %> manual<%= (section.manualCount || (section.documents || []).length) === 1 ? '' : 'is' %><% if (section.chapterCount) { %> · <%= section.chapterCount %> capítulos<% } %></span>
                         <i class="fas fa-chevron-down manual-hub-card-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="manual-hub-card-panel" id="manual-panel-<%= section.slug %>"<%= index === 0 ? '' : ' hidden' %>>
@@ -86,7 +78,7 @@
                             const docType = doc.type || 'documento';
                             const meta = manualDocMeta[docType] || manualDocMeta.documento;
                             const isPdf = docType === 'habite-se' || /\.pdf($|\?)/i.test(doc.href || '');
-                            const hasManual = !isPdf && (doc.chapterCount || (doc.children || []).length) > 0;
+                            const hasManual = !isPdf && (doc.chapterCount || 0) > 0;
                         %>
                         <% if (hasManual) { %>
                         <a href="<%= doc.internalPath %>" class="manual-hub-doc manual-hub-doc--<%= docType %>">
@@ -94,7 +86,7 @@
                             <span class="manual-hub-doc-body">
                                 <span class="manual-hub-doc-title"><%= doc.title %></span>
                                 <% if (meta.hint) { %><span class="manual-hub-doc-hint"><%= meta.hint %></span><% } %>
-                                <span class="manual-hub-doc-chapter-count"><%= doc.chapterCount || (doc.children || []).length %> tópico<%= (doc.chapterCount || (doc.children || []).length) === 1 ? '' : 's' %> · página única</span>
+                                <span class="manual-hub-doc-chapter-count"><%= doc.chapterCount || 0 %> tópico<%= (doc.chapterCount || 0) === 1 ? '' : 's' %> · página única</span>
                             </span>
                             <span class="manual-hub-doc-badge"><%= meta.badge %></span>
                             <span class="manual-hub-doc-action">Ler manual <i class="fas fa-chevron-right" aria-hidden="true"></i></span>
