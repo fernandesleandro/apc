@@ -18,12 +18,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <% if (typeof bannerImage !== 'undefined' && bannerImage) { %>
+    <link rel="preload" as="image" href="<%= bannerImage %>">
+    <% } %>
 </head>
 <body>
 
     <%- include('includes/header', { nav, active }) %>
 
-    <section class="page-banner" style="background: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;">
+    <section class="page-banner<%= typeof bannerImage !== 'undefined' && bannerImage ? ' page-banner--local' : ' page-banner--gradient' %>"<% if (typeof bannerImage !== 'undefined' && bannerImage) { %> style="background-image: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('<%= bannerImage %>')"<% } %>>
         <div class="container">
             <h1><%= pageTitle %></h1>
             <p><%= typeof listingSubtitle !== 'undefined' ? listingSubtitle : 'Conheça os principais empreendimentos realizados pela AP Construções' %></p>
@@ -39,8 +42,8 @@
             <%- include('includes/projects-filters', { categoryOptions, statusOptions, hideStatusFilter: typeof hideStatusFilter !== 'undefined' ? hideStatusFilter : false, presetStatus: typeof presetStatus !== 'undefined' ? presetStatus : '' }) %>
             <div class="projects-grid">
                 <% if (projects && projects.length) { %>
-                    <% projects.forEach(project => { %>
-                    <%- include('includes/project-card', { project }) %>
+                    <% projects.forEach(function(project, index) { %>
+                    <%- include('includes/project-card', { project, eagerImage: index === 0 }) %>
                     <% }) %>
                 <% } %>
             </div>

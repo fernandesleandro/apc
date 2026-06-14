@@ -25,7 +25,8 @@
 <body>
     <%- include('includes/header', { nav, active }) %>
 
-    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('<%= detailData.heroImage || (page.hero && page.hero.image) || (detailData.galleryImages && detailData.galleryImages[0] && detailData.galleryImages[0].src) || "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80" %>') center/cover no-repeat;">
+    <% const defaultHeroImage = '/images/banners/banner-empreendimento.jpg'; %>
+    <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('<%= detailData.heroImage || (page.hero && page.hero.image) || (detailData.galleryImages && detailData.galleryImages[0] && detailData.galleryImages[0].src) || defaultHeroImage %>') center/cover no-repeat;">
         <div class="detail-hero-overlay">
             <div class="container">
                 <% if (detailData.detailTag) { %>
@@ -109,7 +110,7 @@
                 </div>
                 <% } else { %>
                 <div class="gallery-img-item gallery-img-large">
-                    <img loading="eager" src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80" alt="<%= page.hero.title %>">
+                    <img loading="eager" src="<%= defaultHeroImage %>" alt="<%= page.hero.title %>">
                 </div>
                 <% } %>
             <% } %>

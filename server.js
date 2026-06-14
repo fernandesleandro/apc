@@ -300,7 +300,7 @@ const defaultSettings = {
     hr: DEFAULT_FOOTER_HR
   }
 };
-const fallbackImage = 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1200&q=80';
+const fallbackImage = '/images/banners/banner-empreendimento.jpg';
 
 function normalizePublicPath(value) {
   if (!value || typeof value !== 'string') return '';
@@ -495,15 +495,17 @@ function buildProjectSchemaJson(page, project, detailData, requestUrl) {
 
 async function enrichProjectsForListing(projects, footer) {
   if (!projects?.length) return [];
-  const ids = projects.map(p => p.id);
-  const pages = await Page.find({ id: { $in: ids } }).lean();
-  const pageById = Object.fromEntries(pages.map(p => [p.id, p]));
+  const ids = projects.map((p) => p.id);
+  const pages = await Page.find(
+    { id: { $in: ids } },
+    { id: 1, 'details.summaryItems': 1 }
+  ).lean();
+  const pageById = Object.fromEntries(pages.map((p) => [p.id, p]));
   return projects.map((project) => {
     const page = pageById[project.id];
-    const details = page?.details || {};
-    const summary = details.summaryItems || [];
-    const address = summary.find(i => i && ['Endereço', 'Localização'].includes(i.label));
-    const metragem = summary.find(i => i && /metr|m²|m2|área/i.test(i.label || ''));
+    const summary = page?.details?.summaryItems || [];
+    const address = summary.find((i) => i && ['Endereço', 'Localização'].includes(i.label));
+    const metragem = summary.find((i) => i && /metr|m²|m2|área/i.test(i.label || ''));
     const locationChip = address?.value
       ? String(address.value).split('-')[0].split(',')[0].trim().slice(0, 48)
       : (metragem?.value ? String(metragem.value).slice(0, 48) : '');
@@ -513,6 +515,55 @@ async function enrichProjectsForListing(projects, footer) {
       whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`, footer)
     };
   });
+}
+
+const PROJECT_LISTING_CACHE_MS = 60 * 1000;
+const PROJECT_LISTING_FIELDS = {
+  id: 1, title: 1, description: 1, image: 1, href: 1, badge: 1, category: 1, createdAt: 1
+};
+const projectsListingCache = { at: 0, rawProjects: null, filterOptions: null };
+
+function invalidateProjectsListingCache() {
+  projectsListingCache.at = 0;
+  projectsListingCache.rawProjects = null;
+  projectsListingCache.filterOptions = null;
+}
+
+function attachLocationChips(projects, pages) {
+  const pageById = Object.fromEntries(pages.map((p) => [p.id, p]));
+  return projects.map((project) => {
+    const summary = pageById[project.id]?.details?.summaryItems || [];
+    const address = summary.find((i) => i && ['Endereço', 'Localização'].includes(i.label));
+    const metragem = summary.find((i) => i && /metr|m²|m2|área/i.test(i.label || ''));
+    const locationChip = address?.value
+      ? String(address.value).split('-')[0].split(',')[0].trim().slice(0, 48)
+      : (metragem?.value ? String(metragem.value).slice(0, 48) : '');
+    return { ...project, locationChip };
+  });
+}
+
+async function loadProjectsListingBase() {
+  if (projectsListingCache.rawProjects && Date.now() - projectsListingCache.at < PROJECT_LISTING_CACHE_MS) {
+    return {
+      rawProjects: projectsListingCache.rawProjects,
+      filterOptions: projectsListingCache.filterOptions
+    };
+  }
+
+  const rawProjects = (await Project.find({}, PROJECT_LISTING_FIELDS).sort({ createdAt: -1 }).lean())
+    .map(normalizeProjectRecord);
+  const pages = rawProjects.length
+    ? await Page.find(
+      { id: { $in: rawProjects.map((p) => p.id) } },
+      { id: 1, 'details.summaryItems': 1 }
+    ).lean()
+    : [];
+  const enriched = attachLocationChips(rawProjects, pages);
+  const filterOptions = buildProjectFilterOptions(rawProjects);
+  projectsListingCache.at = Date.now();
+  projectsListingCache.rawProjects = enriched;
+  projectsListingCache.filterOptions = filterOptions;
+  return { rawProjects: enriched, filterOptions };
 }
 
 function checkContactRateLimit(ip) {
@@ -638,6 +689,7 @@ async function updatePageDetails(projectId, updater) {
   updater(page.details);
   page.markModified('details');
   await page.save();
+  invalidateProjectsListingCache();
   return page;
 }
 
@@ -732,13 +784,21 @@ function normalizeSiteSettings(settings) {
   return { nav, footer };
 }
 
+const SETTINGS_CACHE_MS = 60 * 1000;
+const settingsCache = { data: null, at: 0 };
+
 async function getSettings() {
+  if (settingsCache.data && Date.now() - settingsCache.at < SETTINGS_CACHE_MS) {
+    return settingsCache.data;
+  }
   const settings = await Setting.findOne().lean();
   const resolved = {
     nav: (settings && Array.isArray(settings.nav) && settings.nav.length) ? settings.nav : defaultSettings.nav,
     footer: (settings && settings.footer) ? settings.footer : defaultSettings.footer
   };
-  return normalizeSiteSettings(resolved);
+  settingsCache.data = normalizeSiteSettings(resolved);
+  settingsCache.at = Date.now();
+  return settingsCache.data;
 }
 
 // Cache: desabilitado só em desenvolvimento local
@@ -1101,7 +1161,7 @@ async function connectToDatabase() {
     await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
     isConnected = true;
     console.log('Conectado ao MongoDB com sucesso!');
-    await ensureDatabase();
+    ensureDatabase().catch((err) => console.error('[SEED] Erro no ensureDatabase:', err.message));
   } catch (err) {
     console.error('Erro ao conectar ao MongoDB:', err.message);
   }
@@ -1467,6 +1527,35 @@ function enrichManualProprietarioContent(content) {
   };
 }
 
+function buildManualHubSections(content) {
+  const enriched = content?.sections?.length ? content : getManualProprietarioContent();
+  if (!enriched?.sections?.length) return [];
+
+  return enriched.sections.map((section) => {
+    const keywords = [String(section.title || '').toLowerCase()];
+    const documents = (section.documents || []).map((doc) => {
+      const chapterCount = doc.chapterCount || (doc.children || []).length;
+      keywords.push(String(doc.title || '').toLowerCase());
+      return {
+        title: doc.title,
+        href: doc.href,
+        type: doc.type,
+        internalPath: doc.internalPath,
+        chapterCount
+      };
+    });
+    const chapterCount = documents.reduce((total, doc) => total + doc.chapterCount, 0);
+    return {
+      slug: section.slug,
+      title: section.title,
+      searchKeywords: keywords.join(' '),
+      manualCount: documents.length,
+      chapterCount,
+      documents
+    };
+  });
+}
+
 function findManualChapterMeta(sectionSlug, docType, chapterSlug) {
   const content = getManualProprietarioContent();
   if (!content?.sections?.length) return null;
@@ -1710,16 +1799,7 @@ async function renderManualDocumentPage(req, res, { sectionSlug, docType }) {
   const tree = buildManualTreeNodes(toc);
   const settings = await getSettings();
   const chapterApiBase = `/acesso-cliente/manual-proprietario/${sectionSlug}/${docType}/capitulo`;
-
   const initialSlug = toc[0].slug;
-  let firstChapter = null;
-  const firstMeta = findManualChapterMeta(sectionSlug, docType, initialSlug);
-  if (firstMeta) {
-    const fetched = await getOrFetchManualChapter(firstMeta);
-    if (fetched?.html) {
-      firstChapter = { slug: fetched.slug, title: fetched.title, html: fetched.html };
-    }
-  }
 
   res.render('manual-document', {
     manual: {
@@ -1730,7 +1810,7 @@ async function renderManualDocumentPage(req, res, { sectionSlug, docType }) {
     },
     toc,
     tree,
-    firstChapter,
+    initialSlug,
     chapterApiBase,
     nav: settings.nav,
     footer: settings.footer,
@@ -1741,19 +1821,32 @@ async function renderManualDocumentPage(req, res, { sectionSlug, docType }) {
 }
 
 async function renderClientDocumentsPage(req, res, pageId) {
-  const settings = await getSettings();
-  let page = await Page.findOne({ id: pageId }).lean();
-  if (!page) {
-    page = readPageFromDatabaseJson(pageId);
-  }
+  const isManualHub = pageId === 'manual-proprietario';
+  const pageProjection = isManualHub
+    ? { id: 1, title: 1, description: 1, hero: 1, 'content.intro': 1, 'content.backHref': 1, 'content.backLabel': 1 }
+    : null;
+
+  const [settings, pageDoc] = await Promise.all([
+    getSettings(),
+    Page.findOne({ id: pageId }, pageProjection).lean()
+  ]);
+
+  let page = pageDoc || readPageFromDatabaseJson(pageId);
   if (!page) {
     return res.status(404).send('Página não encontrada');
   }
 
-  if (pageId === 'manual-proprietario' && page.content) {
+  if (isManualHub) {
+    const hubSource = getManualProprietarioContent()
+      || (page.content?.sections ? enrichManualProprietarioContent(page.content) : null);
     page = {
       ...page,
-      content: enrichManualProprietarioContent(page.content)
+      content: {
+        intro: hubSource?.intro || page.content?.intro,
+        backHref: page.content?.backHref,
+        backLabel: page.content?.backLabel,
+        sections: buildManualHubSections(hubSource)
+      }
     };
   }
 
@@ -1765,7 +1858,7 @@ async function renderClientDocumentsPage(req, res, pageId) {
     requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
     ogImage: absoluteAssetUrl(req, '/logo.png'),
     whatsappUrl: buildWhatsappUrl(undefined, settings.footer),
-    isManualHub: pageId === 'manual-proprietario'
+    isManualHub
   });
 }
 
@@ -1775,13 +1868,20 @@ function filterProjectsByStatus(projects, status) {
 }
 
 async function renderProjectsListing(req, res, options = {}) {
-  const settings = await getSettings();
-  const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
-  const allProjects = await enrichProjectsForListing(rawProjects, settings.footer);
   const presetStatus = options.presetStatus || '';
+  const [settings, listing] = await Promise.all([
+    getSettings(),
+    loadProjectsListingBase()
+  ]);
+
+  const allProjects = listing.rawProjects.map((project) => ({
+    ...project,
+    whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`, settings.footer)
+  }));
   const projects = filterProjectsByStatus(allProjects, presetStatus);
-  const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
+  const { categoryOptions, statusOptions } = listing.filterOptions;
   const isLaunchListing = presetStatus === LAUNCH_STATUS;
+  const bannerImage = projects[0]?.image || allProjects[0]?.image || '';
 
   res.render('obras', {
     nav: settings.nav,
@@ -1791,6 +1891,7 @@ async function renderProjectsListing(req, res, options = {}) {
     statusOptions,
     presetStatus,
     hideStatusFilter: isLaunchListing,
+    bannerImage,
     listingTitle: isLaunchListing ? 'Lançamentos' : 'Empreendimentos',
     listingSubtitle: isLaunchListing
       ? 'Conheça os empreendimentos em lançamento da AP Construções'
@@ -1801,7 +1902,7 @@ async function renderProjectsListing(req, res, options = {}) {
       : 'Conheça lançamentos inspirados nas melhores tendências globais de design urbano.',
     active: isLaunchListing ? '/lancamentos' : '/obras',
     requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
-    ogImage: absoluteAssetUrl(req, projects[0]?.image || rawProjects[0]?.image || '/logo.png'),
+    ogImage: absoluteAssetUrl(req, projects[0]?.image || allProjects[0]?.image || '/logo.png'),
     whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
   });
 }
@@ -2142,6 +2243,7 @@ app.post('/admin/upload-main-image/:id', isAuthenticated, uploadForProject('imag
     if (!updatedProject) {
       return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
     }
+    invalidateProjectsListingCache();
 
     await Page.findOneAndUpdate({ id: req.params.id }, { 'hero.image': imagePath });
     console.log(`[UPLOAD] Imagem principal atualizada: ${req.params.id}`);
@@ -2220,6 +2322,7 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
     }
 
     console.log(`[UPDATE] Projeto atualizado: ${req.params.id}`);
+    invalidateProjectsListingCache();
     res.json({ success: true, message: 'Projeto atualizado com sucesso!', image: updatedProject.image });
   } catch (error) {
     if (req.file?.path && fs.existsSync(req.file.path)) {
@@ -2849,6 +2952,7 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
     });
 
     await newProject.save();
+    invalidateProjectsListingCache();
     console.log(`[CREATE] Novo projeto criado: ${id}`);
 
     // Criar página correspondente para detalhes do projeto
@@ -2946,6 +3050,7 @@ app.post('/admin/delete-project/:id', isAuthenticated, async (req, res) => {
     }
 
     console.log(`[DELETE] Projeto deletado: ${projectId}`);
+    invalidateProjectsListingCache();
     res.json({ success: true, message: 'Projeto deletado com sucesso!' });
   } catch (error) {
     console.error('[ERROR] Erro ao deletar projeto:', error);
