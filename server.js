@@ -301,6 +301,7 @@ const defaultSettings = {
   }
 };
 const fallbackImage = '/images/banners/banner-empreendimento.jpg';
+const OBRAS_LISTING_BANNER = '/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.jpeg';
 
 function normalizePublicPath(value) {
   if (!value || typeof value !== 'string') return '';
@@ -1881,7 +1882,9 @@ async function renderProjectsListing(req, res, options = {}) {
   const projects = filterProjectsByStatus(allProjects, presetStatus);
   const { categoryOptions, statusOptions } = listing.filterOptions;
   const isLaunchListing = presetStatus === LAUNCH_STATUS;
-  const bannerImage = projects[0]?.image || allProjects[0]?.image || '';
+  const bannerImage = isLaunchListing
+    ? (projects[0]?.image || OBRAS_LISTING_BANNER)
+    : OBRAS_LISTING_BANNER;
 
   res.render('obras', {
     nav: settings.nav,
@@ -1902,7 +1905,9 @@ async function renderProjectsListing(req, res, options = {}) {
       : 'Conheça lançamentos inspirados nas melhores tendências globais de design urbano.',
     active: isLaunchListing ? '/lancamentos' : '/obras',
     requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
-    ogImage: absoluteAssetUrl(req, projects[0]?.image || allProjects[0]?.image || '/logo.png'),
+    ogImage: absoluteAssetUrl(req, isLaunchListing
+      ? (projects[0]?.image || OBRAS_LISTING_BANNER)
+      : OBRAS_LISTING_BANNER),
     whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
   });
 }
