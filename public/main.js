@@ -10,7 +10,7 @@
       toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
-    document.querySelectorAll('.nav-link, .nav-dropdown-item').forEach(function (link) {
+    document.querySelectorAll('.nav-dropdown-item, .nav-link:not(.nav-dropdown-toggle)').forEach(function (link) {
       link.addEventListener('click', function () {
         toggleBtn.classList.remove('active');
         navMenu.classList.remove('active');
@@ -20,6 +20,15 @@
   }
 
   function initNavDropdown() {
+    function closeAllDropdowns(except) {
+      document.querySelectorAll('.nav-dropdown.is-open').forEach(function (dropdown) {
+        if (except && dropdown === except) return;
+        dropdown.classList.remove('is-open');
+        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      });
+    }
+
     document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
       const toggle = dropdown.querySelector('.nav-dropdown-toggle');
       if (!toggle) return;
@@ -27,28 +36,16 @@
       toggle.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
-        const isOpen = dropdown.classList.toggle('is-open');
-        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-
-        document.querySelectorAll('.nav-dropdown').forEach(function (other) {
-          if (other === dropdown) return;
-          other.classList.remove('is-open');
-          const otherToggle = other.querySelector('.nav-dropdown-toggle');
-          if (otherToggle) otherToggle.setAttribute('aria-expanded', 'false');
-        });
-      });
-
-      dropdown.addEventListener('click', function (event) {
-        event.stopPropagation();
+        const willOpen = !dropdown.classList.contains('is-open');
+        closeAllDropdowns(willOpen ? dropdown : null);
+        dropdown.classList.toggle('is-open', willOpen);
+        toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
       });
     });
 
-    document.addEventListener('click', function () {
-      document.querySelectorAll('.nav-dropdown.is-open').forEach(function (dropdown) {
-        dropdown.classList.remove('is-open');
-        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
-        if (toggle) toggle.setAttribute('aria-expanded', 'false');
-      });
+    document.addEventListener('click', function (event) {
+      if (event.target.closest('.nav-dropdown')) return;
+      closeAllDropdowns();
     });
   }
 

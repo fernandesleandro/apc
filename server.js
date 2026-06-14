@@ -982,6 +982,22 @@ function readPageFromDatabaseJson(pageId) {
   }
 }
 
+let manualProprietarioContentCache = null;
+let manualProprietarioContentMtime = 0;
+
+function getManualProprietarioContent() {
+  const dbFile = path.join(__dirname, 'data', 'database.json');
+  if (!fs.existsSync(dbFile)) return null;
+  const { mtimeMs } = fs.statSync(dbFile);
+  if (manualProprietarioContentCache && mtimeMs === manualProprietarioContentMtime) {
+    return manualProprietarioContentCache;
+  }
+  const page = readPageFromDatabaseJson('manual-proprietario');
+  manualProprietarioContentCache = enrichManualProprietarioContent(page?.content);
+  manualProprietarioContentMtime = mtimeMs;
+  return manualProprietarioContentCache;
+}
+
 async function ensureInstitutionalPages(pageIds) {
   for (const pageId of pageIds) {
     const existing = await Page.findOne({ id: pageId });
@@ -1242,6 +1258,15 @@ app.get('/acesso-cliente/manual-proprietario', async (req, res) => {
   }
 });
 
+app.get('/acesso-cliente/manual-proprietario/:sectionSlug/:docType/capitulo/:chapterSlug', async (req, res) => {
+  try {
+    await renderManualChapterApi(req, res, req.params);
+  } catch (error) {
+    console.error('[ERROR] Erro ao carregar capítulo do manual:', error);
+    res.status(500).json({ error: 'Erro ao carregar capítulo' });
+  }
+});
+
 app.get('/acesso-cliente/manual-proprietario/:sectionSlug/:docType', async (req, res) => {
   try {
     await renderManualDocumentPage(req, res, req.params);
@@ -1442,9 +1467,8 @@ function enrichManualProprietarioContent(content) {
   };
 }
 
-async function findManualChapterMeta(sectionSlug, docType, chapterSlug) {
-  const defaults = readPageFromDatabaseJson('manual-proprietario');
-  const content = enrichManualProprietarioContent(defaults?.content);
+function findManualChapterMeta(sectionSlug, docType, chapterSlug) {
+  const content = getManualProprietarioContent();
   if (!content?.sections?.length) return null;
 
   for (const section of content.sections) {
@@ -1562,8 +1586,7 @@ function buildManualTreeNodes(chapters) {
 }
 
 function findManualDocumentMeta(sectionSlug, docType) {
-  const defaults = readPageFromDatabaseJson('manual-proprietario');
-  const content = enrichManualProprietarioContent(defaults?.content);
+  const content = getManualProprietarioContent();
   if (!content?.sections?.length) return null;
 
   for (const section of content.sections) {
@@ -1636,40 +1659,79 @@ async function buildManualDocumentRecord(meta) {
   ).lean();
 }
 
+async function renderManualChapterApi(req, res, { sectionSlug, docType, chapterSlug }) {
+  const meta = findManualChapterMeta(sectionSlug, docType, chapterSlug);
+  if (!meta) {
+    return res.status(404).json({ error: 'Capítulo não encontrado' });
+  }
+
+  const chapter = await getOrFetchManualChapter(meta);
+  if (!chapter?.html) {
+    return res.status(502).json({ error: 'Não foi possível carregar este capítulo' });
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    res.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+  }
+
+  res.json({
+    slug: chapter.slug,
+    title: chapter.title,
+    html: chapter.html
+  });
+}
+
 async function renderManualDocumentPage(req, res, { sectionSlug, docType }) {
   const meta = findManualDocumentMeta(sectionSlug, docType);
   if (!meta) {
     return res.status(404).send('Manual não encontrado');
   }
 
-  let manual = await ManualDocument.findOne({ sectionSlug, docType }).lean();
-  const needsRebuild = !manual?.chapters?.length
-    || manual.chapterCount < (meta.children.length || 0)
+  const expectedChapterCount = meta.children.filter((child) => !isManualNavTopic(child.title)).length;
+
+  let manual = await ManualDocument.findOne(
+    { sectionSlug, docType },
+    { sectionSlug: 1, sectionTitle: 1, docTitle: 1, chapterCount: 1, layout: 1, toc: 1 }
+  ).lean();
+
+  const needsRebuild = !manual?.toc?.length
+    || (manual.chapterCount || 0) < expectedChapterCount
     || manual.layout !== 'tree-v2';
+
   if (needsRebuild) {
     manual = await buildManualDocumentRecord(meta);
   }
 
-  if (!manual?.chapters?.length) {
+  const toc = (manual.toc || []).filter((entry) => !isManualNavTopic(entry.title));
+  if (!toc.length) {
     return res.status(502).send('Não foi possível carregar este manual. Tente novamente mais tarde.');
   }
 
-  const chapters = manual.chapters.map((chapter) => ({
-    ...chapter,
-    html: presentManualChapterHtml(chapter.html)
-  }));
-  const tree = buildManualTreeNodes(chapters);
+  const tree = buildManualTreeNodes(toc);
   const settings = await getSettings();
+  const chapterApiBase = `/acesso-cliente/manual-proprietario/${sectionSlug}/${docType}/capitulo`;
+
+  const initialSlug = toc[0].slug;
+  let firstChapter = null;
+  const firstMeta = findManualChapterMeta(sectionSlug, docType, initialSlug);
+  if (firstMeta) {
+    const fetched = await getOrFetchManualChapter(firstMeta);
+    if (fetched?.html) {
+      firstChapter = { slug: fetched.slug, title: fetched.title, html: fetched.html };
+    }
+  }
 
   res.render('manual-document', {
     manual: {
       sectionSlug: manual.sectionSlug,
       sectionTitle: manual.sectionTitle,
       docTitle: manual.docTitle,
-      chapterCount: manual.chapterCount
+      chapterCount: manual.chapterCount || toc.length
     },
-    chapters,
+    toc,
     tree,
+    firstChapter,
+    chapterApiBase,
     nav: settings.nav,
     footer: settings.footer,
     active: '/acesso-cliente',

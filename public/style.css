@@ -64,8 +64,7 @@ a { text-decoration: none; color: inherit; }
     gap: 6px;
 }
 .nav-dropdown-toggle i { font-size: 0.62rem; opacity: 0.85; transition: transform 0.25s ease; }
-.nav-dropdown.is-open .nav-dropdown-toggle i,
-.nav-dropdown:hover .nav-dropdown-toggle i { transform: rotate(180deg); }
+.nav-dropdown.is-open .nav-dropdown-toggle i { transform: rotate(180deg); }
 
 .nav-dropdown-menu {
     position: absolute;
@@ -83,7 +82,14 @@ a { text-decoration: none; color: inherit; }
     transition: var(--transition);
     z-index: 1002;
 }
-.nav-dropdown:hover .nav-dropdown-menu,
+@media (hover: hover) and (pointer: fine) {
+    .nav-dropdown:hover .nav-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .nav-dropdown:hover .nav-dropdown-toggle i { transform: rotate(180deg); }
+}
 .nav-dropdown.is-open .nav-dropdown-menu {
     opacity: 1;
     visibility: visible;
@@ -360,6 +366,11 @@ a { text-decoration: none; color: inherit; }
 .manual-tree-content-title { margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--bg-dark); line-height: 1.3; }
 .manual-tree-content-body { min-height: 360px; position: relative; }
 .manual-tree-panel[hidden] { display: none !important; }
+.manual-tree-loading { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 200px; color: var(--text-muted); font-size: 0.92rem; font-weight: 600; }
+.manual-tree-loading i { color: var(--accent-blue); }
+.manual-tree-error { text-align: center; color: #b45309; padding: 40px 20px; font-weight: 600; }
+.manual-tree-retry { margin-top: 8px; padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; font-weight: 700; color: var(--accent-blue); }
+.manual-tree-retry:hover { background: rgba(0,109,229,0.06); }
 .manual-pdf-list { margin: 0; }
 .manual-pdf-list-intro { margin: 0 0 16px; font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
 .manual-pdf-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -578,7 +589,13 @@ a { text-decoration: none; color: inherit; }
         padding: 0;
         transition: max-height 0.35s ease;
     }
-    .nav-dropdown.is-open .nav-dropdown-menu { max-height: 240px; }
+    .nav-dropdown:hover .nav-dropdown-menu {
+        max-height: 0;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+    }
+    .nav-dropdown.is-open .nav-dropdown-menu { max-height: 320px; }
 
     .nav-dropdown-item {
         padding: 14px 24px 14px 36px;
