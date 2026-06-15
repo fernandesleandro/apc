@@ -468,6 +468,43 @@ function buildProjectSections(detailData) {
   return sections;
 }
 
+function getFooterContactValue(footer, labelPattern) {
+  const items = filterContactItems(footer?.contact);
+  const item = items.find((i) => labelPattern.test(String(i?.label || '')));
+  return item?.value ? String(item.value).trim() : '';
+}
+
+function formatPhoneForSchema(displayPhone) {
+  const digits = String(displayPhone || WHATSAPP_PHONE).replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.startsWith('55') ? `+${digits}` : `+55${digits}`;
+}
+
+function buildLocalBusinessSchemaJson(page, footer) {
+  const phone = getFooterContactValue(footer, /telefone|phone/i) || DEFAULT_FOOTER_CONTACT[0].value;
+  const email = getFooterContactValue(footer, /e-?mail/i) || DEFAULT_FOOTER_CONTACT[1].value;
+  const addressRaw = getFooterContactValue(footer, /endereço|localização/i) || DEFAULT_FOOTER_CONTACT[2].value;
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: footer?.company || defaultSettings.footer.company,
+    description: page?.description || defaultSettings.footer.description,
+    url: `${SITE_URL}/sobre`,
+    telephone: formatPhoneForSchema(phone),
+    email
+  };
+  if (addressRaw) {
+    schema.address = {
+      '@type': 'PostalAddress',
+      streetAddress: addressRaw.split(' - ')[0].trim(),
+      addressLocality: 'Brasília',
+      addressRegion: 'DF',
+      addressCountry: 'BR'
+    };
+  }
+  return JSON.stringify(schema);
+}
+
 function buildProjectSchemaJson(page, project, detailData, requestUrl) {
   const addressItem = (detailData.summaryItems || []).find(i =>
     i && ['Endereço', 'Localização'].includes(i.label)
@@ -492,30 +529,6 @@ function buildProjectSchemaJson(page, project, detailData, requestUrl) {
     };
   }
   return JSON.stringify(schema);
-}
-
-async function enrichProjectsForListing(projects, footer) {
-  if (!projects?.length) return [];
-  const ids = projects.map((p) => p.id);
-  const pages = await Page.find(
-    { id: { $in: ids } },
-    { id: 1, 'details.summaryItems': 1 }
-  ).lean();
-  const pageById = Object.fromEntries(pages.map((p) => [p.id, p]));
-  return projects.map((project) => {
-    const page = pageById[project.id];
-    const summary = page?.details?.summaryItems || [];
-    const address = summary.find((i) => i && ['Endereço', 'Localização'].includes(i.label));
-    const metragem = summary.find((i) => i && /metr|m²|m2|área/i.test(i.label || ''));
-    const locationChip = address?.value
-      ? String(address.value).split('-')[0].split(',')[0].trim().slice(0, 48)
-      : (metragem?.value ? String(metragem.value).slice(0, 48) : '');
-    return {
-      ...project,
-      locationChip,
-      whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`, footer)
-    };
-  });
 }
 
 const PROJECT_LISTING_CACHE_MS = 60 * 1000;
@@ -1215,13 +1228,18 @@ app.get('/admin/logout', (req, res) => {
 
 app.get('/', async (req, res) => {
   try {
-    const settings = await getSettings();
-    const page = await Page.findOne({ id: 'home' }).lean();
-    const servicesPage = await Page.findOne({ id: 'servicos' }).lean();
+    const [settings, page, servicesPage, listing] = await Promise.all([
+      getSettings(),
+      Page.findOne({ id: 'home' }).lean(),
+      Page.findOne({ id: 'servicos' }).lean(),
+      loadProjectsListingBase()
+    ]);
     const servicesSection = normalizeServicesSection(servicesPage?.content);
-    const rawProjects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
-    const projects = await enrichProjectsForListing(rawProjects, settings.footer);
-    const { categoryOptions, statusOptions } = buildProjectFilterOptions(rawProjects);
+    const projects = listing.rawProjects.map((project) => ({
+      ...project,
+      whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`, settings.footer)
+    }));
+    const { categoryOptions, statusOptions } = listing.filterOptions;
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     res.render('home', {
       page: page || { title: 'AP Construções', hero: { title: 'AP Construções', subtitle: 'Construção civil com qualidade, confiança e excelência.' } },
@@ -1246,7 +1264,17 @@ app.get('/sobre', async (req, res) => {
   try {
     const settings = await getSettings();
     const page = await Page.findOne({ id: 'sobre' }).lean();
-    res.render('sobre', { page: page || { title: 'Sobre', description: '' }, nav: settings.nav, footer: settings.footer, detailData: {}, active: req.path, requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}` });
+    const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const schemaJson = buildLocalBusinessSchemaJson(page, settings.footer);
+    res.render('sobre', {
+      page: page || { title: 'Sobre', description: '' },
+      nav: settings.nav,
+      footer: settings.footer,
+      detailData: {},
+      active: req.path,
+      requestUrl,
+      schemaJson
+    });
   } catch (error) {
     console.error('[ERROR] Erro ao carregar sobre:', error);
     res.status(500).send('Erro ao carregar página');
@@ -2053,6 +2081,12 @@ app.post('/api/contato', async (req, res) => {
   }
 });
 
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(
+    `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
+  );
+});
+
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const projects = await Project.find().lean();
@@ -2209,21 +2243,9 @@ app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-// Rota alternativa para compatibilidade com links antigos
-app.get('/admin/edit-project-new/:id', isAuthenticated, async (req, res) => {
-  try {
-    const project = await Project.findOne({ id: req.params.id });
-    if (!project) {
-      return res.status(404).send('Projeto não encontrado');
-    }
-    // Buscar página correspondente para obter detalhes técnicos e localização
-    const page = await Page.findOne({ id: req.params.id });
-    // Renderizar a nova view refatorada com tabs
-    res.render('admin-edit-project-new', { project, page, username: req.session.admin.username });
-  } catch (error) {
-    console.error('Erro ao carregar projeto:', error);
-    res.status(500).send('Erro ao carregar projeto');
-  }
+// Rota legada — redireciona para a rota canônica
+app.get('/admin/edit-project-new/:id', isAuthenticated, (req, res) => {
+  res.redirect(301, `/admin/edit-project/${req.params.id}`);
 });
 
 app.post('/admin/upload-main-image/:id', isAuthenticated, uploadForProject('imageFile', 'project_main'), handleMulterError, async (req, res) => {
