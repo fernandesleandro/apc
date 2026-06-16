@@ -947,6 +947,7 @@
                                     <option value="comercial" <% if (projectCategory === 'comercial') { %>selected<% } %>>Comercial</option>
                                     <option value="corporativo" <% if (projectCategory === 'corporativo') { %>selected<% } %>>Corporativo</option>
                                     <option value="misto" <% if (projectCategory === 'misto') { %>selected<% } %>>Misto</option>
+                                    <option value="institucional" <% if (projectCategory === 'institucional') { %>selected<% } %>>Institucional</option>
                                     <option value="outro" <% if (projectCategory === 'outro') { %>selected<% } %>>Outro</option>
                                 </select>
                                 <div class="form-hint">Tipo de empreendimento</div>
@@ -995,6 +996,26 @@
                                     <ul class="preview-detail-bullets" id="detailBulletsPreview"></ul>
                                 </div>
                             </details>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="constructionMonth">Mês de construção</label>
+                                <% const constructionMonth = Number(project.constructionMonth) || 0; %>
+                                <select id="constructionMonth" name="constructionMonth">
+                                    <option value="" <% if (!constructionMonth) { %>selected<% } %>>Selecionar mês</option>
+                                    <% const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']; %>
+                                    <% monthNames.forEach((name, index) => { %>
+                                        <option value="<%= index + 1 %>" <% if (constructionMonth === index + 1) { %>selected<% } %>><%= name %></option>
+                                    <% }) %>
+                                </select>
+                                <div class="form-hint">Usado para ordenar empreendimentos (mais recentes primeiro)</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="constructionYear">Ano de construção</label>
+                                <input type="number" id="constructionYear" name="constructionYear" min="1990" max="2100" step="1" value="<%= project.constructionYear || '' %>" placeholder="Ex: 2024">
+                                <div class="form-hint">Ano de entrega ou previsão de entrega</div>
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -1962,6 +1983,8 @@
             formData.append('category', document.getElementById('category').value);
             formData.append('badge', document.getElementById('badge').value);
             formData.append('detailTag', document.getElementById('detailTag').value);
+            formData.append('constructionYear', document.getElementById('constructionYear').value);
+            formData.append('constructionMonth', document.getElementById('constructionMonth').value);
             formData.append('href', document.getElementById('href').value);
 
             if (selectedFilesMain.length > 0) {
