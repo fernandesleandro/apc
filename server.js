@@ -69,6 +69,7 @@ function normalizeCategoryValue(category) {
     comercial: 'comercial',
     corporativo: 'corporativo',
     misto: 'misto',
+    institucional: 'institucional',
     outro: 'outro'
   };
   return map[key] || key;
@@ -172,6 +173,8 @@ const Project = mongoose.model('Project', new mongoose.Schema({
   href: String,
   badge: String,
   category: String, // Novo campo para categoria do projeto
+  constructionYear: Number,
+  constructionMonth: Number,
   createdAt: { type: Date, default: Date.now }
 }));
 
@@ -334,10 +337,39 @@ function formatCategoryLabel(category) {
     comercial: 'Comercial',
     corporativo: 'Corporativo',
     misto: 'Misto',
+    institucional: 'Institucional',
     outro: 'Outro'
   };
   const key = String(category).trim().toLowerCase();
   return map[key] || String(category).trim();
+}
+
+function parseConstructionYearMonth(body) {
+  let constructionYear = null;
+  let constructionMonth = null;
+  if (body?.constructionYear !== undefined && String(body.constructionYear).trim() !== '') {
+    const year = parseInt(String(body.constructionYear).trim(), 10);
+    if (!Number.isNaN(year) && year >= 1900 && year <= 2100) constructionYear = year;
+  }
+  if (body?.constructionMonth !== undefined && String(body.constructionMonth).trim() !== '') {
+    const month = parseInt(String(body.constructionMonth).trim(), 10);
+    if (!Number.isNaN(month) && month >= 1 && month <= 12) constructionMonth = month;
+  }
+  return { constructionYear, constructionMonth };
+}
+
+function compareProjectsByConstruction(a, b) {
+  const yearA = Number(a?.constructionYear) || 0;
+  const yearB = Number(b?.constructionYear) || 0;
+  if (yearB !== yearA) return yearB - yearA;
+  const monthA = Number(a?.constructionMonth) || 0;
+  const monthB = Number(b?.constructionMonth) || 0;
+  if (monthB !== monthA) return monthB - monthA;
+  return new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0);
+}
+
+function sortProjectsByConstruction(projects) {
+  return [...projects].sort(compareProjectsByConstruction);
 }
 
 function buildProjectFilterOptions(rawProjects) {
@@ -510,7 +542,9 @@ function buildProjectSchemaJson(page, project, detailData, requestUrl) {
     i && ['Endereço', 'Localização'].includes(i.label)
   );
   const category = (project?.category || '').toLowerCase();
-  const schemaType = category === 'comercial' || category === 'corporativo' ? 'OfficeBuilding' : 'Residence';
+  const schemaType = category === 'comercial' || category === 'corporativo' || category === 'institucional'
+    ? 'OfficeBuilding'
+    : 'Residence';
   const schema = {
     '@context': 'https://schema.org',
     '@type': schemaType,
@@ -533,7 +567,8 @@ function buildProjectSchemaJson(page, project, detailData, requestUrl) {
 
 const PROJECT_LISTING_CACHE_MS = 60 * 1000;
 const PROJECT_LISTING_FIELDS = {
-  id: 1, title: 1, description: 1, image: 1, href: 1, badge: 1, category: 1, createdAt: 1
+  id: 1, title: 1, description: 1, image: 1, href: 1, badge: 1, category: 1,
+  constructionYear: 1, constructionMonth: 1, createdAt: 1
 };
 const projectsListingCache = { at: 0, rawProjects: null, filterOptions: null };
 
@@ -564,8 +599,9 @@ async function loadProjectsListingBase() {
     };
   }
 
-  const rawProjects = (await Project.find({}, PROJECT_LISTING_FIELDS).sort({ createdAt: -1 }).lean())
-    .map(normalizeProjectRecord);
+  const rawProjects = sortProjectsByConstruction(
+    (await Project.find({}, PROJECT_LISTING_FIELDS).lean()).map(normalizeProjectRecord)
+  );
   const pages = rawProjects.length
     ? await Page.find(
       { id: { $in: rawProjects.map((p) => p.id) } },
@@ -982,6 +1018,39 @@ async function ensureDatabase() {
   await ensureManualProprietarioPageContent();
   await ensureSettingsNavFromDatabase();
   await ensureFooterSettings();
+  await syncProjectConstructionDates();
+}
+
+async function syncProjectConstructionDates() {
+  const dbFile = path.join(__dirname, 'data', 'database.json');
+  if (!fs.existsSync(dbFile)) return;
+  try {
+    const data = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+    if (!Array.isArray(data.projects)) return;
+    let updated = 0;
+    for (const seed of data.projects) {
+      if (!seed.id || seed.constructionYear == null) continue;
+      const result = await Project.updateOne(
+        {
+          id: seed.id,
+          $or: [{ constructionYear: { $exists: false } }, { constructionYear: null }]
+        },
+        {
+          $set: {
+            constructionYear: seed.constructionYear,
+            constructionMonth: seed.constructionMonth ?? null
+          }
+        }
+      );
+      if (result.modifiedCount) updated += 1;
+    }
+    if (updated) {
+      invalidateProjectsListingCache();
+      console.log(`[SEED] Datas de construção sincronizadas em ${updated} empreendimento(s)`);
+    }
+  } catch (error) {
+    console.error('[SEED] Erro ao sincronizar datas de construção:', error.message);
+  }
 }
 
 function readNavFooterFromDatabaseJson() {
@@ -2126,7 +2195,9 @@ app.get('/admin/dashboard', isAuthenticated, async (req, res) => {
   try {
     const settings = await getSettings();
     const pages = await Page.find();
-    const projects = (await Project.find().sort({ createdAt: -1 }).lean()).map(normalizeProjectRecord);
+    const projects = sortProjectsByConstruction(
+      (await Project.find().lean()).map(normalizeProjectRecord)
+    );
     
     const plantaGalleries = await PlantaGallery.find();
     const projectGalleries = await ProjectGallery.find();
@@ -2307,12 +2378,15 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
       return res.status(400).json({ success: false, message: 'Categoria do projeto é obrigatória' });
     }
 
+    const construction = parseConstructionYearMonth(body);
     const update = {
       title,
       description: body.description !== undefined ? String(body.description) : existing.description,
       category,
       badge: body.badge !== undefined ? String(body.badge).trim() : existing.badge,
-      href: body.href !== undefined ? String(body.href).trim() : existing.href
+      href: body.href !== undefined ? String(body.href).trim() : existing.href,
+      constructionYear: body.constructionYear !== undefined ? construction.constructionYear : existing.constructionYear,
+      constructionMonth: body.constructionMonth !== undefined ? construction.constructionMonth : existing.constructionMonth
     };
 
     if (req.file) {
@@ -2941,6 +3015,7 @@ app.post('/admin/save-site-settings', isAuthenticated, async (req, res) => {
 app.post('/admin/create-project', isAuthenticated, async (req, res) => {
   try {
     const { id, title, description, badge, href, image, category } = req.body;
+    const construction = parseConstructionYearMonth(req.body);
 
     // Validação de campos obrigatórios
     if (!id || !id.trim()) {
@@ -2975,6 +3050,8 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
       href: href ? href.trim() : `/obras/${id.trim()}`,
       image: normalizedImage,
       category: category.trim(),
+      constructionYear: construction.constructionYear,
+      constructionMonth: construction.constructionMonth,
       createdAt: new Date()
     });
 

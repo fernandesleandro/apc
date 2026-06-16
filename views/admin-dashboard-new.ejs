@@ -723,12 +723,38 @@
                                 <option value="comercial">Comercial</option>
                                 <option value="corporativo">Corporativo</option>
                                 <option value="misto">Misto</option>
+                                <option value="institucional">Institucional</option>
                                 <option value="outro">Outro</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="newProjectBadge">Badge (Opcional)</label>
                             <input type="text" id="newProjectBadge" name="badge" placeholder="Ex: Em Construção">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="newProjectConstructionMonth">Mês de construção</label>
+                            <select id="newProjectConstructionMonth" name="constructionMonth">
+                                <option value="">Selecionar mês</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newProjectConstructionYear">Ano de construção</label>
+                            <input type="number" id="newProjectConstructionYear" name="constructionYear" min="1990" max="2100" step="1" placeholder="Ex: 2024">
                         </div>
                     </div>
 
@@ -758,6 +784,7 @@
                             <tr>
                                 <th>Empreendimento</th>
                                 <th>Categoria</th>
+                                <th>Construção</th>
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>
@@ -771,10 +798,18 @@
                                             <small style="color: #a0aec0;">ID: <%= project.id %></small>
                                         </td>
                                         <td>
-                                            <% const categoryMap = { 'residencial': 'Residencial', 'comercial': 'Comercial', 'misto': 'Misto', 'outro': 'Outro' }; %>
+                                            <% const categoryMap = { 'residencial': 'Residencial', 'comercial': 'Comercial', 'corporativo': 'Corporativo', 'misto': 'Misto', 'institucional': 'Institucional', 'outro': 'Outro' }; %>
                                             <span class="badge badge-<%= project.category || 'other' %>">
                                                 <%= categoryMap[project.category] || 'Outro' %>
                                             </span>
+                                        </td>
+                                        <td>
+                                            <% const monthLabels = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']; %>
+                                            <% if (project.constructionYear) { %>
+                                                <%= project.constructionMonth ? monthLabels[project.constructionMonth] + '/' : '' %><%= project.constructionYear %>
+                                            <% } else { %>
+                                                <span style="color: #a0aec0;">—</span>
+                                            <% } %>
                                         </td>
                                         <td>
                                             <% if (project.badge) { %>
@@ -799,7 +834,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="5">
                                         <div class="empty-state">
                                             <i class="fas fa-inbox"></i>
                                             <p>Nenhum empreendimento cadastrado</p>
@@ -847,7 +882,9 @@
                 title: document.getElementById('newProjectTitle').value.trim(),
                 category: document.getElementById('newProjectCategory').value.trim(),
                 description: document.getElementById('newProjectDescription').value.trim(),
-                badge: document.getElementById('newProjectBadge').value.trim() || ''
+                badge: document.getElementById('newProjectBadge').value.trim() || '',
+                constructionYear: document.getElementById('newProjectConstructionYear').value,
+                constructionMonth: document.getElementById('newProjectConstructionMonth').value
             };
 
             if (!formData.id || !formData.title || !formData.category || !formData.description) {

@@ -4615,7 +4615,9 @@
       "image": "/images/gallery/monumental/ficha-tecnica.png",
       "href": "/obras/monumental",
       "badge": "Lançamento",
-      "category": "comercial"
+      "category": "comercial",
+      "constructionYear": 2026,
+      "constructionMonth": 6
     },
     {
       "id": "cosmopolitan",
@@ -4623,7 +4625,9 @@
       "description": "Empreendimento misto em Águas Claras — apartamentos, lojas e salas comerciais.",
       "image": "/images/gallery/cosmopolitan/fachada.png",
       "href": "/obras/cosmopolitan",
-      "category": "misto"
+      "category": "misto",
+      "constructionYear": 2025,
+      "constructionMonth": 8
     },
     {
       "id": "barao-maua",
@@ -4632,7 +4636,9 @@
       "image": "/images/gallery/barao-maua/fachada-externa.png",
       "href": "/obras/barao-maua",
       "category": "comercial",
-      "badge": "Entregue"
+      "badge": "Entregue",
+      "constructionYear": 2015,
+      "constructionMonth": 11
     },
     {
       "id": "barao-rio-branco",
@@ -4641,7 +4647,9 @@
       "image": "/images/gallery/barao-rio-branco/capa.jpg",
       "href": "/obras/barao-rio-branco",
       "category": "comercial",
-      "badge": "Entregue"
+      "badge": "Entregue",
+      "constructionYear": 2016,
+      "constructionMonth": 3
     },
     {
       "id": "chateau-valois",
@@ -4650,7 +4658,9 @@
       "image": "/images/gallery/chateau-valois/capa.jpg",
       "href": "/obras/chateau-valois",
       "category": "residencial",
-      "badge": "Entregue"
+      "badge": "Entregue",
+      "constructionYear": 2017,
+      "constructionMonth": 6
     },
     {
       "id": "metropolitan",
@@ -4659,7 +4669,9 @@
       "image": "/images/gallery/metropolitan/capa.jpg",
       "href": "/obras/metropolitan",
       "category": "residencial",
-      "badge": "Entregue"
+      "badge": "Entregue",
+      "constructionYear": 2018,
+      "constructionMonth": 9
     },
     {
       "id": "olympique",
@@ -4668,7 +4680,9 @@
       "image": "/images/gallery/olympique/ficha-tecnica.png",
       "href": "/obras/olympique",
       "category": "residencial",
-      "badge": "Entregue"
+      "badge": "Entregue",
+      "constructionYear": 2019,
+      "constructionMonth": 4
     }
   ],
   "plantaGalleries": {
