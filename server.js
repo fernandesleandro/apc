@@ -1018,6 +1018,39 @@ async function ensureDatabase() {
   await ensureManualProprietarioPageContent();
   await ensureSettingsNavFromDatabase();
   await ensureFooterSettings();
+  await syncProjectConstructionDates();
+}
+
+async function syncProjectConstructionDates() {
+  const dbFile = path.join(__dirname, 'data', 'database.json');
+  if (!fs.existsSync(dbFile)) return;
+  try {
+    const data = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+    if (!Array.isArray(data.projects)) return;
+    let updated = 0;
+    for (const seed of data.projects) {
+      if (!seed.id || seed.constructionYear == null) continue;
+      const result = await Project.updateOne(
+        {
+          id: seed.id,
+          $or: [{ constructionYear: { $exists: false } }, { constructionYear: null }]
+        },
+        {
+          $set: {
+            constructionYear: seed.constructionYear,
+            constructionMonth: seed.constructionMonth ?? null
+          }
+        }
+      );
+      if (result.modifiedCount) updated += 1;
+    }
+    if (updated) {
+      invalidateProjectsListingCache();
+      console.log(`[SEED] Datas de construção sincronizadas em ${updated} empreendimento(s)`);
+    }
+  } catch (error) {
+    console.error('[SEED] Erro ao sincronizar datas de construção:', error.message);
+  }
 }
 
 function readNavFooterFromDatabaseJson() {

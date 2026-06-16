@@ -114,11 +114,31 @@
     });
   }
 
+  function compareConstructionCards(a, b) {
+    const yearA = Number(a.dataset.constructionYear) || 0;
+    const yearB = Number(b.dataset.constructionYear) || 0;
+    if (yearB !== yearA) return yearB - yearA;
+    const monthA = Number(a.dataset.constructionMonth) || 0;
+    const monthB = Number(b.dataset.constructionMonth) || 0;
+    return monthB - monthA;
+  }
+
+  function sortProjectCardsInGrid(grid) {
+    const cards = Array.from(grid.querySelectorAll('.project-card'));
+    if (cards.length < 2) return;
+    cards.sort(compareConstructionCards);
+    cards.forEach(function (card) {
+      grid.appendChild(card);
+    });
+  }
+
   function initProjectsFilter() {
     document.querySelectorAll('.projects-section').forEach(function (section) {
       const filters = section.querySelector('.projects-filters');
       const grid = section.querySelector('.projects-grid');
       if (!filters || !grid) return;
+
+      sortProjectCardsInGrid(grid);
 
       const categorySelect = filters.querySelector('[data-filter-category]');
       const statusSelect = filters.querySelector('[data-filter-status]');
