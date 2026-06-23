@@ -1,7 +1,7 @@
 <a href="<%= project.href %>" class="project-card" data-category="<%= project.category || '' %>" data-status="<%= project.badge || '' %>" data-construction-year="<%= project.constructionYear || '' %>" data-construction-month="<%= project.constructionMonth || '' %>">
     <div class="project-img-wrapper">
         <img loading="<%= typeof eagerImage !== 'undefined' && eagerImage ? 'eager' : 'lazy' %>"<% if (typeof eagerImage !== 'undefined' && eagerImage) { %> fetchpriority="high"<% } %> decoding="async" src="<%= project.image %>" alt="<%= project.title %>" class="project-img">
-        <% if (project.badge) { %>
+        <% if (project.showBadge) { %>
             <span class="project-badge"><%= project.badge %></span>
         <% } %>
         <% if (project.categoryLabel) { %>
@@ -10,6 +10,9 @@
     </div>
     <div class="project-info">
         <h4><%= project.title %></h4>
+        <% if (project.deliveryLabel) { %>
+            <p class="project-delivery-date"><i class="far fa-calendar-check" aria-hidden="true"></i> <%= project.deliveryLabel %></p>
+        <% } %>
         <% if (project.locationChip) { %>
             <p class="project-location-chip"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> <%= project.locationChip %></p>
         <% } %>

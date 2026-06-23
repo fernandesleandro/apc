@@ -169,6 +169,8 @@ a { text-decoration: none; color: inherit; }
 .project-badge { position: absolute; top: 20px; right: 20px; background: var(--accent-blue); color: #fff; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; border-radius: 30px; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 .project-info { padding: 30px; }
 .project-info h4 { font-size: 1.4rem; color: var(--bg-dark); margin-bottom: 8px; font-weight: 700; }
+.project-delivery-date { color: var(--text-muted); font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.02em; }
+.project-delivery-date i { margin-right: 6px; color: var(--accent-blue); opacity: 0.85; }
 .project-info p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
 
 /* Detail Pages */
