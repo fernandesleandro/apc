@@ -319,15 +319,43 @@ function normalizeImageRecord(image) {
   return { ...image, src: normalizePublicPath(image.src) };
 }
 
+const DELIVERY_MONTH_SHORT = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+function formatProjectDeliveryLabel(project) {
+  const year = Number(project?.constructionYear);
+  if (!year) return '';
+  const month = Number(project?.constructionMonth);
+  const period = month >= 1 && month <= 12
+    ? `${DELIVERY_MONTH_SHORT[month]}/${year}`
+    : String(year);
+  const badge = String(project?.badge || '').trim().toLowerCase();
+  if (/entregue/.test(badge)) return `Entregue em ${period}`;
+  if (/lançamento|lancamento|em construção|em construcao|construção|construcao/.test(badge)) {
+    return `Previsão de entrega: ${period}`;
+  }
+  return `Entrega: ${period}`;
+}
+
+function shouldShowProjectBadge(project) {
+  const badge = String(project?.badge || '').trim();
+  if (!badge) return false;
+  // Com data de entrega, "Entregue" na foto repete a linha abaixo do título
+  if (project.deliveryLabel && /entregue/i.test(badge)) return false;
+  return true;
+}
+
 function normalizeProjectRecord(project) {
   if (!project) return project;
   const object = typeof project.toObject === 'function' ? project.toObject() : project;
-  return {
+  const normalized = {
     ...object,
     href: object.href || `/obras/${object.id}`,
     image: normalizePublicPath(object.image) || fallbackImage,
     categoryLabel: formatCategoryLabel(object.category)
   };
+  normalized.deliveryLabel = formatProjectDeliveryLabel(normalized);
+  normalized.showBadge = shouldShowProjectBadge(normalized);
+  return normalized;
 }
 
 function formatCategoryLabel(category) {
