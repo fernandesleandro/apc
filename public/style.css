@@ -16,27 +16,6 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
 body { font-family: var(--font-main); color: var(--text-dark); background-color: #ffffff; line-height: 1.6; overflow-x: hidden; }
-.skip-link {
-    position: absolute;
-    left: -9999px;
-    top: auto;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    z-index: 10001;
-    padding: 12px 20px;
-    background: var(--accent-blue);
-    color: #fff;
-    font-weight: 700;
-    border-radius: 8px;
-}
-.skip-link:focus {
-    left: 16px;
-    top: 16px;
-    width: auto;
-    height: auto;
-    overflow: visible;
-}
 .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 a { text-decoration: none; color: inherit; }
 
@@ -484,19 +463,19 @@ a { text-decoration: none; color: inherit; }
     text-align: center;
 }
 .page-banner--principal {
-    background-image: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('/images/banners/hero-principal.webp');
+    background-image: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('/images/banners/hero-principal.jpg');
 }
 .page-banner--atendimento {
-    background-image: linear-gradient(rgba(0,11,44,0.88), rgba(0,7,20,0.96)), url('/images/banners/banner-atendimento.webp');
+    background-image: linear-gradient(rgba(0,11,44,0.88), rgba(0,7,20,0.96)), url('/images/banners/banner-atendimento.jpg');
 }
 .page-banner--equipe {
-    background-image: linear-gradient(rgba(0,11,44,0.88), rgba(0,7,20,0.96)), url('/images/banners/banner-equipe.webp');
+    background-image: linear-gradient(rgba(0,11,44,0.88), rgba(0,7,20,0.96)), url('/images/banners/banner-equipe.jpg');
 }
 .page-banner--gradient { background-image: linear-gradient(135deg, #000b2c 0%, #001a42 45%, #002855 100%); }
 .page-banner--manual { background-image: linear-gradient(135deg, #000b2c 0%, #001a42 50%, #002855 100%); }
 .page-banner--local { background-size: cover; background-position: center; background-repeat: no-repeat; }
 .hero--principal {
-    background-image: linear-gradient(rgba(0, 17, 44, 0.7), rgba(0, 7, 20, 0.88)), url('/images/banners/hero-principal.webp');
+    background-image: linear-gradient(rgba(0, 17, 44, 0.7), rgba(0, 7, 20, 0.88)), url('/images/banners/hero-principal.jpg');
 }
 .page-banner h1 {
     font-size: clamp(1.65rem, 4vw + 0.75rem, 3.2rem);
@@ -514,7 +493,7 @@ a { text-decoration: none; color: inherit; }
     margin-right: auto;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
     .page-banner p,
     .hero-subtitle {
         max-width: none;
