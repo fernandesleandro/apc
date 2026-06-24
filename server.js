@@ -7,6 +7,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const { MongoStore } = require('connect-mongo');
+const sharp = require('sharp');
 
 const app = express();
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ap_construcoes';
@@ -47,17 +48,33 @@ function toWebPath(filePath) {
 
 const VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
-function fileToStoredImagePath(file) {
+async function persistUploadedImage(file) {
   if (!file) return null;
+
   if (isVercel && file.buffer) {
-    if (file.size > VERCEL_MAX_IMAGE_BYTES) {
-      throw new Error('Imagem muito grande para o servidor online. Use até 4 MB (JPG, PNG ou WebP).');
+    const optimized = await sharp(file.buffer)
+      .rotate()
+      .resize({ width: 1400, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+    if (optimized.length > VERCEL_MAX_IMAGE_BYTES) {
+      throw new Error('Imagem muito grande após compressão. Use uma foto menor (até 4 MB).');
     }
-    return `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    return `data:image/webp;base64,${optimized.toString('base64')}`;
   }
+
   if (file.path) {
-    return toWebPath(file.path);
+    const parsed = path.parse(file.path);
+    const webpPath = path.join(parsed.dir, `${parsed.name}.webp`);
+    await sharp(file.path)
+      .rotate()
+      .resize({ width: 1400, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toFile(webpPath);
+    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    return toWebPath(webpPath);
   }
+
   return null;
 }
 
@@ -243,7 +260,6 @@ const {
   fetchChapterContent,
   buildManualPath,
   buildChapterPath,
-  buildCombinedManualHtml,
   formatManualHtml
 } = require('./lib/manual-content');
 
@@ -303,15 +319,21 @@ const defaultSettings = {
     hr: DEFAULT_FOOTER_HR
   }
 };
-const fallbackImage = '/images/banners/banner-empreendimento.jpg';
-const OBRAS_LISTING_BANNER = '/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.jpeg';
+const fallbackImage = '/images/banners/banner-empreendimento.webp';
+const OBRAS_LISTING_BANNER = '/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.webp';
 
 function normalizePublicPath(value) {
   if (!value || typeof value !== 'string') return '';
   const trimmed = value.trim().replace(/\\/g, '/');
-  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('data:')) return trimmed;
+  if (trimmed.startsWith('data:')) return '';
+  if (/^(https?:)?\/\//i.test(trimmed)) return trimmed;
   const withoutPublic = trimmed.replace(/^\/?public\//, '');
   return withoutPublic.startsWith('/') ? withoutPublic : `/${withoutPublic}`;
+}
+
+function buildPageUrl(req) {
+  const pathOnly = (req.originalUrl || '/').split('?')[0] || '/';
+  return `${SITE_URL}${pathOnly}`;
 }
 
 function normalizeImageRecord(image) {
@@ -1337,7 +1359,7 @@ app.get('/', async (req, res) => {
       whatsappUrl: buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${project.title}.`, settings.footer)
     }));
     const { categoryOptions, statusOptions } = listing.filterOptions;
-    const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const requestUrl = `${buildPageUrl(req)}`;
     res.render('home', {
       page: page || { title: 'AP Construções', hero: { title: 'AP Construções', subtitle: 'Construção civil com qualidade, confiança e excelência.' } },
       nav: settings.nav,
@@ -1361,7 +1383,7 @@ app.get('/sobre', async (req, res) => {
   try {
     const settings = await getSettings();
     const page = await Page.findOne({ id: 'sobre' }).lean();
-    const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const requestUrl = `${buildPageUrl(req)}`;
     const schemaJson = buildLocalBusinessSchemaJson(page, settings.footer);
     res.render('sobre', {
       page: page || { title: 'Sobre', description: '' },
@@ -1398,7 +1420,7 @@ app.get('/contato', async (req, res) => {
       nav: settings.nav,
       footer: settings.footer,
       active: req.path,
-      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      requestUrl: `${buildPageUrl(req)}`,
       ogImage: absoluteAssetUrl(req, '/logo.png'),
       projectInterest,
       assuntoLabel,
@@ -1425,7 +1447,7 @@ app.get('/acesso-cliente', async (req, res) => {
       nav: settings.nav,
       footer: settings.footer,
       active: '/acesso-cliente',
-      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      requestUrl: `${buildPageUrl(req)}`,
       ogImage: absoluteAssetUrl(req, '/logo.png'),
       whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
     });
@@ -1490,7 +1512,7 @@ app.get('/trabalhe-conosco', async (req, res) => {
       nav: settings.nav,
       footer: settings.footer,
       active: '/trabalhe-conosco',
-      requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      requestUrl: `${buildPageUrl(req)}`,
       ogImage: absoluteAssetUrl(req, '/logo.png'),
       whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
     });
@@ -1852,14 +1874,12 @@ async function buildManualDocumentRecord(meta) {
   }
 
   const filteredChapters = chapters.filter((ch) => !isManualNavTopic(ch.title));
-  const html = buildCombinedManualHtml(filteredChapters);
   const toc = filteredChapters.map((chapter) => ({ slug: chapter.slug, title: chapter.title }));
   const payload = {
     sectionSlug: meta.sectionSlug,
     docType: meta.docType,
     sectionTitle: meta.sectionTitle,
     docTitle: meta.docTitle,
-    html,
     chapters: filteredChapters,
     toc,
     chapterCount: filteredChapters.length,
@@ -1941,7 +1961,7 @@ async function renderManualDocumentPage(req, res, { sectionSlug, docType }) {
     nav: settings.nav,
     footer: settings.footer,
     active: '/acesso-cliente',
-    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    requestUrl: `${buildPageUrl(req)}`,
     whatsappUrl: buildWhatsappUrl(undefined, settings.footer)
   });
 }
@@ -1981,7 +2001,7 @@ async function renderClientDocumentsPage(req, res, pageId) {
     nav: settings.nav,
     footer: settings.footer,
     active: '/acesso-cliente',
-    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    requestUrl: `${buildPageUrl(req)}`,
     ogImage: absoluteAssetUrl(req, '/logo.png'),
     whatsappUrl: buildWhatsappUrl(undefined, settings.footer),
     isManualHub
@@ -2029,7 +2049,7 @@ async function renderProjectsListing(req, res, options = {}) {
       ? 'Oportunidades exclusivas para investir ou morar com o padrão AP Construções.'
       : 'Conheça lançamentos inspirados nas melhores tendências globais de design urbano.',
     active: isLaunchListing ? '/lancamentos' : '/obras',
-    requestUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    requestUrl: `${buildPageUrl(req)}`,
     ogImage: absoluteAssetUrl(req, isLaunchListing
       ? (projects[0]?.image || OBRAS_LISTING_BANNER)
       : OBRAS_LISTING_BANNER),
@@ -2093,7 +2113,7 @@ async function loadProjectDetailContext(slug, req) {
     if (addr?.value) detailData.location.mapQuery = addr.value;
   }
 
-  const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  const requestUrl = `${buildPageUrl(req)}`;
   const ogImage = absoluteAssetUrl(req, detailData.heroImage || project?.image);
   const whatsappUrl = buildWhatsappUrl(`Olá! Tenho interesse no empreendimento ${page.hero?.title || project?.title || slug}.`, settings.footer);
   const sectionsNav = buildProjectSections(detailData);
@@ -2355,7 +2375,7 @@ app.post('/admin/upload-main-image/:id', isAuthenticated, uploadForProject('imag
 
     let imagePath;
     try {
-      imagePath = fileToStoredImagePath(req.file);
+      imagePath = await persistUploadedImage(req.file);
     } catch (uploadError) {
       return res.status(400).json({ success: false, message: uploadError.message });
     }
@@ -2419,14 +2439,15 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
 
     if (req.file) {
       try {
-        update.image = fileToStoredImagePath(req.file);
+        update.image = await persistUploadedImage(req.file);
         console.log(`[UPLOAD] Imagem de projeto: ${req.file.originalname}`);
       } catch (uploadError) {
         if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         return res.status(400).json({ success: false, message: uploadError.message });
       }
     } else if (existing.image) {
-      update.image = existing.image;
+      const normalized = normalizePublicPath(existing.image);
+      update.image = normalized || fallbackImage;
     }
 
     const updatedProject = await Project.findOneAndUpdate({ id: req.params.id }, update, { new: true });
@@ -2483,7 +2504,7 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
     const { alt, title } = req.body;
     let imagePath;
     try {
-      imagePath = fileToStoredImagePath(req.file);
+      imagePath = await persistUploadedImage(req.file);
     } catch (uploadError) {
       return res.status(400).json({ success: false, message: uploadError.message });
     }
@@ -2825,7 +2846,7 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
     const { alt, title } = req.body;
     let imagePath;
     try {
-      imagePath = fileToStoredImagePath(req.file);
+      imagePath = await persistUploadedImage(req.file);
     } catch (uploadError) {
       return res.status(400).json({ success: false, message: uploadError.message });
     }
@@ -3069,6 +3090,9 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
     }
 
     const normalizedImage = image ? normalizePublicPath(image) : '';
+    if (image && !normalizedImage) {
+      return res.json({ success: false, message: 'Imagem inválida. Envie um arquivo de imagem, não dados embutidos no formulário.' });
+    }
 
     const newProject = new Project({
       id: id.trim(),
