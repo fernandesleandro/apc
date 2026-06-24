@@ -2344,7 +2344,7 @@
                                 <div class="gallery-item">
                                     <img src="${img.src}" alt="${img.alt}">
                                     <div class="gallery-item-overlay">
-                                        <button onclick="deletePlantaImage('${img.src.split('/').pop().split('?')[0]}')">
+                                        <button onclick="deletePlantaImage(${img.index})">
                                             <i class="fas fa-trash"></i> Deletar
                                         </button>
                                     </div>
@@ -2374,7 +2374,7 @@
                                 <div class="gallery-item">
                                     <img src="${img.src}" alt="${img.alt}">
                                     <div class="gallery-item-overlay">
-                                        <button onclick="deleteGalleryImage('${img.src.split('/').pop().split('?')[0]}')">
+                                        <button onclick="deleteGalleryImage(${img.index})">
                                             <i class="fas fa-trash"></i> Deletar
                                         </button>
                                     </div>
@@ -2392,7 +2392,7 @@
             }
         }
 
-        async function deletePlantaImage(filename) {
+        async function deletePlantaImage(index) {
             const result = await Swal.fire({
                 title: 'Confirmar exclusão',
                 text: 'Deseja remover esta imagem?',
@@ -2404,7 +2404,7 @@
 
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`/admin/delete-planta-image/${projectId}/${filename}`, {
+                    const response = await fetch(`/admin/delete-planta-image/${projectId}/${index}`, {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -2423,7 +2423,7 @@
             }
         }
 
-        async function deleteGalleryImage(filename) {
+        async function deleteGalleryImage(index) {
             const result = await Swal.fire({
                 title: 'Confirmar exclusão',
                 text: 'Deseja remover esta imagem?',
@@ -2435,7 +2435,7 @@
 
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`/admin/delete-gallery-image/${projectId}/${filename}`, {
+                    const response = await fetch(`/admin/delete-gallery-image/${projectId}/${index}`, {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }

@@ -330,6 +330,67 @@ function projectCoverMediaPath(projectId) {
   return `/media/cover/${projectId}`;
 }
 
+function galleryMediaPath(projectId, index, kind = 'gallery') {
+  return `/media/${kind}/${projectId}/${index}`;
+}
+
+function mapGalleryImagesForDisplay(projectId, images, kind = 'gallery') {
+  return (images || [])
+    .map((image, index) => {
+      if (!image || !image.src) return null;
+      return {
+        ...image,
+        src: galleryMediaPath(projectId, index, kind)
+      };
+    })
+    .filter(Boolean);
+}
+
+function mapGalleryImagesForApi(projectId, images, kind = 'gallery') {
+  return (images || [])
+    .map((image, index) => {
+      if (!image || !image.src) return null;
+      return {
+        alt: image.alt || '',
+        title: image.title || '',
+        uploadedAt: image.uploadedAt,
+        index,
+        src: galleryMediaPath(projectId, index, kind)
+      };
+    })
+    .filter(Boolean);
+}
+
+async function serveGalleryImageFromDb(projectId, index, kind, res) {
+  const Model = kind === 'planta' ? PlantaGallery : ProjectGallery;
+  const gallery = await Model.findOne({ projectId }).lean();
+  const image = gallery?.images?.[index];
+  if (!image?.src) {
+    return res.status(404).end();
+  }
+
+  const src = image.src;
+  if (isDataImageUrl(src)) {
+    const match = src.match(/^data:(image\/[\w+.+-]+);base64,(.+)$/s);
+    if (!match) return res.status(404).end();
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.type(match[1]);
+    return res.send(Buffer.from(match[2], 'base64'));
+  }
+
+  const webPath = normalizePublicPath(src);
+  if (webPath) {
+    const filePath = path.join(__dirname, 'public', webPath.replace(/^\//, ''));
+    if (fs.existsSync(filePath)) {
+      res.set('Cache-Control', 'public, max-age=86400');
+      return res.sendFile(filePath);
+    }
+    return res.redirect(webPath);
+  }
+
+  return res.status(404).end();
+}
+
 function resolveProjectImageForDisplay(project) {
   const raw = project?.image;
   if (!raw || typeof raw !== 'string') return '';
@@ -2116,10 +2177,10 @@ async function loadProjectDetailContext(slug, req) {
 
   const plantaGallery = await PlantaGallery.findOne({ projectId: slug }).lean();
   if (plantaGallery) {
-    detailData.plantaGallery = (plantaGallery.images || []).map(normalizeImageRecord);
+    detailData.plantaGallery = mapGalleryImagesForDisplay(slug, plantaGallery.images, 'planta');
   }
   const projectGallery = await ProjectGallery.findOne({ projectId: slug }).lean();
-  const galleryFromDb = (projectGallery?.images || []).map(normalizeImageRecord).filter((img) => img && img.src);
+  const galleryFromDb = mapGalleryImagesForDisplay(slug, projectGallery?.images, 'gallery');
   const mainImageSrc = normalizePublicPath(detailData.heroImage);
   const mainImageAlt = page.hero?.title || project?.title || slug;
 
@@ -2236,6 +2297,28 @@ app.get('/media/cover/:projectId', async (req, res) => {
     return res.redirect(image);
   } catch (error) {
     console.error('[MEDIA] Erro ao servir capa:', error);
+    res.status(500).end();
+  }
+});
+
+app.get('/media/gallery/:projectId/:index', async (req, res) => {
+  const index = parseInt(req.params.index, 10);
+  if (Number.isNaN(index) || index < 0) return res.status(400).end();
+  try {
+    await serveGalleryImageFromDb(req.params.projectId, index, 'gallery', res);
+  } catch (error) {
+    console.error('[MEDIA] Erro ao servir galeria:', error);
+    res.status(500).end();
+  }
+});
+
+app.get('/media/planta/:projectId/:index', async (req, res) => {
+  const index = parseInt(req.params.index, 10);
+  if (Number.isNaN(index) || index < 0) return res.status(400).end();
+  try {
+    await serveGalleryImageFromDb(req.params.projectId, index, 'planta', res);
+  } catch (error) {
+    console.error('[MEDIA] Erro ao servir planta:', error);
     res.status(500).end();
   }
 });
@@ -2584,7 +2667,19 @@ app.post('/admin/upload-planta/:projectId', isAuthenticated, uploadForProject('i
     console.log(`[UPLOAD-PLANTA] ✓ Salvo em BD: ${req.params.projectId}`);
     console.log(`[UPLOAD-PLANTA] Total de imagens: ${plantaGallery.images.length}`);
 
-    res.json({ success: true, message: 'Imagem de planta enviada com sucesso!', image: plantaGallery.images[plantaGallery.images.length - 1] });
+    const savedIndex = plantaGallery.images.length - 1;
+    const savedImage = plantaGallery.images[savedIndex];
+    res.json({
+      success: true,
+      message: 'Imagem de planta enviada com sucesso!',
+      image: {
+        alt: savedImage.alt,
+        title: savedImage.title || '',
+        uploadedAt: savedImage.uploadedAt,
+        index: savedIndex,
+        src: galleryMediaPath(req.params.projectId, savedIndex, 'planta')
+      }
+    });
   } catch (error) {
     console.error('[UPLOAD-PLANTA] ✗ Erro:', error.message);
     
@@ -2683,45 +2778,38 @@ app.post('/admin/update-planta-details/:projectId', isAuthenticated, async (req,
   }
 });
 
-app.post('/admin/delete-planta-image/:projectId/:filename', isAuthenticated, async (req, res) => {
+app.post('/admin/delete-planta-image/:projectId/:index', isAuthenticated, async (req, res) => {
   try {
-    const filename = req.params.filename;
-    
-    // Validação e sanitização
-    if (!filename || filename.includes('..') || filename.includes('/')) {
-      return res.status(400).json({ success: false, message: 'Nome de arquivo inválido' });
+    const index = parseInt(req.params.index, 10);
+    if (Number.isNaN(index) || index < 0) {
+      return res.status(400).json({ success: false, message: 'Índice de imagem inválido' });
     }
 
-    const projectFolder = sanitizeFolderName(req.params.projectId);
-    const filePath = path.join(plantaBase, projectFolder, filename);
-
-    try {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        console.log(`[DELETE] Arquivo de planta removido: ${filePath}`);
-      } else {
-        console.warn(`[DELETE] Arquivo de planta não encontrado no disco: ${filePath}`);
-      }
-    } catch (delErr) {
-      // Verifica erro de sistema de arquivos read-only (Vercel)
-      if (delErr.code === 'EROFS' || delErr.message.includes('read-only')) {
-        console.warn(`[DELETE] Sistema de arquivos read-only (Vercel). Removendo apenas do banco de dados.`);
-      } else {
-        console.error(`[DELETE] Erro ao deletar arquivo: ${delErr.message}`);
-      }
-    }
-
-    // Remover do banco de dados
     const plantaGallery = await PlantaGallery.findOne({ projectId: req.params.projectId });
-    if (plantaGallery) {
-      const initialCount = plantaGallery.images.length;
-      plantaGallery.images = plantaGallery.images.filter(img => !img.src.includes(filename));
-      if (plantaGallery.images.length < initialCount) {
-        plantaGallery.markModified('images');
-        await plantaGallery.save();
-        console.log(`[UPDATE] Imagem de planta removida da galeria do projeto: ${req.params.projectId}`);
+    if (!plantaGallery || !plantaGallery.images[index]) {
+      return res.status(404).json({ success: false, message: 'Imagem não encontrada' });
+    }
+
+    const src = plantaGallery.images[index].src;
+    if (!isDataImageUrl(src)) {
+      const webPath = normalizePublicPath(src);
+      if (webPath) {
+        const filePath = path.join(__dirname, 'public', webPath.replace(/^\//, ''));
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`[DELETE] Arquivo de planta removido: ${filePath}`);
+          }
+        } catch (delErr) {
+          console.warn(`[DELETE] Erro ao deletar arquivo de planta: ${delErr.message}`);
+        }
       }
     }
+
+    plantaGallery.images.splice(index, 1);
+    plantaGallery.markModified('images');
+    await plantaGallery.save();
+    console.log(`[UPDATE] Imagem de planta removida da galeria do projeto: ${req.params.projectId}`);
 
     res.json({ success: true, message: 'Imagem de planta removida com sucesso!' });
   } catch (error) {
@@ -2855,8 +2943,9 @@ app.get('/admin/edit-gallery/:projectId', isAuthenticated, async (req, res) => {
 
 app.get('/admin/get-planta-gallery/:projectId', isAuthenticated, async (req, res) => {
   try {
-    const plantaGallery = await PlantaGallery.findOne({ projectId: req.params.projectId });
-    res.json(plantaGallery || { projectId: req.params.projectId, images: [] });
+    const plantaGallery = await PlantaGallery.findOne({ projectId: req.params.projectId }).lean();
+    const images = mapGalleryImagesForApi(req.params.projectId, plantaGallery?.images, 'planta');
+    res.json({ projectId: req.params.projectId, images });
   } catch (error) {
     console.error('Erro ao obter galeria de planta:', error);
     res.status(500).json({ success: false, message: 'Erro ao obter galeria' });
@@ -2865,8 +2954,9 @@ app.get('/admin/get-planta-gallery/:projectId', isAuthenticated, async (req, res
 
 app.get('/admin/get-gallery/:projectId', isAuthenticated, async (req, res) => {
   try {
-    const projectGallery = await ProjectGallery.findOne({ projectId: req.params.projectId });
-    res.json(projectGallery || { projectId: req.params.projectId, images: [] });
+    const projectGallery = await ProjectGallery.findOne({ projectId: req.params.projectId }).lean();
+    const images = mapGalleryImagesForApi(req.params.projectId, projectGallery?.images, 'gallery');
+    res.json({ projectId: req.params.projectId, images });
   } catch (error) {
     console.error('Erro ao obter galeria geral:', error);
     res.status(500).json({ success: false, message: 'Erro ao obter galeria' });
@@ -2926,7 +3016,19 @@ app.post('/admin/upload-gallery/:projectId', isAuthenticated, uploadForProject('
     console.log(`[UPLOAD-GALLERY] ✓ Salvo em BD: ${req.params.projectId}`);
     console.log(`[UPLOAD-GALLERY] Total de imagens: ${projectGallery.images.length}`);
 
-    res.json({ success: true, message: 'Imagem de galeria enviada com sucesso!', image: projectGallery.images[projectGallery.images.length - 1] });
+    const savedIndex = projectGallery.images.length - 1;
+    const savedImage = projectGallery.images[savedIndex];
+    res.json({
+      success: true,
+      message: 'Imagem de galeria enviada com sucesso!',
+      image: {
+        alt: savedImage.alt,
+        title: savedImage.title || '',
+        uploadedAt: savedImage.uploadedAt,
+        index: savedIndex,
+        src: galleryMediaPath(req.params.projectId, savedIndex, 'gallery')
+      }
+    });
   } catch (error) {
     console.error('[UPLOAD-GALLERY] ✗ Erro:', error.message);
     
@@ -2978,43 +3080,38 @@ app.post('/admin/ensure-project-folders/:projectId', isAuthenticated, (req, res)
   }
 });
 
-app.post('/admin/delete-gallery-image/:projectId/:filename', isAuthenticated, async (req, res) => {
+app.post('/admin/delete-gallery-image/:projectId/:index', isAuthenticated, async (req, res) => {
   try {
-    const filename = req.params.filename;
-
-    if (!filename || filename.includes('..') || filename.includes('/')) {
-      return res.status(400).json({ success: false, message: 'Nome de arquivo inválido' });
-    }
-
-    const projectFolder = sanitizeFolderName(req.params.projectId);
-    const filePath = path.join(projectGalleryBase, projectFolder, filename);
-
-    try {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        console.log(`[DELETE] Arquivo de galeria removido: ${filePath}`);
-      } else {
-        console.warn(`[DELETE] Arquivo de galeria não encontrado no disco: ${filePath}`);
-      }
-    } catch (delErr) {
-      // Verifica erro de sistema de arquivos read-only (Vercel)
-      if (delErr.code === 'EROFS' || delErr.message.includes('read-only')) {
-        console.warn(`[DELETE] Sistema de arquivos read-only (Vercel). Removendo apenas do banco de dados.`);
-      } else {
-        console.error(`[DELETE] Erro ao deletar arquivo: ${delErr.message}`);
-      }
+    const index = parseInt(req.params.index, 10);
+    if (Number.isNaN(index) || index < 0) {
+      return res.status(400).json({ success: false, message: 'Índice de imagem inválido' });
     }
 
     const projectGallery = await ProjectGallery.findOne({ projectId: req.params.projectId });
-    if (projectGallery) {
-      const initialCount = projectGallery.images.length;
-      projectGallery.images = projectGallery.images.filter(img => !img.src.includes(filename));
-      if (projectGallery.images.length < initialCount) {
-        projectGallery.markModified('images');
-        await projectGallery.save();
-        console.log(`[UPDATE] Imagem de galeria removida da coleção do projeto: ${req.params.projectId}`);
+    if (!projectGallery || !projectGallery.images[index]) {
+      return res.status(404).json({ success: false, message: 'Imagem não encontrada' });
+    }
+
+    const src = projectGallery.images[index].src;
+    if (!isDataImageUrl(src)) {
+      const webPath = normalizePublicPath(src);
+      if (webPath) {
+        const filePath = path.join(__dirname, 'public', webPath.replace(/^\//, ''));
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`[DELETE] Arquivo de galeria removido: ${filePath}`);
+          }
+        } catch (delErr) {
+          console.warn(`[DELETE] Erro ao deletar arquivo de galeria: ${delErr.message}`);
+        }
       }
     }
+
+    projectGallery.images.splice(index, 1);
+    projectGallery.markModified('images');
+    await projectGallery.save();
+    console.log(`[UPDATE] Imagem de galeria removida da coleção do projeto: ${req.params.projectId}`);
 
     res.json({ success: true, message: 'Imagem de galeria removida com sucesso!' });
   } catch (error) {
