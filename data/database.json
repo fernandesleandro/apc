@@ -4198,7 +4198,7 @@
       "hero": {
         "title": "Monumental Center",
         "subtitle": "Empreendimento comercial multiusuário — salas, lojas e infraestrutura de alto padrão no Lago Norte",
-        "image": "/images/gallery/monumental/ficha-tecnica.png"
+        "image": "/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.webp"
       },
       "details": {
         "detailTag": "Lançamento Exclusivo",
@@ -4311,7 +4311,7 @@
       "hero": {
         "title": "Cosmopolitan",
         "subtitle": "Águas Claras — apartamentos, lojas e salas comerciais",
-        "image": "/images/gallery/cosmopolitan/fachada.png"
+        "image": "/images/gallery/cosmopolitan/fachada.webp"
       },
       "details": {
         "detailTag": "Empreendimento Misto",
@@ -4412,7 +4412,7 @@
       "hero": {
         "title": "Barão Mauá",
         "subtitle": "Complexo comercial de grande porte no SIG — Brasília/DF",
-        "image": "/images/gallery/barao-maua/fachada-externa.png"
+        "image": "/images/gallery/barao-maua/fachada-externa.webp"
       },
       "details": {
         "detailTag": "Empreendimento Entregue",
@@ -4521,7 +4521,7 @@
       "hero": {
         "title": "Barão do Rio Branco",
         "subtitle": "Salas comerciais no SIG — Brasília/DF",
-        "image": "/images/gallery/barao-rio-branco/capa.jpg"
+        "image": "/images/gallery/barao-rio-branco/capa.webp"
       },
       "details": {
         "detailTag": "Empreendimento Entregue",
@@ -4544,7 +4544,7 @@
       "hero": {
         "title": "Chateau Valois",
         "subtitle": "Residencial em Águas Claras — Brasília/DF",
-        "image": "/images/gallery/chateau-valois/capa.jpg"
+        "image": "/images/gallery/chateau-valois/capa.webp"
       },
       "details": {
         "detailTag": "Empreendimento Entregue",
@@ -4567,7 +4567,7 @@
       "hero": {
         "title": "Metropolitan",
         "subtitle": "Residencial em Águas Claras — Brasília/DF",
-        "image": "/images/gallery/metropolitan/capa.jpg"
+        "image": "/images/gallery/metropolitan/capa.webp"
       },
       "details": {
         "detailTag": "Empreendimento Entregue",
@@ -4590,7 +4590,7 @@
       "hero": {
         "title": "Olympique",
         "subtitle": "Residencial no Guará — Brasília/DF",
-        "image": "/images/gallery/olympique/ficha-tecnica.png"
+        "image": "/images/gallery/olympique/ficha-tecnica.webp"
       },
       "details": {
         "detailTag": "Empreendimento Entregue",
@@ -4612,7 +4612,7 @@
       "id": "monumental",
       "title": "Monumental Center",
       "description": "Comercial multiusuário no Lago Norte — 198 salas, 2 lojas e 222 vagas.",
-      "image": "/images/gallery/monumental/ficha-tecnica.png",
+      "image": "/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.webp",
       "href": "/obras/monumental",
       "badge": "Lançamento",
       "category": "comercial",
@@ -4623,7 +4623,7 @@
       "id": "cosmopolitan",
       "title": "Cosmopolitan",
       "description": "Empreendimento misto em Águas Claras — apartamentos, lojas e salas comerciais.",
-      "image": "/images/gallery/cosmopolitan/fachada.png",
+      "image": "/images/gallery/cosmopolitan/fachada.webp",
       "href": "/obras/cosmopolitan",
       "category": "misto",
       "constructionYear": 2025,
@@ -4633,7 +4633,7 @@
       "id": "barao-maua",
       "title": "Barão Mauá",
       "description": "108 salas, 2 lojas, 2 salões e 376 vagas no SIG.",
-      "image": "/images/gallery/barao-maua/fachada-externa.png",
+      "image": "/images/gallery/barao-maua/fachada-externa.webp",
       "href": "/obras/barao-maua",
       "category": "comercial",
       "badge": "Entregue",
@@ -4644,7 +4644,7 @@
       "id": "barao-rio-branco",
       "title": "Barão do Rio Branco",
       "description": "Salas comerciais no SIG — empreendimento entregue.",
-      "image": "/images/gallery/barao-rio-branco/capa.jpg",
+      "image": "/images/gallery/barao-rio-branco/capa.webp",
       "href": "/obras/barao-rio-branco",
       "category": "comercial",
       "badge": "Entregue",
@@ -4655,7 +4655,7 @@
       "id": "chateau-valois",
       "title": "Chateau Valois",
       "description": "Apartamentos de 2 e 3 quartos em Águas Claras — entregue.",
-      "image": "/images/gallery/chateau-valois/capa.jpg",
+      "image": "/images/gallery/chateau-valois/capa.webp",
       "href": "/obras/chateau-valois",
       "category": "residencial",
       "badge": "Entregue",
@@ -4666,7 +4666,7 @@
       "id": "metropolitan",
       "title": "Metropolitan",
       "description": "Apartamentos de 2 e 3 quartos em Águas Claras — entregue.",
-      "image": "/images/gallery/metropolitan/capa.jpg",
+      "image": "/images/gallery/metropolitan/capa.webp",
       "href": "/obras/metropolitan",
       "category": "residencial",
       "badge": "Entregue",
@@ -4677,7 +4677,7 @@
       "id": "olympique",
       "title": "Olympique",
       "description": "Apartamentos de 2 e 3 quartos no Guará — entregue.",
-      "image": "/images/gallery/olympique/ficha-tecnica.png",
+      "image": "/images/gallery/olympique/ficha-tecnica.webp",
       "href": "/obras/olympique",
       "category": "residencial",
       "badge": "Entregue",
@@ -4688,31 +4688,31 @@
   "plantaGalleries": {
     "monumental": [
       {
-        "src": "/images/planta/monumental/planta-quadrada.jpg",
+        "src": "/images/planta/monumental/planta-quadrada.webp",
         "alt": "Planta quadrada",
         "title": "Planta Quadrada"
       },
       {
-        "src": "/images/planta/monumental/planta-retangular.jpg",
+        "src": "/images/planta/monumental/planta-retangular.webp",
         "alt": "Planta retangular",
         "title": "Planta Retangular"
       }
     ],
     "cosmopolitan": [
       {
-        "src": "/images/planta/cosmopolitan/planta-tipo-1.png",
+        "src": "/images/planta/cosmopolitan/planta-tipo-1.webp",
         "alt": "Planta tipo 1",
         "title": "Planta Tipo 1"
       }
     ],
     "barao-maua": [
       {
-        "src": "/images/planta/barao-maua/planta-nivel-1.png",
+        "src": "/images/planta/barao-maua/planta-nivel-1.webp",
         "alt": "Planta comercial nível 1",
         "title": "Planta Comercial Nível 1"
       },
       {
-        "src": "/images/planta/barao-maua/planta-implantacao.png",
+        "src": "/images/planta/barao-maua/planta-implantacao.webp",
         "alt": "Implantação geral",
         "title": "Implantação Geral"
       }
@@ -4721,83 +4721,83 @@
   "projectGalleries": {
     "monumental": [
       {
-        "src": "/images/gallery/monumental/ficha-tecnica.png",
+        "src": "/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.webp",
         "alt": "Monumental Center — apresentação"
       },
       {
-        "src": "/images/gallery/monumental/listagem.jpg",
+        "src": "/images/gallery/monumental/listagem.webp",
         "alt": "Monumental Center — Lago Norte"
       }
     ],
     "cosmopolitan": [
       {
-        "src": "/images/gallery/cosmopolitan/fachada.png",
+        "src": "/images/gallery/cosmopolitan/fachada.webp",
         "alt": "Fachada Cosmopolitan"
       },
       {
-        "src": "/images/gallery/cosmopolitan/piscina.jpg",
+        "src": "/images/gallery/cosmopolitan/piscina.webp",
         "alt": "Área de lazer — piscina"
       },
       {
-        "src": "/images/gallery/cosmopolitan/gourmet.jpg",
+        "src": "/images/gallery/cosmopolitan/gourmet.webp",
         "alt": "Área gourmet"
       },
       {
-        "src": "/images/gallery/cosmopolitan/quadra.jpg",
+        "src": "/images/gallery/cosmopolitan/quadra.webp",
         "alt": "Área esportiva"
       }
     ],
     "barao-maua": [
       {
-        "src": "/images/gallery/barao-maua/listagem.jpg",
+        "src": "/images/gallery/barao-maua/listagem.webp",
         "alt": "Barão Mauá — vista do empreendimento"
       },
       {
-        "src": "/images/gallery/barao-maua/vista-aerea-1.png",
+        "src": "/images/gallery/barao-maua/vista-aerea-1.webp",
         "alt": "Vista aérea 1"
       },
       {
-        "src": "/images/gallery/barao-maua/vista-aerea-2.png",
+        "src": "/images/gallery/barao-maua/vista-aerea-2.webp",
         "alt": "Vista aérea 2"
       },
       {
-        "src": "/images/gallery/barao-maua/fachada-externa.png",
+        "src": "/images/gallery/barao-maua/fachada-externa.webp",
         "alt": "Fachada externa"
       },
       {
-        "src": "/images/gallery/barao-maua/fachada-noturna.png",
+        "src": "/images/gallery/barao-maua/fachada-noturna.webp",
         "alt": "Fachada noturna"
       }
     ],
     "barao-rio-branco": [
       {
-        "src": "/images/gallery/barao-rio-branco/capa.jpg",
+        "src": "/images/gallery/barao-rio-branco/capa.webp",
         "alt": "Barão do Rio Branco — SIG"
       }
     ],
     "chateau-valois": [
       {
-        "src": "/images/gallery/chateau-valois/capa.jpg",
+        "src": "/images/gallery/chateau-valois/capa.webp",
         "alt": "Chateau Valois — Águas Claras"
       },
       {
-        "src": "/images/gallery/chateau-valois/listagem.jpg",
+        "src": "/images/gallery/chateau-valois/listagem.webp",
         "alt": "Chateau Valois — listagem"
       }
     ],
     "metropolitan": [
       {
-        "src": "/images/gallery/metropolitan/capa.jpg",
+        "src": "/images/gallery/metropolitan/capa.webp",
         "alt": "Metropolitan — Águas Claras"
       },
       {
-        "src": "/images/gallery/metropolitan/listagem.jpg",
+        "src": "/images/gallery/metropolitan/listagem.webp",
         "alt": "Metropolitan — vista"
       }
     ],
     "olympique": [
       {
-        "src": "/images/gallery/olympique/ficha-tecnica.png",
+        "src": "/images/gallery/olympique/ficha-tecnica.webp",
         "alt": "Olympique — apresentação"
       }
     ]

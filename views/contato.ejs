@@ -19,8 +19,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
     <%- include('includes/header', { nav, active }) %>
+
+    <main id="main-content">
 
     <section class="page-banner page-banner--atendimento">
         <div class="container">
@@ -71,7 +73,7 @@
 
         <div class="info-sidebar">
             <a href="/trabalhe-conosco" class="contact-careers-card">
-                <img src="/images/banners/banner-equipe.jpg" alt="Trabalhe Conosco AP Construções" loading="lazy">
+                <img src="/images/banners/banner-equipe.webp" alt="Trabalhe Conosco AP Construções" loading="lazy">
                 <div class="contact-careers-card-body">
                     <span class="section-tag">Carreiras</span>
                     <h3>Trabalhe Conosco</h3>
@@ -107,6 +109,8 @@
             </div>
         </div>
     </section>
+
+    </main>
 
     <%- include('includes/footer', { footer }) %>
 
