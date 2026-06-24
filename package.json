@@ -11,7 +11,9 @@
     "migrate-porto-images": "node scripts/migrate-porto-images.js",
     "migrate-porto-images:apply": "node scripts/migrate-porto-images.js --apply --sync",
     "crawl-manuals": "node scripts/crawl-manual-links.js",
-    "mirror-manuals": "node scripts/mirror-manual-content.js"
+    "mirror-manuals": "node scripts/mirror-manual-content.js",
+    "migrate-base64-images": "node scripts/migrate-base64-images.js",
+    "optimize-images": "node scripts/optimize-images.js"
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,7 @@
     "express-session": "^1.19.0",
     "mongoose": "^8.0.0",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.10"
+    "nodemailer": "^8.0.10",
+    "sharp": "^0.35.2"
   }
 }
