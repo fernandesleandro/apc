@@ -23,12 +23,9 @@
     <% } %>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
     <%- include('includes/header', { nav, active }) %>
 
-    <main id="main-content">
-
-    <% const defaultHeroImage = '/images/banners/banner-empreendimento.webp'; %>
+    <% const defaultHeroImage = '/images/banners/banner-empreendimento.jpg'; %>
     <section class="detail-hero" style="background: linear-gradient(rgba(0,17,44,0.35), rgba(0,7,20,0.88)), url('<%= detailData.heroImage || (page.hero && page.hero.image) || (detailData.galleryImages && detailData.galleryImages[0] && detailData.galleryImages[0].src) || defaultHeroImage %>') center/cover no-repeat;">
         <div class="detail-hero-overlay">
             <div class="container">
@@ -236,8 +233,6 @@
         </div>
     </section>
     <% } %>
-
-    </main>
 
     <%- include('includes/footer', { footer }) %>
 
