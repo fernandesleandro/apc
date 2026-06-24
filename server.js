@@ -322,6 +322,27 @@ const defaultSettings = {
 const fallbackImage = '/images/banners/banner-empreendimento.webp';
 const OBRAS_LISTING_BANNER = '/images/gallery/monumental/monumental-ap-high.jpg-1781211333896-122053680.webp';
 
+function isDataImageUrl(value) {
+  return typeof value === 'string' && value.startsWith('data:image/');
+}
+
+function projectCoverMediaPath(projectId) {
+  return `/media/cover/${projectId}`;
+}
+
+function resolveProjectImageForDisplay(project) {
+  const raw = project?.image;
+  if (!raw || typeof raw !== 'string') return '';
+  if (isDataImageUrl(raw)) return projectCoverMediaPath(project.id);
+  return normalizePublicPath(raw);
+}
+
+function preserveStoredImageValue(image) {
+  if (!image || typeof image !== 'string') return '';
+  if (isDataImageUrl(image)) return image;
+  return normalizePublicPath(image) || fallbackImage;
+}
+
 function normalizePublicPath(value) {
   if (!value || typeof value !== 'string') return '';
   const trimmed = value.trim().replace(/\\/g, '/');
@@ -372,7 +393,7 @@ function normalizeProjectRecord(project) {
   const normalized = {
     ...object,
     href: object.href || `/obras/${object.id}`,
-    image: normalizePublicPath(object.image) || fallbackImage,
+    image: resolveProjectImageForDisplay(object) || fallbackImage,
     categoryLabel: formatCategoryLabel(object.category)
   };
   normalized.deliveryLabel = formatProjectDeliveryLabel(normalized);
@@ -2198,6 +2219,27 @@ app.post('/api/contato', async (req, res) => {
   }
 });
 
+app.get('/media/cover/:projectId', async (req, res) => {
+  try {
+    const project = await Project.findOne({ id: req.params.projectId }, { image: 1 }).lean();
+    const image = project?.image;
+    if (!image) {
+      return res.redirect(fallbackImage);
+    }
+    if (isDataImageUrl(image)) {
+      const match = image.match(/^data:(image\/[\w+.+-]+);base64,(.+)$/s);
+      if (!match) return res.status(404).end();
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.type(match[1]);
+      return res.send(Buffer.from(match[2], 'base64'));
+    }
+    return res.redirect(image);
+  } catch (error) {
+    console.error('[MEDIA] Erro ao servir capa:', error);
+    res.status(500).end();
+  }
+});
+
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(
     `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
@@ -2348,7 +2390,7 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
 
 app.get('/admin/edit-project/:id', isAuthenticated, async (req, res) => {
   try {
-    const project = await Project.findOne({ id: req.params.id });
+    const project = normalizeProjectRecord(await Project.findOne({ id: req.params.id }).lean());
     if (!project) {
       return res.status(404).send('Projeto não encontrado');
     }
@@ -2397,7 +2439,7 @@ app.post('/admin/upload-main-image/:id', isAuthenticated, uploadForProject('imag
     res.json({
       success: true,
       message: 'Imagem principal atualizada!',
-      image: imagePath
+      image: isDataImageUrl(imagePath) ? projectCoverMediaPath(req.params.id) : imagePath
     });
   } catch (error) {
     console.error('[ERROR] Erro ao enviar imagem principal:', error);
@@ -2446,8 +2488,7 @@ app.post('/admin/save-project/:id', isAuthenticated, uploadForProject('imageFile
         return res.status(400).json({ success: false, message: uploadError.message });
       }
     } else if (existing.image) {
-      const normalized = normalizePublicPath(existing.image);
-      update.image = normalized || fallbackImage;
+      update.image = preserveStoredImageValue(existing.image);
     }
 
     const updatedProject = await Project.findOneAndUpdate({ id: req.params.id }, update, { new: true });
