@@ -23,8 +23,10 @@
     <% } %>
 </head>
 <body>
-
+    <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
     <%- include('includes/header', { nav, active }) %>
+
+    <main id="main-content">
 
     <section class="page-banner<%= typeof bannerImage !== 'undefined' && bannerImage ? ' page-banner--local' : ' page-banner--gradient' %>"<% if (typeof bannerImage !== 'undefined' && bannerImage) { %> style="background-image: linear-gradient(rgba(0,11,44,0.85), rgba(0,7,20,0.95)), url('<%= bannerImage %>')"<% } %>>
         <div class="container">
@@ -49,6 +51,8 @@
             </div>
         </div>
     </section>
+
+    </main>
 
     <%- include('includes/footer', { footer }) %>
 
