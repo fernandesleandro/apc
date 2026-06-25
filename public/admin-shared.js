@@ -261,8 +261,9 @@
     });
   }
 
-  function getDragAfterElement(container, y) {
-    const elements = [...container.querySelectorAll('.gallery-item:not(.is-dragging)')];
+  function getDragAfterElement(container, y, itemSelector) {
+    const selector = itemSelector || '.gallery-item';
+    const elements = [...container.querySelectorAll(`${selector}:not(.is-dragging)`)];
     return elements.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
       const offset = y - box.top - box.height / 2;
@@ -271,6 +272,43 @@
       }
       return closest;
     }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  function setupListReorder(container, itemSelector, onReorder) {
+    if (!container) return;
+    const selector = itemSelector || '.admin-chapter-row';
+    let dragEl = null;
+
+    container.addEventListener('dragstart', (e) => {
+      const handle = e.target.closest('[data-drag-handle]');
+      if (!handle) {
+        e.preventDefault();
+        return;
+      }
+      const item = handle.closest(`${selector}[draggable="true"]`);
+      if (!item || !container.contains(item)) return;
+      dragEl = item;
+      item.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    container.addEventListener('dragend', () => {
+      if (dragEl) dragEl.classList.remove('is-dragging');
+      dragEl = null;
+      if (onReorder) onReorder();
+    });
+
+    container.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const after = getDragAfterElement(container, e.clientY, selector);
+      const dragging = container.querySelector(`${selector}.is-dragging`);
+      if (!dragging) return;
+      if (after == null) {
+        container.appendChild(dragging);
+      } else {
+        container.insertBefore(dragging, after);
+      }
+    });
   }
 
   function openEditImageModal(image, onSave) {
@@ -325,6 +363,7 @@
     bindCharCounter,
     filterTableRows,
     setupGalleryReorder,
+    setupListReorder,
     openEditImageModal,
     renderChecklist
   };

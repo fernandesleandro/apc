@@ -350,37 +350,276 @@ body.has-admin-sticky-bar {
 .btn-manual-crawl { background: #eef2ff; color: #0073ff; }
 .btn-manual-sync { background: #dcfce7; color: #166534; }
 
+.admin-chapters-panel {
+  margin-top: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.admin-chapters-details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #334155;
+  user-select: none;
+}
+
+.admin-chapters-details > summary::-webkit-details-marker { display: none; }
+
+.admin-chapters-details > summary::before {
+  content: '\f054';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-right: 8px;
+  transition: transform 0.15s ease;
+}
+
+.admin-chapters-details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.admin-chapters-summary__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-chapters-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #0073ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.admin-chapters-summary__hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.admin-chapters-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.admin-chapters-search {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.admin-chapters-search:focus {
+  outline: none;
+  border-color: #0073ff;
+  box-shadow: 0 0 0 2px rgba(0, 115, 255, 0.12);
+}
+
+.admin-chapters-toolbar .btn-add-item {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
 .admin-chapter-list {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #e2e8f0;
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.admin-chapter-list__head {
+  display: grid;
+  grid-template-columns: 28px 28px 1fr minmax(72px, 0.45fr) 72px;
+  gap: 6px;
+  padding: 4px 8px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 1;
 }
 
 .admin-chapter-row {
-  display: grid;
-  grid-template-columns: auto 1fr 1fr auto;
-  gap: 8px;
-  align-items: start;
-  padding: 8px;
-  margin-bottom: 6px;
-  background: #f8fafc;
-  border-radius: 6px;
   border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: #fff;
+  overflow: hidden;
 }
 
-.admin-chapter-row[draggable="true"] { cursor: grab; }
-.admin-chapter-row.is-dragging { opacity: 0.5; }
+.admin-chapter-row.is-dragging { opacity: 0.55; }
+.admin-chapter-row.is-filtered-out { display: none; }
+.admin-chapter-row.is-expanded { border-color: #bfdbfe; }
+
+.admin-chapter-row__main {
+  display: grid;
+  grid-template-columns: 28px 28px 1fr minmax(72px, 0.45fr) 72px;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 6px;
+  min-height: 34px;
+}
 
 .admin-chapter-drag {
-  padding: 8px 4px;
-  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
   cursor: grab;
+  font-size: 0.8rem;
+}
+
+.admin-chapter-drag:active { cursor: grabbing; }
+
+.admin-chapter-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.admin-chapter-title {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  background: transparent;
+}
+
+.admin-chapter-title:hover,
+.admin-chapter-title:focus {
+  border-color: #e2e8f0;
+  background: #fff;
+  outline: none;
+}
+
+.admin-chapter-file {
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
+.admin-chapter-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+.admin-chapter-actions button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-chapter-actions button:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.admin-chapter-actions .btn-manual-sync:hover {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-chapter-actions [data-remove-chapter]:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.admin-chapter-row__detail {
+  display: none;
+  padding: 6px 8px 8px 62px;
+  border-top: 1px dashed #e2e8f0;
+  background: #f8fafc;
+}
+
+.admin-chapter-row.is-expanded .admin-chapter-row__detail {
+  display: block;
+}
+
+.admin-chapter-row__detail label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.admin-chapter-row__detail input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-family: ui-monospace, monospace;
+}
+
+.admin-chapter-row__detail input:focus {
+  outline: none;
+  border-color: #0073ff;
 }
 
 @media (max-width: 768px) {
-  .admin-chapter-row {
-    grid-template-columns: 1fr;
+  .admin-chapter-list__head { display: none; }
+
+  .admin-chapter-row__main {
+    grid-template-columns: 24px 1fr auto;
+    grid-template-areas:
+      "drag title actions"
+      "num file actions";
   }
+
+  .admin-chapter-drag { grid-area: drag; }
+  .admin-chapter-num { grid-area: num; text-align: left; padding-left: 4px; }
+  .admin-chapter-title { grid-area: title; }
+  .admin-chapter-file { grid-area: file; padding-left: 4px; }
+  .admin-chapter-actions { grid-area: actions; }
+
+  .admin-chapters-summary__hint { display: none; }
 }
 
 @media (max-width: 768px) {

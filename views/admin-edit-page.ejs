@@ -641,32 +641,110 @@
             return 'documento';
         }
 
-        function renderChapterRow(chapter, cIndex, sectionSlug, docType) {
+        function chapterFileFromHref(href) {
+            const raw = String(href || '').trim();
+            if (!raw) return '—';
+            try {
+                return decodeURIComponent(new URL(raw).pathname.split('/').pop() || raw);
+            } catch {
+                return raw.split('/').pop() || raw;
+            }
+        }
+
+        function refreshChapterRowLabels(chaptersEl) {
+            [...chaptersEl.querySelectorAll('[data-chapter-row]')].forEach((row, index) => {
+                const num = row.querySelector('[data-chapter-num]');
+                if (num) num.textContent = String(index + 1);
+                const href = row.querySelector('[data-cf="href"]')?.value || '';
+                const file = row.querySelector('[data-chapter-file]');
+                if (file) {
+                    file.textContent = chapterFileFromHref(href);
+                    file.title = href;
+                }
+            });
+        }
+
+        function updateChapterPanelCount(panel) {
+            const total = panel.querySelectorAll('[data-chapter-row]').length;
+            const badge = panel.querySelector('[data-chapter-count]');
+            if (badge) badge.textContent = String(total);
+        }
+
+        function bindChapterPanel(panel, chaptersEl, sectionSlug, docType) {
+            const filterInput = panel.querySelector('[data-chapter-filter]');
+            filterInput?.addEventListener('input', () => {
+                const q = filterInput.value.trim().toLowerCase();
+                chaptersEl.querySelectorAll('[data-chapter-row]').forEach((row) => {
+                    const title = row.querySelector('[data-cf="title"]')?.value.toLowerCase() || '';
+                    const href = row.querySelector('[data-cf="href"]')?.value.toLowerCase() || '';
+                    const file = chapterFileFromHref(href).toLowerCase();
+                    const match = !q || title.includes(q) || href.includes(q) || file.includes(q);
+                    row.classList.toggle('is-filtered-out', !match);
+                });
+            });
+
+            panel.querySelector('[data-add-chapter]')?.addEventListener('click', () => {
+                const row = renderChapterRow({}, chaptersEl.children.length, sectionSlug, docType, { expanded: true });
+                chaptersEl.appendChild(row);
+                updateChapterPanelCount(panel);
+                refreshChapterRowLabels(chaptersEl);
+                dirtyTracker.markDirty();
+                row.querySelector('[data-cf="title"]')?.focus();
+            });
+        }
+
+        function renderChapterRow(chapter, cIndex, sectionSlug, docType, options = {}) {
             const row = document.createElement('div');
-            row.className = 'admin-chapter-row';
+            row.className = 'admin-chapter-row' + (options.expanded ? ' is-expanded' : '');
             row.draggable = isManualEditor;
             row.dataset.chapterRow = cIndex;
+            const href = chapter.href || '';
+            const title = (chapter.title || '').replace(/"/g, '&quot;');
+            const hrefEsc = href.replace(/"/g, '&quot;');
+            const fileLabel = chapterFileFromHref(href);
             row.innerHTML = `
-                <span class="admin-chapter-drag" title="Arrastar"><i class="fas fa-grip-vertical"></i></span>
-                <input type="text" data-cf="title" placeholder="Título do capítulo" value="${(chapter.title || '').replace(/"/g, '&quot;')}">
-                <input type="text" data-cf="href" placeholder="URL do capítulo (.htm)" value="${(chapter.href || '').replace(/"/g, '&quot;')}">
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                    ${isManualEditor ? `<button type="button" class="btn-manual-sync" data-sync-chapter title="Baixar HTML deste capítulo"><i class="fas fa-download"></i></button>` : ''}
-                    <button type="button" class="btn-remove-item" data-remove-chapter title="Remover"><i class="fas fa-trash"></i></button>
+                <div class="admin-chapter-row__main">
+                    <span class="admin-chapter-drag" data-drag-handle title="Arrastar"><i class="fas fa-grip-vertical"></i></span>
+                    <span class="admin-chapter-num" data-chapter-num>${cIndex + 1}</span>
+                    <input type="text" class="admin-chapter-title" data-cf="title" placeholder="Título" value="${title}">
+                    <span class="admin-chapter-file" data-chapter-file title="${hrefEsc}">${fileLabel}</span>
+                    <div class="admin-chapter-actions">
+                        ${isManualEditor ? `<button type="button" data-toggle-chapter title="Editar URL"><i class="fas fa-link"></i></button>` : ''}
+                        ${isManualEditor ? `<button type="button" class="btn-manual-sync" data-sync-chapter title="Sincronizar capítulo"><i class="fas fa-download"></i></button>` : ''}
+                        <button type="button" data-remove-chapter title="Remover"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="admin-chapter-row__detail">
+                    <label>URL do capítulo</label>
+                    <input type="text" data-cf="href" placeholder="https://..." value="${hrefEsc}">
                 </div>
             `;
+
+            row.querySelector('[data-toggle-chapter]')?.addEventListener('click', () => {
+                row.classList.toggle('is-expanded');
+            });
+
+            row.querySelector('[data-cf="href"]')?.addEventListener('input', (e) => {
+                const file = row.querySelector('[data-chapter-file]');
+                if (file) {
+                    file.textContent = chapterFileFromHref(e.target.value);
+                    file.title = e.target.value;
+                }
+                dirtyTracker.markDirty();
+            });
+
             if (isManualEditor) {
                 row.querySelector('[data-sync-chapter]')?.addEventListener('click', async () => {
-                    const title = row.querySelector('[data-cf="title"]').value.trim();
-                    const href = row.querySelector('[data-cf="href"]').value.trim();
-                    if (!title || !href) { alert('Preencha título e URL'); return; }
+                    const titleVal = row.querySelector('[data-cf="title"]').value.trim();
+                    const hrefVal = row.querySelector('[data-cf="href"]').value.trim();
+                    if (!titleVal || !hrefVal) { alert('Preencha título e URL'); return; }
                     const btn = row.querySelector('[data-sync-chapter]');
                     btn.disabled = true;
                     try {
                         const res = await fetch(`/admin/sync-manual-chapter/${sectionSlug}/${docType}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ title, href })
+                            body: JSON.stringify({ title: titleVal, href: hrefVal })
                         });
                         const data = await res.json();
                         alert(data.success ? data.message : (data.message || 'Erro'));
@@ -674,11 +752,17 @@
                     btn.disabled = false;
                 });
             }
+
             row.querySelector('[data-remove-chapter]')?.addEventListener('click', () => {
+                const panel = row.closest('[data-chapters-panel]');
                 row.remove();
+                const chaptersEl = panel?.querySelector('[data-chapters]');
+                if (chaptersEl) refreshChapterRowLabels(chaptersEl);
+                if (panel) updateChapterPanelCount(panel);
                 dirtyTracker.markDirty();
             });
-            row.querySelectorAll('input').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+
+            row.querySelector('[data-cf="title"]')?.addEventListener('input', () => dirtyTracker.markDirty());
             return row;
         }
 
@@ -690,45 +774,71 @@
             wrap.dataset.docType = docType;
             wrap.dataset.sectionSlug = sectionSlug;
             const chapterCount = (doc.children || []).length;
+            const chaptersOpen = chapterCount <= 5;
             wrap.innerHTML = `
                 <div class="admin-manual-doc__header">
                     <strong>Documento ${dIndex + 1}</strong>
                     <div class="admin-manual-doc__actions">
                         ${isManualEditor ? `
-                        <button type="button" class="btn-manual-crawl" data-crawl-doc><i class="fas fa-search"></i> Descobrir capítulos</button>
-                        <button type="button" class="btn-manual-sync" data-sync-doc><i class="fas fa-cloud-download-alt"></i> Sincronizar conteúdo</button>
+                        <button type="button" class="btn-manual-crawl" data-crawl-doc><i class="fas fa-search"></i> Descobrir</button>
+                        <button type="button" class="btn-manual-sync" data-sync-doc><i class="fas fa-cloud-download-alt"></i> Sincronizar</button>
                         ` : ''}
-                        <button type="button" class="btn-remove-item" data-remove-doc>Remover doc.</button>
+                        <button type="button" class="btn-remove-item" data-remove-doc>Remover</button>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
                     <div class="form-group"><label>URL principal</label><input type="text" data-df="href" value="${(doc.href || '').replace(/"/g, '&quot;')}"></div>
                 </div>
-                ${isManualEditor ? `<p class="form-hint">Tipo: <code>${docType}</code> · ${chapterCount} capítulo(s)</p>` : ''}
-                ${isManualEditor ? '<div class="admin-chapter-list" data-chapters></div><button type="button" class="btn-add-item" data-add-chapter style="margin-top:8px;">+ Capítulo</button>' : ''}
+                ${isManualEditor ? `
+                <div class="admin-chapters-panel" data-chapters-panel>
+                    <details class="admin-chapters-details"${chaptersOpen ? ' open' : ''}>
+                        <summary>
+                            <span class="admin-chapters-summary__left">
+                                <span>Capítulos</span>
+                                <span class="admin-chapters-badge" data-chapter-count>${chapterCount}</span>
+                                <span class="form-hint" style="margin:0;">${docType}</span>
+                            </span>
+                            <span class="admin-chapters-summary__hint">Expandir para editar</span>
+                        </summary>
+                        <div class="admin-chapters-toolbar">
+                            <input type="search" class="admin-chapters-search" data-chapter-filter placeholder="Buscar por título ou arquivo…">
+                            <button type="button" class="btn-add-item" data-add-chapter>+ Capítulo</button>
+                        </div>
+                        <div class="admin-chapter-list" data-chapters>
+                            <div class="admin-chapter-list__head">
+                                <span></span><span>#</span><span>Título</span><span>Arquivo</span><span></span>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                ` : ''}
             `;
 
             if (isManualEditor) {
+                const panel = wrap.querySelector('[data-chapters-panel]');
                 const chaptersEl = wrap.querySelector('[data-chapters]');
                 (doc.children || []).forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, docType)));
-                AdminUX.setupGalleryReorder(chaptersEl, () => dirtyTracker.markDirty());
-
-                wrap.querySelector('[data-add-chapter]')?.addEventListener('click', () => {
-                    chaptersEl.appendChild(renderChapterRow({}, chaptersEl.children.length, sectionSlug, docType));
+                refreshChapterRowLabels(chaptersEl);
+                bindChapterPanel(panel, chaptersEl, sectionSlug, docType);
+                AdminUX.setupListReorder(chaptersEl, '.admin-chapter-row', () => {
+                    refreshChapterRowLabels(chaptersEl);
                     dirtyTracker.markDirty();
                 });
 
                 wrap.querySelector('[data-crawl-doc]')?.addEventListener('click', async (e) => {
                     const btn = e.currentTarget;
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descobrindo...';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                     try {
                         const res = await fetch(`/admin/crawl-manual-document/${sectionSlug}/${docType}`, { method: 'POST', credentials: 'same-origin' });
                         const data = await res.json();
                         if (data.success && data.children) {
-                            chaptersEl.innerHTML = '';
+                            chaptersEl.querySelectorAll('[data-chapter-row]').forEach((el) => el.remove());
                             data.children.forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, docType)));
+                            refreshChapterRowLabels(chaptersEl);
+                            updateChapterPanelCount(panel);
+                            panel.querySelector('details')?.setAttribute('open', 'open');
                             dirtyTracker.markDirty();
                             alert(data.message);
                         } else {
@@ -736,13 +846,13 @@
                         }
                     } catch (err) { alert(err.message); }
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-search"></i> Descobrir capítulos';
+                    btn.innerHTML = '<i class="fas fa-search"></i> Descobrir';
                 });
 
                 wrap.querySelector('[data-sync-doc]')?.addEventListener('click', async (e) => {
                     const btn = e.currentTarget;
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                     try {
                         const res = await fetch(`/admin/sync-manual-document/${sectionSlug}/${docType}`, {
                             method: 'POST',
@@ -754,7 +864,7 @@
                         alert(data.success ? `${data.message} (${data.chapterCount || 0} no índice)` : (data.message || 'Erro'));
                     } catch (err) { alert(err.message); }
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sincronizar conteúdo';
+                    btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sincronizar';
                 });
             }
 
