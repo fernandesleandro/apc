@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin-shared.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -226,7 +228,11 @@
     <div class="edit-container">
         <div class="header">
             <%- include('includes/admin-brand', { variant: 'dark', subtitle: 'Editar página institucional', link: '/admin/dashboard' }) %>
-            <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <% const previewUrls = { home: '/', sobre: '/sobre', contato: '/contato', servicos: '/#servicos', 'acesso-cliente': '/acesso-cliente', 'manual-proprietario': '/acesso-cliente/manual-proprietario', 'convencao-condominio': '/acesso-cliente/convencao-condominio', 'trabalhe-conosco': '/trabalhe-conosco' }; %>
+                <a href="<%= previewUrls[page.id] || '/' + page.id %>" class="back-btn" target="_blank" rel="noopener" style="background:#eef2ff;color:#0073ff;"><i class="fas fa-external-link-alt"></i> Ver no site</a>
+                <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+            </div>
         </div>
         <h1 style="font-size:1.35rem;color:#1a202c;margin-bottom:20px;">Editar: <%= page.title %></h1>
 
@@ -275,12 +281,57 @@
                         </div>
                     </div>
                     <div class="form-group form-row full">
-                        <label for="heroImage">Imagem de fundo (URL)</label>
-                        <input type="text" id="heroImage" name="hero[image]" 
-                            value="<%= page.hero && page.hero.image ? page.hero.image : '' %>" 
-                            placeholder="https://exemplo.com/imagem.jpg">
-                        <p class="form-hint">Opcional. Deixe em branco para usar o fundo padrão do site.</p>
+                        <label>Imagem de fundo do banner</label>
+                        <% if (page.hero && page.hero.image) { %>
+                        <div style="margin-bottom:12px;">
+                            <img id="heroPreviewImg" src="<%= page.hero.image %>" alt="Banner" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover;">
+                        </div>
+                        <% } %>
+                        <input type="file" id="heroImageFile" accept="image/jpeg,image/png,image/webp,image/gif" style="margin-bottom:8px;">
+                        <input type="hidden" id="heroImage" name="hero[image]" value="<%= page.hero && page.hero.image ? page.hero.image : '' %>">
+                        <p class="form-hint">Envie uma imagem ou informe URL abaixo. Deixe em branco para o fundo padrão.</p>
+                        <input type="text" id="heroImageUrl" placeholder="https://... ou /images/..." value="<%= page.hero && page.hero.image && !String(page.hero.image).startsWith('/media/') ? page.hero.image : '' %>" style="margin-top:8px;">
                     </div>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (page.id === 'acesso-cliente') { %>
+            <div class="form-card">
+                <div class="section">
+                    <h2><i class="fas fa-user-shield"></i> Portal do Cliente — Cards de serviço</h2>
+                    <p class="form-hint" style="margin-bottom:16px;">Cada card aparece na página <strong>/acesso-cliente</strong>. Marque "Indisponível" para exibir o card sem link.</p>
+                    <div class="form-group form-row full">
+                        <label for="portalIntro">Texto introdutório</label>
+                        <textarea id="portalIntro" rows="3"><%= page.content && page.content.intro ? page.content.intro : '' %></textarea>
+                    </div>
+                    <div id="portalServices"></div>
+                    <button type="button" class="btn-add-item" id="addPortalService">+ Adicionar card</button>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (page.id === 'manual-proprietario' || page.id === 'convencao-condominio') { %>
+            <div class="form-card">
+                <div class="section">
+                    <h2><i class="fas fa-folder-open"></i> Documentos por empreendimento</h2>
+                    <p class="form-hint" style="margin-bottom:16px;">Edite textos e links. Capítulos internos dos manuais são sincronizados pelos scripts <code>mirror-manual-content</code> e <code>crawl-manual-links</code>.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientIntro">Texto introdutório</label>
+                            <textarea id="clientIntro" rows="2"><%= page.content && page.content.intro ? page.content.intro : '' %></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientBackLabel">Texto do link voltar</label>
+                            <input type="text" id="clientBackLabel" value="<%= page.content && page.content.backLabel ? page.content.backLabel : 'Voltar ao Acesso ao Cliente' %>">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientBackHref">URL voltar</label>
+                        <input type="text" id="clientBackHref" value="<%= page.content && page.content.backHref ? page.content.backHref : '/acesso-cliente' %>">
+                    </div>
+                    <div id="clientSections"></div>
+                    <button type="button" class="btn-add-item" id="addClientSection">+ Adicionar empreendimento/seção</button>
                 </div>
             </div>
             <% } %>
@@ -339,8 +390,8 @@
             </div>
             <% } %>
 
-            <!-- CONTEÚDO -->
-            <% if (page.content && page.id !== 'servicos') { %>
+            <!-- CONTEÚDO (páginas institucionais gerais) -->
+            <% if (page.content && page.id !== 'servicos' && page.id !== 'acesso-cliente' && page.id !== 'manual-proprietario' && page.id !== 'convencao-condominio') { %>
             <div class="form-card">
                 <div class="section">
                     <h2>Conteúdo</h2>
@@ -436,13 +487,223 @@
             <% } %>
 
             <div class="btn-group">
-                <button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar Alterações</button>
+                <button type="submit" class="btn-save" id="btnSave"><i class="fas fa-save"></i> Salvar e voltar</button>
+                <button type="button" class="btn-save" id="btnSaveStay" style="background:#0073ff;"><i class="fas fa-save"></i> Salvar e continuar</button>
                 <a href="/admin/dashboard" class="btn-cancel" style="text-decoration: none; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i> Cancelar</a>
             </div>
         </form>
+
+        <details class="admin-preview-frame-wrap" style="margin-top:20px;">
+            <summary><i class="fas fa-eye"></i> Prévia da página no site</summary>
+            <iframe class="admin-preview-frame" src="<%= previewUrls[page.id] || '/' + page.id %>" title="Prévia" loading="lazy"></iframe>
+        </details>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/admin-shared.js"></script>
     <script>
+        const pageId = '<%= page.id %>';
+        let saveAndStay = false;
+        const dirtyTracker = AdminUX.createDirtyTracker(document.querySelector('.edit-container'));
+        AdminUX.bindCharCounter(document.getElementById('description'), 160);
+
+        document.getElementById('btnSaveStay')?.addEventListener('click', () => {
+            saveAndStay = true;
+            document.getElementById('editForm').requestSubmit();
+        });
+        AdminUX.bindCtrlSave(() => document.getElementById('editForm').requestSubmit());
+
+        // Upload de banner
+        const heroFileInput = document.getElementById('heroImageFile');
+        const heroImageHidden = document.getElementById('heroImage');
+        const heroImageUrl = document.getElementById('heroImageUrl');
+        heroFileInput?.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const fd = new FormData();
+            fd.append('imageFile', file);
+            try {
+                const res = await fetch(`/admin/upload-page-hero/${pageId}`, { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    heroImageHidden.value = data.image;
+                    const img = document.getElementById('heroPreviewImg');
+                    if (img) img.src = data.image;
+                    else {
+                        const wrap = heroFileInput.parentElement;
+                        const el = document.createElement('img');
+                        el.id = 'heroPreviewImg';
+                        el.src = data.image;
+                        el.style.cssText = 'max-width:100%;max-height:180px;border-radius:8px;margin-bottom:12px;';
+                        wrap.insertBefore(el, heroFileInput);
+                    }
+                    dirtyTracker.markDirty();
+                } else {
+                    alert(data.message || 'Erro no upload');
+                }
+            } catch (err) {
+                alert('Erro: ' + err.message);
+            }
+        });
+        heroImageUrl?.addEventListener('input', () => {
+            heroImageHidden.value = heroImageUrl.value.trim();
+            dirtyTracker.markDirty();
+        });
+
+        <% if (page.id === 'acesso-cliente') { %>
+        const portalServicesData = <%- JSON.stringify((page.content && page.content.services) || []) %>;
+        const portalServicesEl = document.getElementById('portalServices');
+
+        function renderPortalServiceCard(svc, index) {
+            const card = document.createElement('div');
+            card.className = 'admin-service-card';
+            card.dataset.portalService = index;
+            card.innerHTML = `
+                <div class="admin-service-card__header">
+                    <h3>Card ${index + 1}</h3>
+                    <button type="button" class="btn-remove-item" data-remove-portal>Remover</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>ID interno</label><input type="text" data-f="id" value="${svc.id || ''}"></div>
+                    <div class="form-group"><label>Ícone</label><input type="text" data-f="icon" value="${svc.icon || 'fa-circle-info'}"></div>
+                </div>
+                <div class="form-group"><label>Título</label><input type="text" data-f="title" value="${(svc.title || '').replace(/"/g, '&quot;')}"></div>
+                <div class="form-group"><label>Descrição</label><textarea data-f="description" rows="2">${svc.description || ''}</textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Link (href)</label><input type="text" data-f="href" value="${(svc.href || '').replace(/"/g, '&quot;')}"></div>
+                    <div class="form-group"><label>Texto do botão (CTA)</label><input type="text" data-f="cta" value="${(svc.cta || 'Acessar').replace(/"/g, '&quot;')}"></div>
+                </div>
+                <div class="admin-toggle-row">
+                    <label><input type="checkbox" data-f="external" ${svc.external ? 'checked' : ''}> Link externo</label>
+                    <label><input type="checkbox" data-f="disabled" ${svc.disabled ? 'checked' : ''}> Indisponível</label>
+                </div>
+                <div class="form-group"><label>Rótulo quando indisponível</label><input type="text" data-f="disabledLabel" value="${(svc.disabledLabel || 'Indisponível').replace(/"/g, '&quot;')}"></div>
+                <div data-icon-grid></div>
+            `;
+            AdminUX.renderIconGrid(card.querySelector('[data-icon-grid]'), svc.icon || 'fa-circle-info', (icon) => {
+                card.querySelector('[data-f="icon"]').value = icon;
+                dirtyTracker.markDirty();
+            });
+            card.querySelectorAll('input,textarea').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+            return card;
+        }
+
+        function loadPortalServices() {
+            portalServicesEl.innerHTML = '';
+            (portalServicesData.length ? portalServicesData : [{ id: 'novo', icon: 'fa-circle-info', title: '', description: '', href: '', cta: 'Acessar' }])
+                .forEach((svc, i) => portalServicesEl.appendChild(renderPortalServiceCard(svc, i)));
+        }
+        loadPortalServices();
+
+        document.getElementById('addPortalService').addEventListener('click', () => {
+            portalServicesEl.appendChild(renderPortalServiceCard({ id: 'novo-' + Date.now(), icon: 'fa-circle-info', title: '', description: '', href: '', cta: 'Acessar' }, portalServicesEl.children.length));
+            dirtyTracker.markDirty();
+        });
+        portalServicesEl.addEventListener('click', (e) => {
+            if (!e.target.matches('[data-remove-portal]')) return;
+            if (portalServicesEl.children.length <= 1) return;
+            e.target.closest('.admin-service-card').remove();
+            dirtyTracker.markDirty();
+        });
+
+        function collectPortalServices() {
+            return [...portalServicesEl.querySelectorAll('[data-portal-service]')].map(card => ({
+                id: card.querySelector('[data-f="id"]').value.trim() || 'item-' + Date.now(),
+                icon: card.querySelector('[data-f="icon"]').value.trim() || 'fa-circle-info',
+                title: card.querySelector('[data-f="title"]').value.trim(),
+                description: card.querySelector('[data-f="description"]').value.trim(),
+                href: card.querySelector('[data-f="href"]').value.trim(),
+                cta: card.querySelector('[data-f="cta"]').value.trim() || 'Acessar',
+                external: card.querySelector('[data-f="external"]').checked,
+                disabled: card.querySelector('[data-f="disabled"]').checked,
+                disabledLabel: card.querySelector('[data-f="disabledLabel"]').value.trim() || 'Indisponível'
+            }));
+        }
+        <% } %>
+
+        <% if (page.id === 'manual-proprietario' || page.id === 'convencao-condominio') { %>
+        const clientSectionsData = <%- JSON.stringify((page.content && page.content.sections) || []) %>;
+        const clientSectionsEl = document.getElementById('clientSections');
+
+        function renderClientSection(section, sIndex) {
+            const card = document.createElement('div');
+            card.className = 'admin-client-section-card';
+            card.dataset.clientSection = sIndex;
+            const docs = section.documents || [];
+            card.innerHTML = `
+                <div class="admin-client-section-card__header">
+                    <h3>Seção ${sIndex + 1}</h3>
+                    <button type="button" class="btn-remove-item" data-remove-section>Remover seção</button>
+                </div>
+                <div class="form-group"><label>Título do empreendimento</label><input type="text" data-sf="title" value="${(section.title || '').replace(/"/g, '&quot;')}"></div>
+                <div data-docs></div>
+                <button type="button" class="btn-add-item" data-add-doc style="margin-top:8px;">+ Documento</button>
+            `;
+            const docsEl = card.querySelector('[data-docs]');
+            function addDoc(doc, dIndex) {
+                const row = document.createElement('div');
+                row.style.cssText = 'background:#fff;padding:12px;border-radius:6px;margin-bottom:8px;border:1px solid #e2e8f0;';
+                row.dataset.docJson = JSON.stringify(doc);
+                row.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group"><label>Documento ${dIndex + 1} — Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
+                        <div class="form-group"><label>URL principal</label><input type="text" data-df="href" value="${(doc.href || '').replace(/"/g, '&quot;')}"></div>
+                    </div>
+                    ${doc.children && doc.children.length ? `<p class="form-hint">${doc.children.length} capítulo(s) — mantidos ao salvar</p>` : ''}
+                    <button type="button" class="btn-remove-item" data-remove-doc>Remover documento</button>
+                `;
+                docsEl.appendChild(row);
+            }
+            (docs.length ? docs : [{ title: '', href: '' }]).forEach(addDoc);
+            card.querySelector('[data-add-doc]').addEventListener('click', () => {
+                addDoc({}, docsEl.children.length);
+                dirtyTracker.markDirty();
+            });
+            docsEl.addEventListener('click', (e) => {
+                if (e.target.matches('[data-remove-doc]') && docsEl.children.length > 1) {
+                    e.target.closest('div').remove();
+                    dirtyTracker.markDirty();
+                }
+            });
+            card.querySelector('[data-remove-section]').addEventListener('click', () => {
+                if (clientSectionsEl.children.length <= 1) return;
+                card.remove();
+                dirtyTracker.markDirty();
+            });
+            card.querySelectorAll('input').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+            return card;
+        }
+
+        function loadClientSections() {
+            clientSectionsEl.innerHTML = '';
+            (clientSectionsData.length ? clientSectionsData : [{ title: '', documents: [{ title: '', href: '' }] }])
+                .forEach((sec, i) => clientSectionsEl.appendChild(renderClientSection(sec, i)));
+        }
+        loadClientSections();
+        document.getElementById('addClientSection').addEventListener('click', () => {
+            clientSectionsEl.appendChild(renderClientSection({ title: '', documents: [] }, clientSectionsEl.children.length));
+            dirtyTracker.markDirty();
+        });
+
+        function collectClientSections() {
+            return [...clientSectionsEl.querySelectorAll('[data-client-section]')].map((card, sIndex) => {
+                const original = clientSectionsData[sIndex] || {};
+                return {
+                    ...original,
+                    title: card.querySelector('[data-sf="title"]').value.trim(),
+                    slug: original.slug || AdminUX.slugify(card.querySelector('[data-sf="title"]').value.trim()),
+                    documents: [...card.querySelectorAll('[data-docs] > div')].map((row, dIndex) => {
+                        const origDoc = (original.documents || [])[dIndex] || JSON.parse(row.dataset.docJson || '{}');
+                        return {
+                            ...origDoc,
+                            title: row.querySelector('[data-df="title"]').value.trim(),
+                            href: row.querySelector('[data-df="href"]').value.trim()
+                        };
+                    }).filter(d => d.title || d.href)
+                };
+            }).filter(s => s.title);
+        }
+        <% } %>
         <% if (page.id === 'servicos') { %>
         const servicesItemsContainer = document.getElementById('servicesItems');
 
@@ -527,6 +788,24 @@
                 }
             }
 
+            <% if (page.id === 'acesso-cliente') { %>
+            data.content = data.content || {};
+            data.content.intro = document.getElementById('portalIntro').value.trim();
+            data.content.services = collectPortalServices();
+            <% } %>
+            <% if (page.id === 'manual-proprietario' || page.id === 'convencao-condominio') { %>
+            data.content = data.content || {};
+            data.content.intro = document.getElementById('clientIntro').value.trim();
+            data.content.backHref = document.getElementById('clientBackHref').value.trim();
+            data.content.backLabel = document.getElementById('clientBackLabel').value.trim();
+            data.content.sections = collectClientSections();
+            <% } %>
+
+            if (heroImageUrl && heroImageUrl.value.trim() && !heroImageHidden.value.startsWith('/media/')) {
+                if (!data.hero) data.hero = {};
+                data.hero.image = heroImageUrl.value.trim();
+            }
+
             try {
                 const response = await fetch('/admin/save-page/<%= page.id %>', {
                     method: 'POST',
@@ -540,9 +819,12 @@
                 if (result.success) {
                     messageDiv.className = 'message success';
                     messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
-                    setTimeout(() => {
-                        window.location.href = '/admin/dashboard';
-                    }, 2000);
+                    dirtyTracker.markClean();
+                    if (saveAndStay) {
+                        saveAndStay = false;
+                    } else {
+                        setTimeout(() => { window.location.href = '/admin/dashboard?tab=<%= page.id === "acesso-cliente" || page.id === "manual-proprietario" || page.id === "convencao-condominio" ? "portal" : "pages" %>'; }, 1200);
+                    }
                 } else {
                     messageDiv.className = 'message error';
                     messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + result.message;

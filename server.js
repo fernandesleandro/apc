@@ -330,6 +330,21 @@ function projectCoverMediaPath(projectId) {
   return `/media/cover/${projectId}`;
 }
 
+function pageHeroMediaPath(pageId) {
+  return `/media/page-hero/${pageId}`;
+}
+
+function resolvePageHeroForDisplay(pageId, raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  if (isDataImageUrl(raw)) return pageHeroMediaPath(pageId);
+  return normalizePublicPath(raw);
+}
+
+function reorderImageArray(images, order) {
+  if (!Array.isArray(images) || !Array.isArray(order)) return images;
+  return order.map((i) => images[Number(i)]).filter(Boolean);
+}
+
 function galleryMediaPath(projectId, index, kind = 'gallery') {
   return `/media/${kind}/${projectId}/${index}`;
 }
@@ -2323,6 +2338,25 @@ app.get('/media/planta/:projectId/:index', async (req, res) => {
   }
 });
 
+app.get('/media/page-hero/:pageId', async (req, res) => {
+  try {
+    const page = await Page.findOne({ id: req.params.pageId }, { hero: 1 }).lean();
+    const image = page?.hero?.image;
+    if (!image) return res.status(404).end();
+    if (isDataImageUrl(image)) {
+      const match = image.match(/^data:(image\/[\w+.+-]+);base64,(.+)$/s);
+      if (!match) return res.status(404).end();
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.type(match[1]);
+      return res.send(Buffer.from(match[2], 'base64'));
+    }
+    return res.redirect(image);
+  } catch (error) {
+    console.error('[MEDIA] Erro ao servir hero da página:', error);
+    res.status(500).end();
+  }
+});
+
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(
     `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
@@ -2400,7 +2434,14 @@ app.get('/admin/edit-page/:id', isAuthenticated, async (req, res) => {
     if (!page) {
       return res.status(404).send('Página não encontrada');
     }
-    res.render('admin-edit-page', { page, username: req.session.admin.username });
+    const pageObj = page.toObject ? page.toObject() : page;
+    if (pageObj.hero?.image) {
+      pageObj.hero = {
+        ...pageObj.hero,
+        image: resolvePageHeroForDisplay(pageObj.id, pageObj.hero.image)
+      };
+    }
+    res.render('admin-edit-page', { page: pageObj, username: req.session.admin.username });
   } catch (error) {
     console.error('Erro ao carregar página:', error);
     res.status(500).send('Erro ao carregar página');
@@ -2445,6 +2486,27 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
 
     if (req.params.id === 'servicos' && pageData.content && typeof pageData.content === 'object') {
       pageData.content = normalizeServicesSection(pageData.content);
+    }
+
+    if (pageData.hero && typeof pageData.hero === 'object') {
+      const incomingHeroImage = pageData.hero.image;
+      if (!incomingHeroImage || incomingHeroImage === pageHeroMediaPath(req.params.id)) {
+        pageData.hero.image = existingPage.hero?.image || '';
+      } else if (!isDataImageUrl(incomingHeroImage)) {
+        pageData.hero.image = normalizePublicPath(incomingHeroImage) || existingPage.hero?.image || '';
+      }
+    }
+
+    if (pageData.content && typeof pageData.content === 'object' && ['acesso-cliente', 'manual-proprietario', 'convencao-condominio'].includes(req.params.id)) {
+      const existingContent = existingPage.content ? JSON.parse(JSON.stringify(existingPage.content)) : {};
+      if (req.params.id === 'manual-proprietario' || req.params.id === 'convencao-condominio') {
+        const incomingSections = pageData.content.sections || [];
+        pageData.content.sections = incomingSections.map((section, index) => {
+          const prev = existingContent.sections?.[index] || {};
+          return { ...prev, ...section };
+        });
+      }
+      pageData.content = { ...existingContent, ...pageData.content };
     }
 
     const updatePayload = {
@@ -3120,6 +3182,196 @@ app.post('/admin/delete-gallery-image/:projectId/:index', isAuthenticated, async
   }
 });
 
+app.post('/admin/update-gallery-meta/:projectId/:index', isAuthenticated, async (req, res) => {
+  try {
+    const index = parseInt(req.params.index, 10);
+    const kind = req.body.kind === 'planta' ? 'planta' : 'gallery';
+    const { alt, title } = req.body;
+    if (Number.isNaN(index) || index < 0) {
+      return res.status(400).json({ success: false, message: 'Índice inválido' });
+    }
+    if (!alt || !String(alt).trim()) {
+      return res.status(400).json({ success: false, message: 'Descrição (alt) é obrigatória' });
+    }
+    const Model = kind === 'planta' ? PlantaGallery : ProjectGallery;
+    const gallery = await Model.findOne({ projectId: req.params.projectId });
+    if (!gallery || !gallery.images[index]) {
+      return res.status(404).json({ success: false, message: 'Imagem não encontrada' });
+    }
+    gallery.images[index].alt = String(alt).trim();
+    gallery.images[index].title = title ? String(title).trim() : '';
+    gallery.markModified('images');
+    await gallery.save();
+    res.json({
+      success: true,
+      message: 'Imagem atualizada!',
+      image: {
+        alt: gallery.images[index].alt,
+        title: gallery.images[index].title || '',
+        index,
+        src: galleryMediaPath(req.params.projectId, index, kind)
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] Erro ao atualizar meta da galeria:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/admin/reorder-gallery/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const order = req.body.order;
+    if (!Array.isArray(order)) {
+      return res.status(400).json({ success: false, message: 'Ordem inválida' });
+    }
+    const gallery = await ProjectGallery.findOne({ projectId: req.params.projectId });
+    if (!gallery) {
+      return res.status(404).json({ success: false, message: 'Galeria não encontrada' });
+    }
+    gallery.images = reorderImageArray(gallery.images, order);
+    gallery.markModified('images');
+    await gallery.save();
+    res.json({ success: true, message: 'Ordem da galeria atualizada!' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/admin/reorder-planta/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const order = req.body.order;
+    if (!Array.isArray(order)) {
+      return res.status(400).json({ success: false, message: 'Ordem inválida' });
+    }
+    const gallery = await PlantaGallery.findOne({ projectId: req.params.projectId });
+    if (!gallery) {
+      return res.status(404).json({ success: false, message: 'Galeria não encontrada' });
+    }
+    gallery.images = reorderImageArray(gallery.images, order);
+    gallery.markModified('images');
+    await gallery.save();
+    res.json({ success: true, message: 'Ordem das plantas atualizada!' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get('/admin/project-completion/:projectId', isAuthenticated, async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    const project = await Project.findOne({ id: projectId }).lean();
+    const page = await Page.findOne({ id: projectId }).lean();
+    const projectGallery = await ProjectGallery.findOne({ projectId }).lean();
+    const plantaGallery = await PlantaGallery.findOne({ projectId }).lean();
+    const technicalItems = (page?.details?.summaryItems || []).filter((i) => i && i.label && i.label !== 'Endereço');
+
+    const checks = {
+      basic: Boolean(project?.title && project?.description && project?.image),
+      planta: Boolean(plantaGallery?.images?.length),
+      technical: technicalItems.length > 0,
+      location: Boolean(page?.details?.location?.mapQuery || page?.details?.location?.description),
+      commonAreas: Boolean(page?.details?.commonAreas?.length),
+      gallery: Boolean(projectGallery?.images?.length)
+    };
+    const done = Object.values(checks).filter(Boolean).length;
+    res.json({ success: true, checks, done, total: Object.keys(checks).length });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/admin/upload-page-hero/:pageId', isAuthenticated, uploadForProject('imageFile', 'gallery'), handleMulterError, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Nenhuma imagem enviada.' });
+    }
+    let imagePath;
+    try {
+      imagePath = await persistUploadedImage(req.file);
+    } catch (uploadError) {
+      return res.status(400).json({ success: false, message: uploadError.message });
+    }
+    const page = await Page.findOne({ id: req.params.pageId });
+    if (!page) {
+      return res.status(404).json({ success: false, message: 'Página não encontrada' });
+    }
+    page.hero = page.hero || {};
+    page.hero.image = imagePath;
+    page.markModified('hero');
+    await page.save();
+    const displayUrl = isDataImageUrl(imagePath)
+      ? pageHeroMediaPath(req.params.pageId)
+      : normalizePublicPath(imagePath);
+    res.json({ success: true, message: 'Banner atualizado!', image: displayUrl });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/admin/duplicate-project/:id', isAuthenticated, async (req, res) => {
+  try {
+    const sourceId = req.params.id;
+    let newId = String(req.body.newId || '').trim().toLowerCase();
+    if (!newId) {
+      newId = `${sourceId}-copia-${Date.now()}`;
+    }
+    if (!/^[a-z0-9-]+$/.test(newId)) {
+      return res.status(400).json({ success: false, message: 'ID inválido' });
+    }
+    if (await Project.findOne({ id: newId })) {
+      return res.status(400).json({ success: false, message: 'Já existe um projeto com este ID' });
+    }
+
+    const sourceProject = await Project.findOne({ id: sourceId }).lean();
+    const sourcePage = await Page.findOne({ id: sourceId }).lean();
+    if (!sourceProject) {
+      return res.status(404).json({ success: false, message: 'Projeto não encontrado' });
+    }
+
+    const newTitle = String(req.body.title || `${sourceProject.title} (cópia)`).trim();
+    await Project.create({
+      id: newId,
+      title: newTitle,
+      description: sourceProject.description || '',
+      badge: sourceProject.badge || '',
+      href: `/obras/${newId}`,
+      image: sourceProject.image || '',
+      category: sourceProject.category || '',
+      constructionYear: sourceProject.constructionYear,
+      constructionMonth: sourceProject.constructionMonth,
+      createdAt: new Date()
+    });
+
+    if (sourcePage) {
+      const pageCopy = JSON.parse(JSON.stringify(sourcePage));
+      delete pageCopy._id;
+      pageCopy.id = newId;
+      pageCopy.title = newTitle;
+      if (pageCopy.hero) pageCopy.hero.title = newTitle;
+      await Page.create(pageCopy);
+    } else {
+      await Page.create({
+        id: newId,
+        title: newTitle,
+        description: sourceProject.description || '',
+        hero: { title: newTitle, subtitle: '', image: sourceProject.image || '' },
+        details: {}
+      });
+    }
+
+    const srcGallery = await ProjectGallery.findOne({ projectId: sourceId }).lean();
+    const srcPlanta = await PlantaGallery.findOne({ projectId: sourceId }).lean();
+    await ProjectGallery.create({ projectId: newId, images: srcGallery?.images ? JSON.parse(JSON.stringify(srcGallery.images)) : [] });
+    await PlantaGallery.create({ projectId: newId, images: srcPlanta?.images ? JSON.parse(JSON.stringify(srcPlanta.images)) : [] });
+
+    invalidateProjectsListingCache();
+    res.json({ success: true, message: 'Empreendimento duplicado!', projectId: newId });
+  } catch (error) {
+    console.error('[ERROR] Erro ao duplicar projeto:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ===== ROTA ANTIGA (MANTIDA PARA CONFIGURAÇÕES GLOBAIS E DESCRIÇÕES DE PÁGINAS) =====
 
 app.post('/admin/save', isAuthenticated, async (req, res) => {
@@ -3302,7 +3554,7 @@ app.post('/admin/create-project', isAuthenticated, async (req, res) => {
       console.error('[ERROR] Não foi possível criar pastas de galeria/planta:', e);
     }
 
-    res.json({ success: true, message: 'Projeto criado com sucesso!', projectId: id });
+    res.json({ success: true, message: 'Projeto criado com sucesso!', projectId: id.trim() });
   } catch (error) {
     console.error('[ERROR] Erro ao criar projeto:', error);
     res.json({ success: false, message: 'Erro ao criar projeto: ' + error.message });

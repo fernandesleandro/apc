@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="/admin-shared.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -36,7 +37,7 @@
 
         .page-header h1 {
             font-size: 2rem;
-            color: #a2aec5;
+            color: #1a202c;
             font-weight: 800;
         }
 
@@ -895,6 +896,7 @@
                     ID: <code style="background: #eef2ff; padding: 2px 6px; border-radius: 4px; color: #0073ff;"><%= project.id %></code>
                     <% if (typeof username !== 'undefined' && username) { %> · Logado como <strong><%= username %></strong><% } %>
                 </p>
+                <div id="projectChecklist" class="admin-checklist" aria-label="Progresso do cadastro"></div>
             </div>
         </div>
 
@@ -1156,7 +1158,7 @@
 
                     <div class="btn-group">
                         <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Detalhes da Planta</button>
-                        <button type="button" id="uploadPlantaBtn" class="btn-upload"><i class="fas fa-check"></i> Upload de Imagens</button>
+                        <button type="button" id="uploadPlantaBtn" class="btn-upload"><i class="fas fa-cloud-upload-alt"></i> Enviar imagens selecionadas</button>
                     </div>
                 </form>
             </div>
@@ -1323,14 +1325,19 @@
                 </div>
 
                 <div class="btn-group">
-                    <button type="button" id="uploadGalleryBtn" class="btn-upload" style="display: inline-block !important;"><i class="fas fa-check"></i> Upload de Imagens</button>
-                    <button type="button" id="saveGalleryBtn" class="btn-primary"><i class="fas fa-save"></i> Salvar Galeria</button>
+                    <button type="button" id="uploadGalleryBtn" class="btn-upload"><i class="fas fa-cloud-upload-alt"></i> Enviar imagens selecionadas</button>
                 </div>
             </div>
         </div>
+
+        <details class="admin-preview-frame-wrap">
+            <summary><i class="fas fa-eye"></i> Prévia da página no site</summary>
+            <iframe class="admin-preview-frame" src="<%= project.href || '/obras/' + project.id %>" title="Prévia do empreendimento" loading="lazy"></iframe>
+        </details>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/admin-shared.js"></script>
     <script>
         // ===== VARIÁVEIS GLOBAIS =====
         const projectId = '<%= project.id %>';
@@ -1641,15 +1648,21 @@
         updateCommonAreasPreview();
 
         // ===== TABS =====
+        const dirtyTracker = AdminUX.createDirtyTracker(document.querySelector('.edit-container'));
+        AdminUX.initTabPersistence('.tab-btn', null, { hashKey: 'tab' });
+
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                if (dirtyTracker.isDirty() && !btn.classList.contains('active')) {
+                    if (!dirtyTracker.confirmLeave('Há alterações não salvas. Trocar de aba mesmo assim?')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    dirtyTracker.markClean();
+                }
                 const tabName = btn.getAttribute('data-tab');
-                
-                // Remover active de todos os abas e conteúdo
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                // Adicionar active ao clicado
                 btn.classList.add('active');
                 document.getElementById(tabName).classList.add('active');
             });
@@ -2028,7 +2041,8 @@
                     }
                     selectedFilesMain.length = 0;
                     document.getElementById('mainImagePreviewContainer').innerHTML = '';
-                    setTimeout(() => window.location.reload(), 1500);
+                    dirtyTracker.markClean();
+                    loadProjectChecklist();
                 } else {
                     showMessage(data.message, 'error');
                 }
@@ -2262,15 +2276,17 @@
         }
 
         // ===== UPLOAD: PLANTAS =====
+        async function uploadPlantaFiles() {
+            return await uploadFilesGeneric(selectedFilesPlanta, '/admin/upload-planta', 'plantaPreviewContainer', loadPlantaGallery);
+        }
+
         document.getElementById('uploadPlantaBtn').addEventListener('click', async () => {
             const btn = document.getElementById('uploadPlantaBtn');
             btn.disabled = true;
             btn.textContent = 'Enviando...';
-            
-            await uploadFilesGeneric(selectedFilesPlanta, '/admin/upload-planta', 'plantaPreviewContainer', loadPlantaGallery);
-            
+            await uploadPlantaFiles();
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check"></i> Upload de Imagens';
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Enviar imagens selecionadas';
         });
 
         // ===== UPLOAD: GALERIA GERAL =====
@@ -2301,34 +2317,73 @@
         if (uploadGalleryBtn) {
             uploadGalleryBtn.addEventListener('click', async () => {
                 uploadGalleryBtn.disabled = true;
-                uploadGalleryBtn.textContent = 'Enviando...';
+                uploadGalleryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
                 await uploadGalleryFiles();
                 uploadGalleryBtn.disabled = false;
-                uploadGalleryBtn.innerHTML = '<i class="fas fa-check"></i> Upload de Imagens';
+                uploadGalleryBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Enviar imagens selecionadas';
             });
         }
 
-        if (saveGalleryBtn) {
-            saveGalleryBtn.addEventListener('click', async () => {
-                saveGalleryBtn.disabled = true;
-                saveGalleryBtn.textContent = 'Salvando...';
-                
-                // Se houver arquivos pendentes, faz o upload primeiro
-                if (selectedFilesGallery.length > 0) {
-                    const success = await uploadGalleryFiles();
-                    if (success) {
-                        showMessage('Galeria salva com sucesso!', 'success');
-                    }
-                } else {
-                    // Apenas recarrega a galeria e confirma
-                    await loadGeneralGallery();
-                    showMessage('Galeria salva com sucesso!', 'success');
-                }
-                
-                saveGalleryBtn.disabled = false;
-                saveGalleryBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Galeria';
-            });
+        function renderGalleryItem(img, kind, deleteFn) {
+            const safeAlt = (img.alt || '').replace(/"/g, '&quot;');
+            return `
+                <div class="gallery-item" draggable="true" data-index="${img.index}">
+                    <span class="gallery-item-drag-handle" title="Arrastar para reordenar"><i class="fas fa-grip-vertical"></i></span>
+                    <img src="${img.src}" alt="${safeAlt}">
+                    <div class="gallery-item-meta">
+                        <div><strong>${safeAlt}</strong></div>
+                        ${img.title ? `<div>${img.title}</div>` : ''}
+                        <div class="gallery-item-actions" style="margin-top:8px;">
+                            <button type="button" class="btn-gallery-edit" onclick="editGalleryImage(${img.index}, '${kind}')"><i class="fas fa-pen"></i> Editar</button>
+                            <button type="button" class="btn-gallery-delete" onclick="${deleteFn}(${img.index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
+
+        async function persistGalleryOrder(kind) {
+            const endpoint = kind === 'planta' ? '/admin/reorder-planta' : '/admin/reorder-gallery';
+            const container = kind === 'planta' ? document.getElementById('plantaGallery') : document.getElementById('galleryGallery');
+            const order = [...container.querySelectorAll('.gallery-item')].map((el) => parseInt(el.dataset.index, 10));
+            try {
+                const res = await fetch(`${endpoint}/${projectId}`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ order })
+                });
+                const data = await parseApiJson(res);
+                if (data.success) {
+                    if (kind === 'planta') await loadPlantaGallery();
+                    else await loadGeneralGallery();
+                }
+            } catch (e) {
+                console.error('Erro ao reordenar:', e);
+            }
+        }
+
+        window.editGalleryImage = async function(index, kind) {
+            const galleryEl = kind === 'planta' ? document.getElementById('plantaGallery') : document.getElementById('galleryGallery');
+            const item = galleryEl.querySelector(`[data-index="${index}"]`);
+            const currentAlt = item?.querySelector('img')?.alt || '';
+            AdminUX.openEditImageModal({ alt: currentAlt, title: '' }, async (meta) => {
+                const res = await fetch(`/admin/update-gallery-meta/${projectId}/${index}`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...meta, kind })
+                });
+                const data = await parseApiJson(res);
+                if (data.success) {
+                    showMessage('Imagem atualizada!', 'success');
+                    if (kind === 'planta') await loadPlantaGallery();
+                    else await loadGeneralGallery();
+                } else {
+                    showMessage(data.message || 'Erro ao atualizar', 'error');
+                }
+            });
+        };
 
         // ===== CARREGAR GALERIAS =====
         async function loadPlantaGallery() {
@@ -2340,16 +2395,8 @@
                     .then(r => r.json())
                     .then(data => {
                         if (data.images && data.images.length > 0) {
-                            galleryEl.innerHTML = data.images.map(img => `
-                                <div class="gallery-item">
-                                    <img src="${img.src}" alt="${img.alt}">
-                                    <div class="gallery-item-overlay">
-                                        <button onclick="deletePlantaImage(${img.index})">
-                                            <i class="fas fa-trash"></i> Deletar
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('');
+                            galleryEl.innerHTML = data.images.map(img => renderGalleryItem(img, 'planta', 'deletePlantaImage')).join('');
+                            AdminUX.setupGalleryReorder(galleryEl, () => persistGalleryOrder('planta'));
                         } else {
                             galleryEl.innerHTML = '<div class="empty-gallery">Nenhuma imagem enviada ainda</div>';
                         }
@@ -2370,16 +2417,9 @@
                     .then(r => r.json())
                     .then(data => {
                         if (data.images && data.images.length > 0) {
-                            galleryEl.innerHTML = data.images.map(img => `
-                                <div class="gallery-item">
-                                    <img src="${img.src}" alt="${img.alt}">
-                                    <div class="gallery-item-overlay">
-                                        <button onclick="deleteGalleryImage(${img.index})">
-                                            <i class="fas fa-trash"></i> Deletar
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('');
+                            galleryEl.innerHTML = data.images.map(img => renderGalleryItem(img, 'gallery', 'deleteGalleryImage')).join('');
+                            AdminUX.setupGalleryReorder(galleryEl, () => persistGalleryOrder('gallery'));
+                            loadProjectChecklist();
                         } else {
                             galleryEl.innerHTML = '<div class="empty-gallery">Nenhuma imagem enviada ainda</div>';
                         }
@@ -2467,9 +2507,129 @@
             });
         }
 
+        async function loadProjectChecklist() {
+            try {
+                const res = await fetch(`/admin/project-completion/${projectId}`, { credentials: 'same-origin' });
+                const data = await res.json();
+                if (!data.success) return;
+                const labels = {
+                    basic: 'Básico',
+                    planta: 'Plantas',
+                    technical: 'Técnico',
+                    location: 'Local',
+                    commonAreas: 'Áreas',
+                    gallery: 'Galeria'
+                };
+                AdminUX.renderChecklist(document.getElementById('projectChecklist'), Object.entries(data.checks).map(([k, done]) => ({
+                    label: labels[k] || k,
+                    short: labels[k] || k,
+                    done
+                })));
+            } catch (e) { /* ignore */ }
+        }
+
+        async function saveBasicInfoSection() {
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('category', document.getElementById('category').value);
+            formData.append('badge', document.getElementById('badge').value);
+            formData.append('detailTag', document.getElementById('detailTag').value);
+            formData.append('constructionYear', document.getElementById('constructionYear').value);
+            formData.append('constructionMonth', document.getElementById('constructionMonth').value);
+            formData.append('href', document.getElementById('href').value);
+            if (selectedFilesMain.length > 0) formData.append('imageFile', selectedFilesMain[0]);
+            const response = await fetch(`/admin/save-project/${projectId}`, {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: formData
+            });
+            const data = await parseApiJson(response);
+            if (!data.success) throw new Error(data.message);
+            const pageRes = await fetch(`/admin/update-project-page-content/${projectId}`, {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                    heroSubtitle: document.getElementById('heroSubtitle').value,
+                    pageDescription: document.getElementById('pageDescription').value,
+                    detailHeadline: document.getElementById('detailHeadline').value,
+                    detailBullets: collectHighlightList('detailBulletsContainer', 'detail-bullet-input')
+                })
+            });
+            const pageData = await parseApiJson(pageRes);
+            if (!pageData.success) throw new Error(pageData.message);
+        }
+
+        async function saveAllSections() {
+            try {
+                await saveBasicInfoSection();
+                await fetch(`/admin/update-planta-details/${projectId}`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({
+                        plantaSectionTag: document.getElementById('plantaSectionTag').value,
+                        plantaTitle: document.getElementById('plantaTitle').value,
+                        plantaSubtitle: document.getElementById('plantaSubtitle').value,
+                        plantaDescription: document.getElementById('plantaDescription').value,
+                        plantaHighlights: collectHighlightList('plantaHighlightsContainer', 'planta-highlight-input')
+                    })
+                }).then(r => parseApiJson(r));
+                const techRows = document.querySelectorAll('#technicalItemsContainer .form-row');
+                const summaryItems = [];
+                techRows.forEach(row => {
+                    const label = row.querySelector('.technical-label')?.value.trim() || '';
+                    const value = row.querySelector('.technical-value')?.value.trim() || '';
+                    if (label) summaryItems.push({ label, value });
+                });
+                await fetch(`/admin/update-technical-info/${projectId}`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ summaryItems })
+                }).then(r => parseApiJson(r));
+                await fetch(`/admin/update-location-info/${projectId}`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({
+                        address: document.getElementById('address').value,
+                        locationTitle: document.getElementById('locationTitle').value,
+                        locationSubtitle: document.getElementById('locationSubtitle').value,
+                        locationMapQuery: document.getElementById('locationMapQuery').value,
+                        locationDescription: document.getElementById('locationDescription').value,
+                        locationFeatures: collectLocationFeatures()
+                    })
+                }).then(r => parseApiJson(r));
+                await fetch(`/admin/update-common-areas/${projectId}`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({
+                        commonAreasSectionTag: document.getElementById('commonAreasSectionTag').value,
+                        commonAreasTitle: document.getElementById('commonAreasTitle').value,
+                        commonAreasIntro: document.getElementById('commonAreasIntro').value,
+                        commonAreas: collectCommonAreas()
+                    })
+                }).then(r => parseApiJson(r));
+                if (selectedFilesGallery.length > 0) await uploadGalleryFiles();
+                if (selectedFilesPlanta.length > 0) await uploadPlantaFiles();
+                showMessage('Todas as seções foram salvas!', 'success');
+                dirtyTracker.markClean();
+                selectedFilesMain.length = 0;
+                document.getElementById('mainImagePreviewContainer').innerHTML = '';
+                loadProjectChecklist();
+            } catch (error) {
+                showMessage('Erro ao salvar: ' + error.message, 'error');
+            }
+        }
+
+        AdminUX.initStickySaveBar({
+            tracker: dirtyTracker,
+            discardBtn: true,
+            onSaveAll: saveAllSections
+        });
+        AdminUX.bindCtrlSave(saveAllSections);
+
         function init() {
             loadPlantaGallery();
             loadGeneralGallery();
+            loadProjectChecklist();
             renderTechnicalItems(initialTechnicalSummaryItems);
             setupAdminBackLinks();
 

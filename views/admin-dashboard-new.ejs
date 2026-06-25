@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="/admin-shared.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -546,6 +547,9 @@
             <button class="section-tab" data-section="projects">
                 <i class="fas fa-building"></i> Empreendimentos
             </button>
+            <button class="section-tab" data-section="portal">
+                <i class="fas fa-user-shield"></i> Portal do Cliente
+            </button>
             <button class="section-tab" data-section="settings">
                 <i class="fas fa-address-book"></i> Contato & Redes
             </button>
@@ -583,6 +587,9 @@
                                                 <a href="/admin/edit-page/<%= page.id %>" class="btn btn-primary">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </a>
+                                                <a href="/<%= page.id === 'home' ? '' : page.id %>" class="btn btn-secondary admin-btn-sm" target="_blank" rel="noopener">
+                                                    <i class="fas fa-external-link-alt"></i> Ver
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -596,6 +603,42 @@
                             <% } %>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO: PORTAL DO CLIENTE -->
+        <div id="portal" class="section-content">
+            <div class="card">
+                <h2><i class="fas fa-user-shield"></i> Portal do Cliente</h2>
+                <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
+                    Gerencie o hub de serviços, manuais do proprietário e convenções de condomínio.
+                </p>
+                <div class="admin-portal-grid">
+                    <div class="admin-portal-card">
+                        <h3><i class="fas fa-th-large"></i> Hub Acesso ao Cliente</h3>
+                        <p>Cards de serviços (boletos, manutenção, manual, convenção). Ative/desative links e edite textos.</p>
+                        <div class="actions">
+                            <a href="/admin/edit-page/acesso-cliente" class="btn btn-primary admin-btn-sm"><i class="fas fa-edit"></i> Editar</a>
+                            <a href="/acesso-cliente" class="btn btn-secondary admin-btn-sm" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Ver no site</a>
+                        </div>
+                    </div>
+                    <div class="admin-portal-card">
+                        <h3><i class="fas fa-book-open"></i> Manual do Proprietário</h3>
+                        <p>Textos introdutórios e lista de empreendimentos/documentos. Capítulos são sincronizados via scripts.</p>
+                        <div class="actions">
+                            <a href="/admin/edit-page/manual-proprietario" class="btn btn-primary admin-btn-sm"><i class="fas fa-edit"></i> Editar</a>
+                            <a href="/acesso-cliente/manual-proprietario" class="btn btn-secondary admin-btn-sm" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Ver no site</a>
+                        </div>
+                    </div>
+                    <div class="admin-portal-card">
+                        <h3><i class="fas fa-file-contract"></i> Convenção de Condomínio</h3>
+                        <p>Textos e PDFs por empreendimento. Edite títulos, links e organize seções.</p>
+                        <div class="actions">
+                            <a href="/admin/edit-page/convencao-condominio" class="btn btn-primary admin-btn-sm"><i class="fas fa-edit"></i> Editar</a>
+                            <a href="/acesso-cliente/convencao-condominio" class="btn btn-secondary admin-btn-sm" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Ver no site</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -693,7 +736,6 @@
 
         <!-- SEÇÃO: OBRAS / PROJETOS -->
         <div id="projects" class="section-content">
-            <!-- CRIAR NOVO PROJETO -->
             <div class="card">
                 <h2><i class="fas fa-plus-circle"></i> Novo Empreendimento</h2>
                 <p style="color: #718096; margin-bottom: 20px; font-size: 0.95rem;">
@@ -778,10 +820,24 @@
             <div class="card">
                 <h2><i class="fas fa-list"></i> Empreendimentos Cadastrados</h2>
 
+                <div class="admin-filter-bar">
+                    <input type="search" id="projectSearch" placeholder="Buscar por nome ou ID…" aria-label="Buscar empreendimentos">
+                    <select id="projectCategoryFilter" aria-label="Filtrar por categoria">
+                        <option value="">Todas as categorias</option>
+                        <option value="residencial">Residencial</option>
+                        <option value="comercial">Comercial</option>
+                        <option value="corporativo">Corporativo</option>
+                        <option value="misto">Misto</option>
+                        <option value="institucional">Institucional</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
+                                <th style="width:56px;"></th>
                                 <th>Empreendimento</th>
                                 <th>Categoria</th>
                                 <th>Construção</th>
@@ -792,7 +848,11 @@
                         <tbody>
                             <% if (projects.length > 0) { %>
                                 <% projects.forEach(project => { %>
-                                    <tr>
+                                    <% const thumbSrc = project.image || '/images/banners/banner-empreendimento.webp'; %>
+                                    <tr data-searchable data-search="<%= project.title %> <%= project.id %> <%= project.category || '' %>">
+                                        <td>
+                                            <img src="<%= thumbSrc %>" alt="" class="admin-project-thumb" loading="lazy" onerror="this.src='/images/banners/banner-empreendimento.webp'">
+                                        </td>
                                         <td>
                                             <strong><%= project.title %></strong><br>
                                             <small style="color: #a0aec0;">ID: <%= project.id %></small>
@@ -821,12 +881,18 @@
                                             <% } %>
                                         </td>
                                         <td>
-                                            <div class="actions">
-                                                <a href="/admin/edit-project/<%= project.id %>" class="btn btn-primary">
+                                            <div class="admin-table-actions">
+                                                <a href="/admin/edit-project/<%= project.id %>" class="btn btn-primary admin-btn-sm">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </a>
-                                                <button class="btn btn-danger" onclick="deleteProject('<%= project.id %>', '<%= project.title %>')">
-                                                    <i class="fas fa-trash"></i> Deletar
+                                                <a href="<%= project.href || '/obras/' + project.id %>" class="btn btn-secondary admin-btn-sm" target="_blank" rel="noopener">
+                                                    <i class="fas fa-external-link-alt"></i> Site
+                                                </a>
+                                                <button type="button" class="btn btn-secondary admin-btn-sm" onclick="duplicateProject('<%= project.id %>', '<%= project.title.replace(/'/g, "\\'") %>')">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                                <button class="btn btn-danger admin-btn-sm" onclick="deleteProject('<%= project.id %>', '<%= project.title.replace(/'/g, "\\'") %>')">
+                                                    <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -834,7 +900,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="5">
+                                    <td colspan="6">
                                         <div class="empty-state">
                                             <i class="fas fa-inbox"></i>
                                             <p>Nenhum empreendimento cadastrado</p>
@@ -850,8 +916,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/admin-shared.js"></script>
     <script>
         // ===== TABS =====
+        AdminUX.initTabPersistence('.section-tab', null, { useQuery: true });
+
         const initialTab = '<%= typeof activeTab !== "undefined" ? activeTab : "pages" %>';
         if (initialTab && document.getElementById(initialTab)) {
             document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
@@ -872,6 +941,40 @@
                 document.getElementById(sectionName).classList.add('active');
             });
         });
+
+        // Auto-gerar ID a partir do título
+        const titleInput = document.getElementById('newProjectTitle');
+        const idInput = document.getElementById('newProjectId');
+        let idManuallyEdited = false;
+        if (idInput) {
+            idInput.addEventListener('input', () => { idManuallyEdited = true; });
+        }
+        if (titleInput && idInput) {
+            titleInput.addEventListener('input', () => {
+                if (!idManuallyEdited) {
+                    idInput.value = AdminUX.slugify(titleInput.value);
+                }
+            });
+        }
+
+        // Busca e filtro de empreendimentos
+        const projectSearch = document.getElementById('projectSearch');
+        const projectCategoryFilter = document.getElementById('projectCategoryFilter');
+        const projectsTbody = document.querySelector('#projects table tbody');
+
+        function filterProjects() {
+            const q = (projectSearch?.value || '').toLowerCase().trim();
+            const cat = projectCategoryFilter?.value || '';
+            projectsTbody?.querySelectorAll('tr[data-searchable]').forEach((row) => {
+                const hay = (row.getAttribute('data-search') || '').toLowerCase();
+                const rowCat = hay.split(' ').pop();
+                const matchQ = !q || hay.includes(q);
+                const matchCat = !cat || hay.includes(cat);
+                row.style.display = matchQ && matchCat ? '' : 'none';
+            });
+        }
+        projectSearch?.addEventListener('input', filterProjects);
+        projectCategoryFilter?.addEventListener('change', filterProjects);
 
         // ===== CRIAR NOVO PROJETO =====
         document.getElementById('createProjectForm').addEventListener('submit', async (e) => {
@@ -902,8 +1005,8 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    Swal.fire('Sucesso!', 'Empreendimento criado com sucesso! Redirecionando...', 'success').then(() => {
-                        window.location.reload();
+                    Swal.fire('Sucesso!', 'Empreendimento criado! Abrindo editor…', 'success').then(() => {
+                        window.location.href = `/admin/edit-project/${data.projectId}`;
                     });
                 } else {
                     Swal.fire('Erro', data.message, 'error');
@@ -912,6 +1015,40 @@
                 Swal.fire('Erro', 'Erro ao criar empreendimento: ' + error.message, 'error');
             }
         });
+
+        // ===== DUPLICAR PROJETO =====
+        async function duplicateProject(projectId, projectTitle) {
+            const { value: newId } = await Swal.fire({
+                title: 'Duplicar empreendimento',
+                html: `<p style="margin-bottom:12px;">Cópia de <strong>${projectTitle}</strong></p>`,
+                input: 'text',
+                inputLabel: 'ID do novo empreendimento',
+                inputValue: AdminUX.slugify(projectTitle + '-copia'),
+                showCancelButton: true,
+                confirmButtonText: 'Duplicar',
+                inputValidator: (v) => {
+                    if (!v || !/^[a-z0-9-]+$/.test(v)) return 'Use apenas letras minúsculas, números e hífens';
+                }
+            });
+            if (!newId) return;
+            try {
+                const response = await fetch(`/admin/duplicate-project/${projectId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newId, title: projectTitle + ' (cópia)' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    Swal.fire('Duplicado!', 'Abrindo editor da cópia…', 'success').then(() => {
+                        window.location.href = `/admin/edit-project/${data.projectId}`;
+                    });
+                } else {
+                    Swal.fire('Erro', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Erro', error.message, 'error');
+            }
+        }
 
         // ===== DELETAR PROJETO =====
         async function deleteProject(projectId, projectTitle) {
