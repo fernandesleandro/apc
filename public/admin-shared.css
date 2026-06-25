@@ -603,6 +603,133 @@ body.has-admin-sticky-bar {
   border-color: #0073ff;
 }
 
+.admin-chapter-file--custom {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.admin-chapter-actions .is-hidden {
+  display: none !important;
+}
+
+.admin-chapter-type {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+}
+
+.admin-chapter-type label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #475569;
+  font-weight: 600;
+}
+
+.admin-chapter-panel-block.is-hidden {
+  display: none;
+}
+
+.admin-rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.admin-rich-toolbar button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.admin-rich-toolbar button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.admin-rich-editor {
+  min-height: 120px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.admin-rich-editor:focus {
+  outline: none;
+  border-color: #0073ff;
+  box-shadow: 0 0 0 2px rgba(0, 115, 255, 0.1);
+}
+
+.admin-rich-editor p { margin: 0 0 0.6em; }
+.admin-rich-editor ul, .admin-rich-editor ol { margin: 0 0 0.6em 1.2em; }
+
+.admin-chapters-toolbar__split {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-manual-import {
+  margin-bottom: 8px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.admin-manual-import > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  user-select: none;
+}
+
+.admin-manual-import > summary::-webkit-details-marker { display: none; }
+
+.admin-manual-import__body {
+  padding: 0 10px 10px;
+}
+
+.admin-manual-import__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.admin-manual-import__actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-manual-doc__type-row {
+  display: grid;
+  grid-template-columns: 1fr minmax(140px, 0.45fr);
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .admin-manual-doc__type-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-chapter-list__head { display: none; }
 

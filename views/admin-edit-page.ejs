@@ -651,15 +651,23 @@
             }
         }
 
+        function chapterFileLabel(row) {
+            if (row.dataset.chapterCustom === 'true') return 'Próprio';
+            const href = row.querySelector('[data-cf="href"]')?.value || '';
+            return chapterFileFromHref(href);
+        }
+
         function refreshChapterRowLabels(chaptersEl) {
             [...chaptersEl.querySelectorAll('[data-chapter-row]')].forEach((row, index) => {
                 const num = row.querySelector('[data-chapter-num]');
                 if (num) num.textContent = String(index + 1);
-                const href = row.querySelector('[data-cf="href"]')?.value || '';
                 const file = row.querySelector('[data-chapter-file]');
                 if (file) {
-                    file.textContent = chapterFileFromHref(href);
-                    file.title = href;
+                    file.textContent = chapterFileLabel(row);
+                    file.classList.toggle('admin-chapter-file--custom', row.dataset.chapterCustom === 'true');
+                    if (row.dataset.chapterCustom !== 'true') {
+                        file.title = row.querySelector('[data-cf="href"]')?.value || '';
+                    }
                 }
             });
         }
@@ -670,21 +678,99 @@
             if (badge) badge.textContent = String(total);
         }
 
-        function bindChapterPanel(panel, chaptersEl, sectionSlug, docType) {
+        function updateChapterRowTypeUI(row) {
+            const custom = row.dataset.chapterCustom === 'true';
+            row.querySelector('[data-chapter-external]')?.classList.toggle('is-hidden', custom);
+            row.querySelector('[data-chapter-custom]')?.classList.toggle('is-hidden', !custom);
+            row.querySelector('[data-sync-chapter]')?.classList.toggle('is-hidden', custom);
+            const file = row.querySelector('[data-chapter-file]');
+            if (file) {
+                file.textContent = chapterFileLabel(row);
+                file.classList.toggle('admin-chapter-file--custom', custom);
+            }
+        }
+
+        async function loadCustomChapterHtml(row, sectionSlug, docType) {
+            if (row.dataset.htmlLoaded === '1') return;
+            const slug = row.dataset.chapterSlug;
+            const editor = row.querySelector('[data-cf="html"]');
+            if (!editor || !slug) return;
+            try {
+                const res = await fetch(`/admin/manual-chapter-html/${sectionSlug}/${docType}/${slug}`, { credentials: 'same-origin' });
+                const data = await res.json();
+                if (data.success) editor.innerHTML = data.html || '';
+                row.dataset.htmlLoaded = '1';
+            } catch (e) {
+                console.error('Erro ao carregar capítulo:', e);
+            }
+        }
+
+        function bindRichToolbar(toolbar, editor, row) {
+            if (!toolbar || !editor) return;
+            toolbar.querySelectorAll('[data-cmd]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const cmd = btn.dataset.cmd;
+                    editor.focus();
+                    if (cmd === 'createLink') {
+                        const url = prompt('URL do link:');
+                        if (url) document.execCommand('createLink', false, url);
+                    } else if (cmd === 'formatBlock') {
+                        document.execCommand('formatBlock', false, btn.dataset.value || 'p');
+                    } else {
+                        document.execCommand(cmd, false, null);
+                    }
+                    if (row) row.dataset.htmlLoaded = '1';
+                    dirtyTracker.markDirty();
+                });
+            });
+            editor.addEventListener('input', () => {
+                if (row) row.dataset.htmlLoaded = '1';
+                dirtyTracker.markDirty();
+            });
+        }
+
+        function chapterPayloadFromRow(ch) {
+            const title = ch.querySelector('[data-cf="title"]').value.trim();
+            const custom = ch.dataset.chapterCustom === 'true';
+            const slug = ch.dataset.chapterSlug || AdminUX.slugify(title);
+            const entry = { title, slug, custom };
+            if (custom) {
+                const isNew = String(slug).startsWith('novo-');
+                if (isNew || ch.dataset.htmlLoaded === '1') {
+                    entry._html = ch.querySelector('[data-cf="html"]')?.innerHTML || '';
+                }
+            } else {
+                entry.href = ch.querySelector('[data-cf="href"]').value.trim();
+            }
+            return entry;
+        }
+
+        function bindChapterPanel(panel, chaptersEl, sectionSlug, docWrap) {
+            const getDocType = () => docWrap.dataset.docType || docWrap.querySelector('[data-df="type"]')?.value || 'proprietario';
             const filterInput = panel.querySelector('[data-chapter-filter]');
             filterInput?.addEventListener('input', () => {
                 const q = filterInput.value.trim().toLowerCase();
                 chaptersEl.querySelectorAll('[data-chapter-row]').forEach((row) => {
                     const title = row.querySelector('[data-cf="title"]')?.value.toLowerCase() || '';
                     const href = row.querySelector('[data-cf="href"]')?.value.toLowerCase() || '';
-                    const file = chapterFileFromHref(href).toLowerCase();
+                    const file = chapterFileLabel(row).toLowerCase();
                     const match = !q || title.includes(q) || href.includes(q) || file.includes(q);
                     row.classList.toggle('is-filtered-out', !match);
                 });
             });
 
-            panel.querySelector('[data-add-chapter]')?.addEventListener('click', () => {
-                const row = renderChapterRow({}, chaptersEl.children.length, sectionSlug, docType, { expanded: true });
+            panel.querySelector('[data-add-chapter-external]')?.addEventListener('click', () => {
+                const row = renderChapterRow({ custom: false }, chaptersEl.querySelectorAll('[data-chapter-row]').length, sectionSlug, getDocType(), { expanded: true });
+                chaptersEl.appendChild(row);
+                updateChapterPanelCount(panel);
+                refreshChapterRowLabels(chaptersEl);
+                dirtyTracker.markDirty();
+                row.querySelector('[data-cf="title"]')?.focus();
+            });
+
+            panel.querySelector('[data-add-chapter-custom]')?.addEventListener('click', () => {
+                const row = renderChapterRow({ custom: true, slug: 'novo-' + Date.now() }, chaptersEl.querySelectorAll('[data-chapter-row]').length, sectionSlug, getDocType(), { expanded: true });
                 chaptersEl.appendChild(row);
                 updateChapterPanelCount(panel);
                 refreshChapterRowLabels(chaptersEl);
@@ -695,40 +781,97 @@
 
         function renderChapterRow(chapter, cIndex, sectionSlug, docType, options = {}) {
             const row = document.createElement('div');
+            const isCustom = Boolean(chapter.custom) || String(chapter.href || '').toLowerCase().startsWith('custom://');
+            const slug = chapter.slug || (isCustom ? ('novo-' + Date.now()) : '');
             row.className = 'admin-chapter-row' + (options.expanded ? ' is-expanded' : '');
             row.draggable = isManualEditor;
             row.dataset.chapterRow = cIndex;
+            row.dataset.chapterSlug = slug;
+            row.dataset.chapterCustom = isCustom ? 'true' : 'false';
+            row.dataset.htmlLoaded = chapter._htmlLoaded ? '1' : '0';
+
             const href = chapter.href || '';
             const title = (chapter.title || '').replace(/"/g, '&quot;');
             const hrefEsc = href.replace(/"/g, '&quot;');
-            const fileLabel = chapterFileFromHref(href);
+            const typeUid = `ctype-${sectionSlug}-${docType}-${cIndex}-${Date.now()}`;
+            const fileLabel = isCustom ? 'Próprio' : chapterFileFromHref(href);
+
             row.innerHTML = `
                 <div class="admin-chapter-row__main">
                     <span class="admin-chapter-drag" data-drag-handle title="Arrastar"><i class="fas fa-grip-vertical"></i></span>
                     <span class="admin-chapter-num" data-chapter-num>${cIndex + 1}</span>
                     <input type="text" class="admin-chapter-title" data-cf="title" placeholder="Título" value="${title}">
-                    <span class="admin-chapter-file" data-chapter-file title="${hrefEsc}">${fileLabel}</span>
+                    <span class="admin-chapter-file ${isCustom ? 'admin-chapter-file--custom' : ''}" data-chapter-file title="${isCustom ? 'Conteúdo próprio' : hrefEsc}">${fileLabel}</span>
                     <div class="admin-chapter-actions">
-                        ${isManualEditor ? `<button type="button" data-toggle-chapter title="Editar URL"><i class="fas fa-link"></i></button>` : ''}
-                        ${isManualEditor ? `<button type="button" class="btn-manual-sync" data-sync-chapter title="Sincronizar capítulo"><i class="fas fa-download"></i></button>` : ''}
+                        ${isManualEditor ? `<button type="button" data-toggle-chapter title="Editar"><i class="fas fa-pen"></i></button>` : ''}
+                        ${isManualEditor ? `<button type="button" class="btn-manual-sync ${isCustom ? 'is-hidden' : ''}" data-sync-chapter title="Sincronizar da URL"><i class="fas fa-download"></i></button>` : ''}
                         <button type="button" data-remove-chapter title="Remover"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
                 <div class="admin-chapter-row__detail">
-                    <label>URL do capítulo</label>
-                    <input type="text" data-cf="href" placeholder="https://..." value="${hrefEsc}">
+                    <div class="admin-chapter-type">
+                        <label><input type="radio" name="${typeUid}" value="external" ${isCustom ? '' : 'checked'}> Externo (URL)</label>
+                        <label><input type="radio" name="${typeUid}" value="custom" ${isCustom ? 'checked' : ''}> Próprio (texto)</label>
+                    </div>
+                    <div class="admin-chapter-panel-block ${isCustom ? 'is-hidden' : ''}" data-chapter-external>
+                        <label>URL do capítulo</label>
+                        <input type="text" data-cf="href" placeholder="https://..." value="${hrefEsc}">
+                    </div>
+                    <div class="admin-chapter-panel-block ${isCustom ? '' : 'is-hidden'}" data-chapter-custom>
+                        <label>Conteúdo do capítulo</label>
+                        <div class="admin-rich-toolbar">
+                            <button type="button" data-cmd="bold" title="Negrito"><i class="fas fa-bold"></i></button>
+                            <button type="button" data-cmd="italic" title="Itálico"><i class="fas fa-italic"></i></button>
+                            <button type="button" data-cmd="insertUnorderedList" title="Lista"><i class="fas fa-list-ul"></i></button>
+                            <button type="button" data-cmd="insertOrderedList" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
+                            <button type="button" data-cmd="formatBlock" data-value="p" title="Parágrafo"><i class="fas fa-paragraph"></i></button>
+                            <button type="button" data-cmd="createLink" title="Link"><i class="fas fa-link"></i></button>
+                        </div>
+                        <div class="admin-rich-editor" data-cf="html" contenteditable="true"></div>
+                        <p class="form-hint" style="margin-top:6px;">Escreva o texto aqui. Será publicado no manual ao salvar a página.</p>
+                    </div>
                 </div>
             `;
 
-            row.querySelector('[data-toggle-chapter]')?.addEventListener('click', () => {
+            const editor = row.querySelector('[data-cf="html"]');
+            bindRichToolbar(row.querySelector('.admin-rich-toolbar'), editor, row);
+
+            row.querySelectorAll(`input[name="${typeUid}"]`).forEach((radio) => {
+                radio.addEventListener('change', async () => {
+                    const custom = radio.value === 'custom';
+                    row.dataset.chapterCustom = custom ? 'true' : 'false';
+                    if (custom && !row.dataset.chapterSlug.startsWith('novo-')) {
+                        // mantém slug existente
+                    } else if (custom && row.dataset.chapterSlug.startsWith('novo-')) {
+                        const titleVal = row.querySelector('[data-cf="title"]').value.trim();
+                        if (titleVal) row.dataset.chapterSlug = AdminUX.slugify(titleVal) || row.dataset.chapterSlug;
+                    }
+                    updateChapterRowTypeUI(row);
+                    if (custom) await loadCustomChapterHtml(row, sectionSlug, docType);
+                    dirtyTracker.markDirty();
+                });
+            });
+
+            row.querySelector('[data-toggle-chapter]')?.addEventListener('click', async () => {
                 row.classList.toggle('is-expanded');
+                if (row.classList.contains('is-expanded') && row.dataset.chapterCustom === 'true') {
+                    await loadCustomChapterHtml(row, sectionSlug, docType);
+                }
             });
 
             row.querySelector('[data-cf="href"]')?.addEventListener('input', (e) => {
                 const file = row.querySelector('[data-chapter-file]');
-                if (file) {
+                if (file && row.dataset.chapterCustom !== 'true') {
                     file.textContent = chapterFileFromHref(e.target.value);
                     file.title = e.target.value;
+                }
+                dirtyTracker.markDirty();
+            });
+
+            row.querySelector('[data-cf="title"]')?.addEventListener('input', () => {
+                if (row.dataset.chapterCustom === 'true' && row.dataset.chapterSlug.startsWith('novo-')) {
+                    const titleVal = row.querySelector('[data-cf="title"]').value.trim();
+                    if (titleVal) row.dataset.chapterSlug = AdminUX.slugify(titleVal) || row.dataset.chapterSlug;
                 }
                 dirtyTracker.markDirty();
             });
@@ -756,14 +899,52 @@
             row.querySelector('[data-remove-chapter]')?.addEventListener('click', () => {
                 const panel = row.closest('[data-chapters-panel]');
                 row.remove();
-                const chaptersEl = panel?.querySelector('[data-chapters]');
-                if (chaptersEl) refreshChapterRowLabels(chaptersEl);
+                const listEl = panel?.querySelector('[data-chapters]');
+                if (listEl) refreshChapterRowLabels(listEl);
                 if (panel) updateChapterPanelCount(panel);
                 dirtyTracker.markDirty();
             });
 
-            row.querySelector('[data-cf="title"]')?.addEventListener('input', () => dirtyTracker.markDirty());
+            if (isCustom && options.expanded) {
+                loadCustomChapterHtml(row, sectionSlug, docType);
+            }
+
             return row;
+        }
+
+        const MANUAL_DOC_TYPES = [
+            { value: 'proprietario', label: 'Manual do Proprietário' },
+            { value: 'areas-comuns', label: 'Áreas comuns' },
+            { value: 'desenhos', label: 'Desenhos' },
+            { value: 'habite-se', label: 'Habite-se (PDF)' },
+            { value: 'documento', label: 'Outro documento' }
+        ];
+
+        function manualDocTypeOptions(selected) {
+            return MANUAL_DOC_TYPES.map((opt) =>
+                `<option value="${opt.value}"${opt.value === selected ? ' selected' : ''}>${opt.label}</option>`
+            ).join('');
+        }
+
+        function manualDocDisplayHref(href) {
+            const raw = String(href || '').trim();
+            if (!raw || raw.toLowerCase().startsWith('custom://')) return '';
+            return raw;
+        }
+
+        function updateManualDocImportUI(wrap) {
+            const href = wrap.querySelector('[data-df="href"]')?.value.trim() || '';
+            const hasHref = Boolean(href);
+            wrap.querySelector('[data-crawl-doc]')?.toggleAttribute('disabled', !hasHref);
+            wrap.querySelector('[data-sync-doc]')?.toggleAttribute('disabled', !hasHref);
+        }
+
+        function updateManualDocTypeUI(wrap) {
+            const type = wrap.querySelector('[data-df="type"]')?.value
+                || inferDocType(wrap.querySelector('[data-df="title"]')?.value, wrap.querySelector('[data-df="href"]')?.value);
+            wrap.dataset.docType = type;
+            const badge = wrap.querySelector('[data-doc-type-label]');
+            if (badge) badge.textContent = type;
         }
 
         function renderManualDoc(doc, dIndex, sectionSlug) {
@@ -775,20 +956,18 @@
             wrap.dataset.sectionSlug = sectionSlug;
             const chapterCount = (doc.children || []).length;
             const chaptersOpen = chapterCount <= 5;
+            const displayHref = manualDocDisplayHref(doc.href);
+            const importOpen = Boolean(displayHref);
             wrap.innerHTML = `
                 <div class="admin-manual-doc__header">
                     <strong>Documento ${dIndex + 1}</strong>
                     <div class="admin-manual-doc__actions">
-                        ${isManualEditor ? `
-                        <button type="button" class="btn-manual-crawl" data-crawl-doc><i class="fas fa-search"></i> Descobrir</button>
-                        <button type="button" class="btn-manual-sync" data-sync-doc><i class="fas fa-cloud-download-alt"></i> Sincronizar</button>
-                        ` : ''}
                         <button type="button" class="btn-remove-item" data-remove-doc>Remover</button>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label>Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
-                    <div class="form-group"><label>URL principal</label><input type="text" data-df="href" value="${(doc.href || '').replace(/"/g, '&quot;')}"></div>
+                <div class="admin-manual-doc__type-row">
+                    <div class="form-group" style="margin:0;"><label>Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
+                    <div class="form-group" style="margin:0;"><label>Tipo</label><select data-df="type">${manualDocTypeOptions(docType)}</select></div>
                 </div>
                 ${isManualEditor ? `
                 <div class="admin-chapters-panel" data-chapters-panel>
@@ -797,13 +976,30 @@
                             <span class="admin-chapters-summary__left">
                                 <span>Capítulos</span>
                                 <span class="admin-chapters-badge" data-chapter-count>${chapterCount}</span>
-                                <span class="form-hint" style="margin:0;">${docType}</span>
+                                <span class="form-hint" style="margin:0;" data-doc-type-label>${docType}</span>
                             </span>
                             <span class="admin-chapters-summary__hint">Expandir para editar</span>
                         </summary>
+                        <details class="admin-manual-import" data-manual-import${importOpen ? ' open' : ''}>
+                            <summary><i class="fas fa-cloud-download-alt"></i> Importar de manual online (opcional)</summary>
+                            <div class="admin-manual-import__body">
+                                <p class="form-hint" style="margin:0 0 8px;">Use apenas para descobrir capítulos de um manual online. Para conteúdo próprio, use <strong>+ Próprio</strong>.</p>
+                                <div class="form-group" style="margin:0;">
+                                    <label>URL do manual online</label>
+                                    <input type="url" data-df="href" placeholder="https://..." value="${displayHref.replace(/"/g, '&quot;')}">
+                                </div>
+                                <div class="admin-manual-import__actions">
+                                    <button type="button" class="btn-manual-crawl" data-crawl-doc><i class="fas fa-search"></i> Descobrir</button>
+                                    <button type="button" class="btn-manual-sync" data-sync-doc><i class="fas fa-cloud-download-alt"></i> Sincronizar externos</button>
+                                </div>
+                            </div>
+                        </details>
                         <div class="admin-chapters-toolbar">
                             <input type="search" class="admin-chapters-search" data-chapter-filter placeholder="Buscar por título ou arquivo…">
-                            <button type="button" class="btn-add-item" data-add-chapter>+ Capítulo</button>
+                            <div class="admin-chapters-toolbar__split">
+                                <button type="button" class="btn-add-item" data-add-chapter-external>+ URL</button>
+                                <button type="button" class="btn-add-item" data-add-chapter-custom>+ Próprio</button>
+                            </div>
                         </div>
                         <div class="admin-chapter-list" data-chapters>
                             <div class="admin-chapter-list__head">
@@ -820,25 +1016,47 @@
                 const chaptersEl = wrap.querySelector('[data-chapters]');
                 (doc.children || []).forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, docType)));
                 refreshChapterRowLabels(chaptersEl);
-                bindChapterPanel(panel, chaptersEl, sectionSlug, docType);
+                bindChapterPanel(panel, chaptersEl, sectionSlug, wrap);
                 AdminUX.setupListReorder(chaptersEl, '.admin-chapter-row', () => {
                     refreshChapterRowLabels(chaptersEl);
                     dirtyTracker.markDirty();
                 });
+                updateManualDocImportUI(wrap);
+                updateManualDocTypeUI(wrap);
+
+                wrap.querySelector('[data-df="href"]')?.addEventListener('input', () => {
+                    updateManualDocImportUI(wrap);
+                    updateManualDocTypeUI(wrap);
+                    dirtyTracker.markDirty();
+                });
+                wrap.querySelector('[data-df="type"]')?.addEventListener('change', () => {
+                    updateManualDocTypeUI(wrap);
+                    dirtyTracker.markDirty();
+                });
+                wrap.querySelector('[data-df="title"]')?.addEventListener('input', () => {
+                    dirtyTracker.markDirty();
+                });
 
                 wrap.querySelector('[data-crawl-doc]')?.addEventListener('click', async (e) => {
+                    const hrefVal = wrap.querySelector('[data-df="href"]')?.value.trim();
+                    if (!hrefVal) { alert('Informe a URL do manual online para descobrir capítulos.'); return; }
                     const btn = e.currentTarget;
                     btn.disabled = true;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                     try {
-                        const res = await fetch(`/admin/crawl-manual-document/${sectionSlug}/${docType}`, { method: 'POST', credentials: 'same-origin' });
+                        const res = await fetch(`/admin/crawl-manual-document/${sectionSlug}/${wrap.dataset.docType}`, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ href: hrefVal })
+                        });
                         const data = await res.json();
                         if (data.success && data.children) {
                             chaptersEl.querySelectorAll('[data-chapter-row]').forEach((el) => el.remove());
-                            data.children.forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, docType)));
+                            data.children.forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, wrap.dataset.docType)));
                             refreshChapterRowLabels(chaptersEl);
                             updateChapterPanelCount(panel);
-                            panel.querySelector('details')?.setAttribute('open', 'open');
+                            panel.querySelector('.admin-chapters-details')?.setAttribute('open', 'open');
                             dirtyTracker.markDirty();
                             alert(data.message);
                         } else {
@@ -847,14 +1065,17 @@
                     } catch (err) { alert(err.message); }
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-search"></i> Descobrir';
+                    updateManualDocImportUI(wrap);
                 });
 
                 wrap.querySelector('[data-sync-doc]')?.addEventListener('click', async (e) => {
+                    const hrefVal = wrap.querySelector('[data-df="href"]')?.value.trim();
+                    if (!hrefVal) { alert('Informe a URL do manual online ou sincronize capítulos individuais.'); return; }
                     const btn = e.currentTarget;
                     btn.disabled = true;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                     try {
-                        const res = await fetch(`/admin/sync-manual-document/${sectionSlug}/${docType}`, {
+                        const res = await fetch(`/admin/sync-manual-document/${sectionSlug}/${wrap.dataset.docType}`, {
                             method: 'POST',
                             credentials: 'same-origin',
                             headers: { 'Content-Type': 'application/json' },
@@ -864,7 +1085,8 @@
                         alert(data.success ? `${data.message} (${data.chapterCount || 0} no índice)` : (data.message || 'Erro'));
                     } catch (err) { alert(err.message); }
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sincronizar';
+                    btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sincronizar externos';
+                    updateManualDocImportUI(wrap);
                 });
             }
 
@@ -954,23 +1176,19 @@
                     documents: [...card.querySelectorAll('[data-doc-row], [data-docs] > div')].map((row, dIndex) => {
                         if (row.dataset.docRow !== undefined) {
                             const origDoc = (original.documents || [])[dIndex] || {};
-                            const docType = row.dataset.docType || inferDocType(
-                                row.querySelector('[data-df="title"]')?.value,
-                                row.querySelector('[data-df="href"]')?.value
-                            );
+                            const title = row.querySelector('[data-df="title"]').value.trim();
+                            const href = row.querySelector('[data-df="href"]')?.value.trim() || '';
+                            const type = row.querySelector('[data-df="type"]')?.value
+                                || row.dataset.docType
+                                || inferDocType(title, href);
                             const children = isManualEditor
-                                ? [...row.querySelectorAll('[data-chapter-row]')].map(ch => ({
-                                    title: ch.querySelector('[data-cf="title"]').value.trim(),
-                                    href: ch.querySelector('[data-cf="href"]').value.trim()
-                                })).filter(c => c.title && c.href)
+                                ? [...row.querySelectorAll('[data-chapter-row]')].map(chapterPayloadFromRow)
+                                    .filter(c => c.custom ? c.title : (c.title && c.href))
                                 : (origDoc.children || []);
-                            return {
-                                ...origDoc,
-                                title: row.querySelector('[data-df="title"]').value.trim(),
-                                href: row.querySelector('[data-df="href"]').value.trim(),
-                                type: docType,
-                                children
-                            };
+                            const docPayload = { ...origDoc, title, type, children };
+                            if (href) docPayload.href = href;
+                            else delete docPayload.href;
+                            return docPayload;
                         }
                         const origDoc = (original.documents || [])[dIndex] || JSON.parse(row.dataset.docJson || '{}');
                         return {
@@ -978,7 +1196,7 @@
                             title: row.querySelector('[data-df="title"]').value.trim(),
                             href: row.querySelector('[data-df="href"]').value.trim()
                         };
-                    }).filter(d => d.title || d.href)
+                    }).filter(d => isManualEditor ? d.title : (d.title || d.href))
                 };
             }).filter(s => s.title);
         }

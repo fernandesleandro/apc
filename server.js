@@ -235,6 +235,7 @@ const ManualChapter = mongoose.model('ManualChapter', new mongoose.Schema({
   html: { type: String, default: '' },
   plainText: { type: String, default: '' },
   sourceHref: { type: String, required: true, unique: true },
+  custom: { type: Boolean, default: false },
   syncedAt: { type: Date, default: Date.now }
 }));
 
@@ -260,7 +261,8 @@ const {
   fetchChapterContent,
   buildManualPath,
   buildChapterPath,
-  formatManualHtml
+  formatManualHtml,
+  slugifyManualSlug
 } = require('./lib/manual-content');
 const { crawlDocumentChildren } = require('./lib/manual-crawl');
 
@@ -1740,13 +1742,48 @@ function decodeManualHtml(html) {
     });
 }
 
+function buildCustomSourceHref(sectionSlug, docType, slug) {
+  return `custom://${sectionSlug}/${docType}/${slug}`;
+}
+
+function isCustomSourceHref(href) {
+  return String(href || '').toLowerCase().startsWith('custom://');
+}
+
+function isCustomManualChapter(child) {
+  return Boolean(child?.custom) || isCustomSourceHref(child?.href);
+}
+
+function plainTextFromHtml(html) {
+  return String(html || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function resolveManualChapterSlug(child) {
+  const title = String(child?.title || '').trim();
+  let slug = child?.slug;
+  if (slug && String(slug).startsWith('novo-')) {
+    slug = slugifyManualSlug(title) || slug;
+  }
+  if (slug) return slug;
+  if (isCustomManualChapter(child)) return slugifyManualSlug(title) || `capitulo-${Date.now()}`;
+  return chapterSlugFromHref(child?.href, title);
+}
+
 function normalizeManualChapter(chapter, sectionSlug, docType) {
   const title = decodeHtmlEntities(chapter.title);
-  const slug = chapter.slug || chapterSlugFromHref(chapter.href, title);
+  const custom = isCustomManualChapter(chapter);
+  const slug = resolveManualChapterSlug({ ...chapter, title });
+  const href = custom
+    ? (isCustomSourceHref(chapter.href) ? chapter.href : buildCustomSourceHref(sectionSlug, docType, slug))
+    : chapter.href;
   return {
     title,
-    href: chapter.href,
+    href,
     slug,
+    custom,
     internalPath: buildChapterPath(sectionSlug, docType, slug)
   };
 }
@@ -1832,6 +1869,7 @@ function findManualChapterMeta(sectionSlug, docType, chapterSlug) {
       if (doc.type !== docType) continue;
       for (const child of doc.children || []) {
         if (child.slug === chapterSlug) {
+          const custom = isCustomManualChapter(child);
           return {
             sectionSlug: section.slug,
             sectionTitle: section.title,
@@ -1839,7 +1877,10 @@ function findManualChapterMeta(sectionSlug, docType, chapterSlug) {
             docTitle: doc.title,
             slug: child.slug,
             title: child.title,
-            sourceHref: child.href
+            sourceHref: custom
+              ? (isCustomSourceHref(child.href) ? child.href : buildCustomSourceHref(section.slug, doc.type, child.slug))
+              : child.href,
+            custom
           };
         }
       }
@@ -1864,11 +1905,20 @@ function needsPdfDirectoryRefetch(chapter, sourceHref) {
 }
 
 async function getOrFetchManualChapter(meta, { force = false } = {}) {
+  const isCustom = Boolean(meta.custom) || isCustomSourceHref(meta.sourceHref);
+
   let chapter = await ManualChapter.findOne({
     sectionSlug: meta.sectionSlug,
     docType: meta.docType,
     slug: meta.slug
   }).lean();
+
+  if (isCustom) {
+    if (chapter?.html) {
+      return { ...chapter, html: presentManualChapterHtml(chapter.html) };
+    }
+    return null;
+  }
 
   const shouldRefetch = force || needsPdfDirectoryRefetch(chapter, meta.sourceHref);
 
@@ -1961,6 +2011,85 @@ function findManualDocumentMeta(sectionSlug, docType) {
   return null;
 }
 
+async function upsertCustomManualChapter(meta, rawHtml) {
+  const html = formatManualHtml(String(rawHtml || ''));
+  const plainText = plainTextFromHtml(html);
+  const sourceHref = buildCustomSourceHref(meta.sectionSlug, meta.docType, meta.slug);
+  const payload = {
+    sectionSlug: meta.sectionSlug,
+    sectionTitle: meta.sectionTitle,
+    docType: meta.docType,
+    docTitle: meta.docTitle,
+    slug: meta.slug,
+    title: meta.title,
+    sourceHref,
+    custom: true,
+    html,
+    plainText,
+    syncedAt: new Date()
+  };
+  return ManualChapter.findOneAndUpdate(
+    { sectionSlug: meta.sectionSlug, docType: meta.docType, slug: meta.slug },
+    payload,
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  ).lean();
+}
+
+async function persistCustomManualChaptersFromSections(sections) {
+  if (!Array.isArray(sections)) return sections;
+
+  const cleanedSections = [];
+  for (const section of sections) {
+    const sectionSlug = section.slug || slugifyManualSection(section.title);
+    const documents = [];
+    for (const doc of section.documents || []) {
+      const docType = doc.type || inferManualDocType(doc.title, doc.href);
+      const children = [];
+      for (const child of doc.children || []) {
+        const title = String(child.title || '').trim();
+        if (!title) continue;
+
+        const custom = Boolean(child.custom);
+        const slug = resolveManualChapterSlug({ ...child, title });
+        const cleanedChild = { title, slug, custom };
+
+        if (custom) {
+          cleanedChild.href = buildCustomSourceHref(sectionSlug, docType, slug);
+          if (child._html !== undefined && child._html !== null) {
+            await upsertCustomManualChapter({
+              sectionSlug,
+              sectionTitle: section.title,
+              docType,
+              docTitle: doc.title,
+              slug,
+              title
+            }, child._html);
+          }
+          children.push(cleanedChild);
+        } else if (child.href) {
+          cleanedChild.href = String(child.href).trim();
+          children.push(cleanedChild);
+        }
+      }
+      documents.push({ ...doc, children });
+    }
+    cleanedSections.push({ ...section, documents });
+  }
+  return cleanedSections;
+}
+
+async function rebuildManualDocumentsFromSections(sections) {
+  if (!Array.isArray(sections)) return;
+  for (const section of sections) {
+    const sectionSlug = section.slug || slugifyManualSection(section.title);
+    for (const doc of section.documents || []) {
+      const docType = doc.type || inferManualDocType(doc.title, doc.href);
+      const meta = findManualDocumentMeta(sectionSlug, docType);
+      if (meta) await buildManualDocumentRecord(meta);
+    }
+  }
+}
+
 async function findManualDocInPage(sectionSlug, docType) {
   const page = await Page.findOne({ id: 'manual-proprietario' });
   if (!page?.content?.sections?.length) {
@@ -1995,6 +2124,20 @@ async function saveManualDocumentChildren(sectionSlug, docType, children) {
   await refreshManualContentFromDb();
 }
 
+async function saveManualDocHref(sectionSlug, docType, href) {
+  const found = await findManualDocInPage(sectionSlug, docType);
+  if (!found.doc || !found.page) {
+    throw new Error('Documento não encontrado na página do manual');
+  }
+  const docRef = found.page.content.sections[found.sectionIndex].documents[found.docIndex];
+  docRef.href = String(href || '').trim();
+  if (!docRef.type) docRef.type = docType;
+  found.page.markModified('content');
+  await found.page.save();
+  invalidateManualContentCache();
+  await refreshManualContentFromDb();
+}
+
 function findManualChildByHref(meta, href) {
   const normalized = String(href || '').split('#')[0].trim().toLowerCase();
   return (meta?.children || []).find((child) =>
@@ -2009,24 +2152,42 @@ async function buildManualDocumentRecord(meta) {
     html: { $ne: '' }
   }).lean();
   const byHref = new Map(allStored.map((chapter) => [chapter.sourceHref.toLowerCase(), chapter]));
+  const bySlug = new Map(allStored.map((chapter) => [chapter.slug, chapter]));
   const chapters = [];
 
   for (const child of meta.children) {
+    const custom = isCustomManualChapter(child);
+    const slug = resolveManualChapterSlug(child);
     const chapterMeta = {
       sectionSlug: meta.sectionSlug,
       sectionTitle: meta.sectionTitle,
       docType: meta.docType,
       docTitle: meta.docTitle,
-      slug: child.slug || chapterSlugFromHref(child.href, child.title),
+      slug,
       title: child.title,
-      sourceHref: child.href
+      sourceHref: custom
+        ? buildCustomSourceHref(meta.sectionSlug, meta.docType, slug)
+        : child.href,
+      custom
     };
+
+    if (custom) {
+      const stored = bySlug.get(slug);
+      if (!stored?.html) continue;
+      chapters.push({
+        slug,
+        title: child.title,
+        html: presentManualChapterHtml(stored.html)
+      });
+      continue;
+    }
+
     const stored = byHref.get(String(child.href).toLowerCase());
     const force = needsPdfDirectoryRefetch(stored, child.href);
     const fetched = await getOrFetchManualChapter(chapterMeta, { force });
     if (!fetched?.html) continue;
     chapters.push({
-      slug: child.slug,
+      slug: slug || child.slug,
       title: child.title,
       html: fetched.html
     });
@@ -2563,13 +2724,21 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
       const existingContent = existingPage.content ? JSON.parse(JSON.stringify(existingPage.content)) : {};
       if (req.params.id === 'manual-proprietario' || req.params.id === 'convencao-condominio') {
         const incomingSections = pageData.content.sections || [];
-        pageData.content.sections = incomingSections.map((section, index) => {
-          const prev = existingContent.sections?.[index] || {};
-          return { ...prev, ...section };
-        });
+        if (req.params.id === 'manual-proprietario') {
+          pageData.content.sections = await persistCustomManualChaptersFromSections(incomingSections);
+        } else {
+          pageData.content.sections = incomingSections.map((section, index) => {
+            const prev = existingContent.sections?.[index] || {};
+            return { ...prev, ...section };
+          });
+        }
       }
       pageData.content = { ...existingContent, ...pageData.content };
     }
+
+    const manualSectionsForRebuild = req.params.id === 'manual-proprietario'
+      ? pageData.content?.sections
+      : null;
 
     const updatePayload = {
       title: pageData.title,
@@ -2588,6 +2757,9 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
     if (req.params.id === 'manual-proprietario') {
       invalidateManualContentCache();
       await refreshManualContentFromDb();
+      if (manualSectionsForRebuild) {
+        await rebuildManualDocumentsFromSections(manualSectionsForRebuild);
+      }
     }
 
     console.log(`[UPDATE] Página atualizada: ${req.params.id}`);
@@ -2600,14 +2772,32 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
 
 // ===== ADMIN: MANUAL DO PROPRIETÁRIO — CAPÍTULOS =====
 
+app.get('/admin/manual-chapter-html/:sectionSlug/:docType/:slug', isAuthenticated, async (req, res) => {
+  try {
+    const { sectionSlug, docType, slug } = req.params;
+    const chapter = await ManualChapter.findOne({ sectionSlug, docType, slug }).lean();
+    res.json({ success: true, html: chapter?.html || '' });
+  } catch (error) {
+    console.error('[ADMIN] manual-chapter-html:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.post('/admin/crawl-manual-document/:sectionSlug/:docType', isAuthenticated, async (req, res) => {
   try {
     const { sectionSlug, docType } = req.params;
     const found = await findManualDocInPage(sectionSlug, docType);
-    if (!found.doc?.href) {
-      return res.status(404).json({ success: false, message: 'Documento não encontrado ou sem URL' });
+    if (!found.doc) {
+      return res.status(404).json({ success: false, message: 'Documento não encontrado' });
     }
-    const children = await crawlDocumentChildren(found.doc);
+    const crawlHref = String(req.body?.href || found.doc.href || '').trim();
+    if (!crawlHref) {
+      return res.status(400).json({ success: false, message: 'Informe a URL do manual online para descobrir capítulos' });
+    }
+    if (crawlHref !== found.doc.href) {
+      await saveManualDocHref(sectionSlug, docType, crawlHref);
+    }
+    const children = await crawlDocumentChildren({ ...found.doc, href: crawlHref });
     await saveManualDocumentChildren(sectionSlug, docType, children);
     const meta = findManualDocumentMeta(sectionSlug, docType);
     if (meta) await buildManualDocumentRecord(meta);
@@ -2633,6 +2823,7 @@ app.post('/admin/sync-manual-document/:sectionSlug/:docType', isAuthenticated, a
     let synced = 0;
     let failed = 0;
     for (const child of meta.children) {
+      if (isCustomManualChapter(child)) continue;
       const chapterMeta = {
         sectionSlug: meta.sectionSlug,
         sectionTitle: meta.sectionTitle,
