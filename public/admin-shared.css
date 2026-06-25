@@ -315,6 +315,74 @@ body.has-admin-sticky-bar {
   flex-wrap: wrap;
 }
 
+.admin-manual-doc {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.admin-manual-doc__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.admin-manual-doc__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-manual-doc__actions button {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-manual-crawl { background: #eef2ff; color: #0073ff; }
+.btn-manual-sync { background: #dcfce7; color: #166534; }
+
+.admin-chapter-list {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.admin-chapter-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto;
+  gap: 8px;
+  align-items: start;
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-chapter-row[draggable="true"] { cursor: grab; }
+.admin-chapter-row.is-dragging { opacity: 0.5; }
+
+.admin-chapter-drag {
+  padding: 8px 4px;
+  color: #94a3b8;
+  cursor: grab;
+}
+
+@media (max-width: 768px) {
+  .admin-chapter-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-sticky-bar {
     flex-direction: column;

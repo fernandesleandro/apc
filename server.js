@@ -262,6 +262,7 @@ const {
   buildChapterPath,
   formatManualHtml
 } = require('./lib/manual-content');
+const { crawlDocumentChildren } = require('./lib/manual-crawl');
 
 const PORT = process.env.PORT || 3000;
 const SITE_URL = (process.env.SITE_URL || 'https://www.apconstrucoes.com.br').replace(/\/$/, '');
@@ -1274,8 +1275,27 @@ function readPageFromDatabaseJson(pageId) {
 
 let manualProprietarioContentCache = null;
 let manualProprietarioContentMtime = 0;
+let manualContentDbCache = null;
+
+function invalidateManualContentCache() {
+  manualContentDbCache = null;
+  manualProprietarioContentCache = null;
+  manualProprietarioContentMtime = 0;
+}
+
+async function refreshManualContentFromDb() {
+  const page = await Page.findOne({ id: 'manual-proprietario' }).lean();
+  if (page?.content?.sections?.length) {
+    manualContentDbCache = enrichManualProprietarioContent(page.content);
+    return manualContentDbCache;
+  }
+  manualContentDbCache = null;
+  return null;
+}
 
 function getManualProprietarioContent() {
+  if (manualContentDbCache) return manualContentDbCache;
+
   const dbFile = path.join(__dirname, 'data', 'database.json');
   if (!fs.existsSync(dbFile)) return null;
   const { mtimeMs } = fs.statSync(dbFile);
@@ -1392,6 +1412,7 @@ async function connectToDatabase() {
     isConnected = true;
     console.log('Conectado ao MongoDB com sucesso!');
     ensureDatabase().catch((err) => console.error('[SEED] Erro no ensureDatabase:', err.message));
+    refreshManualContentFromDb().catch((err) => console.error('[MANUAL] Erro ao carregar manual do BD:', err.message));
   } catch (err) {
     console.error('Erro ao conectar ao MongoDB:', err.message);
   }
@@ -1940,6 +1961,47 @@ function findManualDocumentMeta(sectionSlug, docType) {
   return null;
 }
 
+async function findManualDocInPage(sectionSlug, docType) {
+  const page = await Page.findOne({ id: 'manual-proprietario' });
+  if (!page?.content?.sections?.length) {
+    return { page: null, section: null, doc: null, sectionIndex: -1, docIndex: -1 };
+  }
+  for (let si = 0; si < page.content.sections.length; si++) {
+    const section = page.content.sections[si];
+    const slug = section.slug || slugifyManualSection(section.title);
+    if (slug !== sectionSlug) continue;
+    for (let di = 0; di < (section.documents || []).length; di++) {
+      const doc = section.documents[di];
+      const type = doc.type || inferManualDocType(doc.title, doc.href);
+      if (type === docType) {
+        return { page, section, doc, sectionIndex: si, docIndex: di };
+      }
+    }
+  }
+  return { page, section: null, doc: null, sectionIndex: -1, docIndex: -1 };
+}
+
+async function saveManualDocumentChildren(sectionSlug, docType, children) {
+  const found = await findManualDocInPage(sectionSlug, docType);
+  if (!found.doc || !found.page) {
+    throw new Error('Documento não encontrado na página do manual');
+  }
+  const docRef = found.page.content.sections[found.sectionIndex].documents[found.docIndex];
+  docRef.children = children;
+  if (!docRef.type) docRef.type = docType;
+  found.page.markModified('content');
+  await found.page.save();
+  invalidateManualContentCache();
+  await refreshManualContentFromDb();
+}
+
+function findManualChildByHref(meta, href) {
+  const normalized = String(href || '').split('#')[0].trim().toLowerCase();
+  return (meta?.children || []).find((child) =>
+    String(child.href || '').split('#')[0].trim().toLowerCase() === normalized
+  );
+}
+
 async function buildManualDocumentRecord(meta) {
   const allStored = await ManualChapter.find({
     sectionSlug: meta.sectionSlug,
@@ -1955,7 +2017,7 @@ async function buildManualDocumentRecord(meta) {
       sectionTitle: meta.sectionTitle,
       docType: meta.docType,
       docTitle: meta.docTitle,
-      slug: child.slug,
+      slug: child.slug || chapterSlugFromHref(child.href, child.title),
       title: child.title,
       sourceHref: child.href
     };
@@ -2523,11 +2585,111 @@ app.post('/admin/save-page/:id', isAuthenticated, async (req, res) => {
     if (updatePayload.content) existingPage.markModified('content');
     const updatedPage = await existingPage.save();
 
+    if (req.params.id === 'manual-proprietario') {
+      invalidateManualContentCache();
+      await refreshManualContentFromDb();
+    }
+
     console.log(`[UPDATE] Página atualizada: ${req.params.id}`);
     res.json({ success: true, message: 'Página atualizada com sucesso!' });
   } catch (error) {
     console.error('[ERROR] Erro ao salvar página:', error);
     res.status(500).json({ success: false, message: 'Erro ao salvar página: ' + error.message });
+  }
+});
+
+// ===== ADMIN: MANUAL DO PROPRIETÁRIO — CAPÍTULOS =====
+
+app.post('/admin/crawl-manual-document/:sectionSlug/:docType', isAuthenticated, async (req, res) => {
+  try {
+    const { sectionSlug, docType } = req.params;
+    const found = await findManualDocInPage(sectionSlug, docType);
+    if (!found.doc?.href) {
+      return res.status(404).json({ success: false, message: 'Documento não encontrado ou sem URL' });
+    }
+    const children = await crawlDocumentChildren(found.doc);
+    await saveManualDocumentChildren(sectionSlug, docType, children);
+    const meta = findManualDocumentMeta(sectionSlug, docType);
+    if (meta) await buildManualDocumentRecord(meta);
+    res.json({
+      success: true,
+      message: `${children.length} capítulo(s) descobertos a partir do link do documento`,
+      children
+    });
+  } catch (error) {
+    console.error('[ADMIN] crawl-manual-document:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/admin/sync-manual-document/:sectionSlug/:docType', isAuthenticated, async (req, res) => {
+  try {
+    const { sectionSlug, docType } = req.params;
+    const meta = findManualDocumentMeta(sectionSlug, docType);
+    if (!meta) {
+      return res.status(404).json({ success: false, message: 'Manual não encontrado' });
+    }
+    const force = Boolean(req.body?.force);
+    let synced = 0;
+    let failed = 0;
+    for (const child of meta.children) {
+      const chapterMeta = {
+        sectionSlug: meta.sectionSlug,
+        sectionTitle: meta.sectionTitle,
+        docType: meta.docType,
+        docTitle: meta.docTitle,
+        slug: child.slug || chapterSlugFromHref(child.href, child.title),
+        title: child.title,
+        sourceHref: child.href
+      };
+      const result = await getOrFetchManualChapter(chapterMeta, { force });
+      if (result?.html) synced += 1;
+      else failed += 1;
+    }
+    const manual = await buildManualDocumentRecord(meta);
+    res.json({
+      success: true,
+      message: `${synced} capítulo(s) com conteúdo sincronizado`,
+      synced,
+      failed,
+      chapterCount: manual?.chapterCount || 0
+    });
+  } catch (error) {
+    console.error('[ADMIN] sync-manual-document:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/admin/sync-manual-chapter/:sectionSlug/:docType', isAuthenticated, async (req, res) => {
+  try {
+    const { sectionSlug, docType } = req.params;
+    const { href, title } = req.body;
+    if (!href || !title) {
+      return res.status(400).json({ success: false, message: 'Título e URL do capítulo são obrigatórios' });
+    }
+    const docMeta = findManualDocumentMeta(sectionSlug, docType);
+    if (!docMeta) {
+      return res.status(404).json({ success: false, message: 'Manual não encontrado' });
+    }
+    const slug = chapterSlugFromHref(href, title);
+    const chapterMeta = {
+      sectionSlug: docMeta.sectionSlug,
+      sectionTitle: docMeta.sectionTitle,
+      docType: docMeta.docType,
+      docTitle: docMeta.docTitle,
+      slug,
+      title: String(title).trim(),
+      sourceHref: String(href).trim()
+    };
+    const result = await getOrFetchManualChapter(chapterMeta, { force: true });
+    if (!result?.html) {
+      return res.status(502).json({ success: false, message: 'Não foi possível baixar o conteúdo deste capítulo' });
+    }
+    await buildManualDocumentRecord(docMeta);
+    res.json({ success: true, message: 'Capítulo sincronizado!', slug, title: chapterMeta.title });
+  } catch (error) {
+    console.error('[ADMIN] sync-manual-chapter:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

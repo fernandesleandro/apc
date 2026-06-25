@@ -315,7 +315,13 @@
             <div class="form-card">
                 <div class="section">
                     <h2><i class="fas fa-folder-open"></i> Documentos por empreendimento</h2>
-                    <p class="form-hint" style="margin-bottom:16px;">Edite textos e links. Capítulos internos dos manuais são sincronizados pelos scripts <code>mirror-manual-content</code> e <code>crawl-manual-links</code>.</p>
+                    <p class="form-hint" style="margin-bottom:16px;">
+                        <% if (page.id === 'manual-proprietario') { %>
+                        Gerencie empreendimentos, documentos e <strong>capítulos</strong>. Use <em>Descobrir capítulos</em> para importar links do site legado ou adicione manualmente. Depois, <em>Sincronizar conteúdo</em> baixa o HTML para o portal.
+                        <% } else { %>
+                        Edite textos e links dos PDFs por empreendimento.
+                        <% } %>
+                    </p>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="clientIntro">Texto introdutório</label>
@@ -622,17 +628,155 @@
         <% } %>
 
         <% if (page.id === 'manual-proprietario' || page.id === 'convencao-condominio') { %>
+        const isManualEditor = pageId === 'manual-proprietario';
         const clientSectionsData = <%- JSON.stringify((page.content && page.content.sections) || []) %>;
         const clientSectionsEl = document.getElementById('clientSections');
 
+        function inferDocType(title, href) {
+            const t = (title || '').toLowerCase();
+            if (/habite|habitise/.test(t) || /\.pdf($|\?)/i.test(href || '')) return 'habite-se';
+            if (/desenhos/.test(t)) return 'desenhos';
+            if (/propriet/.test(t)) return 'proprietario';
+            if (/áreas comuns|areas comuns/.test(t)) return 'areas-comuns';
+            return 'documento';
+        }
+
+        function renderChapterRow(chapter, cIndex, sectionSlug, docType) {
+            const row = document.createElement('div');
+            row.className = 'admin-chapter-row';
+            row.draggable = isManualEditor;
+            row.dataset.chapterRow = cIndex;
+            row.innerHTML = `
+                <span class="admin-chapter-drag" title="Arrastar"><i class="fas fa-grip-vertical"></i></span>
+                <input type="text" data-cf="title" placeholder="Título do capítulo" value="${(chapter.title || '').replace(/"/g, '&quot;')}">
+                <input type="text" data-cf="href" placeholder="URL do capítulo (.htm)" value="${(chapter.href || '').replace(/"/g, '&quot;')}">
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    ${isManualEditor ? `<button type="button" class="btn-manual-sync" data-sync-chapter title="Baixar HTML deste capítulo"><i class="fas fa-download"></i></button>` : ''}
+                    <button type="button" class="btn-remove-item" data-remove-chapter title="Remover"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            if (isManualEditor) {
+                row.querySelector('[data-sync-chapter]')?.addEventListener('click', async () => {
+                    const title = row.querySelector('[data-cf="title"]').value.trim();
+                    const href = row.querySelector('[data-cf="href"]').value.trim();
+                    if (!title || !href) { alert('Preencha título e URL'); return; }
+                    const btn = row.querySelector('[data-sync-chapter]');
+                    btn.disabled = true;
+                    try {
+                        const res = await fetch(`/admin/sync-manual-chapter/${sectionSlug}/${docType}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ title, href })
+                        });
+                        const data = await res.json();
+                        alert(data.success ? data.message : (data.message || 'Erro'));
+                    } catch (e) { alert(e.message); }
+                    btn.disabled = false;
+                });
+            }
+            row.querySelector('[data-remove-chapter]')?.addEventListener('click', () => {
+                row.remove();
+                dirtyTracker.markDirty();
+            });
+            row.querySelectorAll('input').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+            return row;
+        }
+
+        function renderManualDoc(doc, dIndex, sectionSlug) {
+            const docType = doc.type || inferDocType(doc.title, doc.href);
+            const wrap = document.createElement('div');
+            wrap.className = 'admin-manual-doc';
+            wrap.dataset.docRow = dIndex;
+            wrap.dataset.docType = docType;
+            wrap.dataset.sectionSlug = sectionSlug;
+            const chapterCount = (doc.children || []).length;
+            wrap.innerHTML = `
+                <div class="admin-manual-doc__header">
+                    <strong>Documento ${dIndex + 1}</strong>
+                    <div class="admin-manual-doc__actions">
+                        ${isManualEditor ? `
+                        <button type="button" class="btn-manual-crawl" data-crawl-doc><i class="fas fa-search"></i> Descobrir capítulos</button>
+                        <button type="button" class="btn-manual-sync" data-sync-doc><i class="fas fa-cloud-download-alt"></i> Sincronizar conteúdo</button>
+                        ` : ''}
+                        <button type="button" class="btn-remove-item" data-remove-doc>Remover doc.</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
+                    <div class="form-group"><label>URL principal</label><input type="text" data-df="href" value="${(doc.href || '').replace(/"/g, '&quot;')}"></div>
+                </div>
+                ${isManualEditor ? `<p class="form-hint">Tipo: <code>${docType}</code> · ${chapterCount} capítulo(s)</p>` : ''}
+                ${isManualEditor ? '<div class="admin-chapter-list" data-chapters></div><button type="button" class="btn-add-item" data-add-chapter style="margin-top:8px;">+ Capítulo</button>' : ''}
+            `;
+
+            if (isManualEditor) {
+                const chaptersEl = wrap.querySelector('[data-chapters]');
+                (doc.children || []).forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, docType)));
+                AdminUX.setupGalleryReorder(chaptersEl, () => dirtyTracker.markDirty());
+
+                wrap.querySelector('[data-add-chapter]')?.addEventListener('click', () => {
+                    chaptersEl.appendChild(renderChapterRow({}, chaptersEl.children.length, sectionSlug, docType));
+                    dirtyTracker.markDirty();
+                });
+
+                wrap.querySelector('[data-crawl-doc]')?.addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descobrindo...';
+                    try {
+                        const res = await fetch(`/admin/crawl-manual-document/${sectionSlug}/${docType}`, { method: 'POST', credentials: 'same-origin' });
+                        const data = await res.json();
+                        if (data.success && data.children) {
+                            chaptersEl.innerHTML = '';
+                            data.children.forEach((ch, ci) => chaptersEl.appendChild(renderChapterRow(ch, ci, sectionSlug, docType)));
+                            dirtyTracker.markDirty();
+                            alert(data.message);
+                        } else {
+                            alert(data.message || 'Erro ao descobrir capítulos');
+                        }
+                    } catch (err) { alert(err.message); }
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-search"></i> Descobrir capítulos';
+                });
+
+                wrap.querySelector('[data-sync-doc]')?.addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
+                    try {
+                        const res = await fetch(`/admin/sync-manual-document/${sectionSlug}/${docType}`, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ force: true })
+                        });
+                        const data = await res.json();
+                        alert(data.success ? `${data.message} (${data.chapterCount || 0} no índice)` : (data.message || 'Erro'));
+                    } catch (err) { alert(err.message); }
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sincronizar conteúdo';
+                });
+            }
+
+            wrap.querySelector('[data-remove-doc]')?.addEventListener('click', () => {
+                if (wrap.parentElement.children.length <= 1) return;
+                wrap.remove();
+                dirtyTracker.markDirty();
+            });
+            wrap.querySelectorAll('[data-df]').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+            return wrap;
+        }
+
         function renderClientSection(section, sIndex) {
+            const sectionSlug = section.slug || AdminUX.slugify(section.title) || `secao-${sIndex}`;
             const card = document.createElement('div');
             card.className = 'admin-client-section-card';
             card.dataset.clientSection = sIndex;
+            card.dataset.sectionSlug = sectionSlug;
             const docs = section.documents || [];
             card.innerHTML = `
                 <div class="admin-client-section-card__header">
-                    <h3>Seção ${sIndex + 1}</h3>
+                    <h3>${section.title || 'Seção ' + (sIndex + 1)}</h3>
                     <button type="button" class="btn-remove-item" data-remove-section>Remover seção</button>
                 </div>
                 <div class="form-group"><label>Título do empreendimento</label><input type="text" data-sf="title" value="${(section.title || '').replace(/"/g, '&quot;')}"></div>
@@ -641,36 +785,39 @@
             `;
             const docsEl = card.querySelector('[data-docs]');
             function addDoc(doc, dIndex) {
-                const row = document.createElement('div');
-                row.style.cssText = 'background:#fff;padding:12px;border-radius:6px;margin-bottom:8px;border:1px solid #e2e8f0;';
-                row.dataset.docJson = JSON.stringify(doc);
-                row.innerHTML = `
-                    <div class="form-row">
-                        <div class="form-group"><label>Documento ${dIndex + 1} — Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
-                        <div class="form-group"><label>URL principal</label><input type="text" data-df="href" value="${(doc.href || '').replace(/"/g, '&quot;')}"></div>
-                    </div>
-                    ${doc.children && doc.children.length ? `<p class="form-hint">${doc.children.length} capítulo(s) — mantidos ao salvar</p>` : ''}
-                    <button type="button" class="btn-remove-item" data-remove-doc>Remover documento</button>
-                `;
-                docsEl.appendChild(row);
+                if (isManualEditor) {
+                    docsEl.appendChild(renderManualDoc(doc, dIndex, sectionSlug));
+                } else {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'background:#fff;padding:12px;border-radius:6px;margin-bottom:8px;border:1px solid #e2e8f0;';
+                    row.dataset.docJson = JSON.stringify(doc);
+                    row.innerHTML = `
+                        <div class="form-row">
+                            <div class="form-group"><label>Documento ${dIndex + 1} — Título</label><input type="text" data-df="title" value="${(doc.title || '').replace(/"/g, '&quot;')}"></div>
+                            <div class="form-group"><label>URL</label><input type="text" data-df="href" value="${(doc.href || '').replace(/"/g, '&quot;')}"></div>
+                        </div>
+                        <button type="button" class="btn-remove-item" data-remove-doc>Remover documento</button>
+                    `;
+                    row.querySelector('[data-remove-doc]').addEventListener('click', () => {
+                        if (docsEl.children.length <= 1) return;
+                        row.remove();
+                        dirtyTracker.markDirty();
+                    });
+                    row.querySelectorAll('input').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+                    docsEl.appendChild(row);
+                }
             }
             (docs.length ? docs : [{ title: '', href: '' }]).forEach(addDoc);
             card.querySelector('[data-add-doc]').addEventListener('click', () => {
                 addDoc({}, docsEl.children.length);
                 dirtyTracker.markDirty();
             });
-            docsEl.addEventListener('click', (e) => {
-                if (e.target.matches('[data-remove-doc]') && docsEl.children.length > 1) {
-                    e.target.closest('div').remove();
-                    dirtyTracker.markDirty();
-                }
-            });
             card.querySelector('[data-remove-section]').addEventListener('click', () => {
                 if (clientSectionsEl.children.length <= 1) return;
                 card.remove();
                 dirtyTracker.markDirty();
             });
-            card.querySelectorAll('input').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
+            card.querySelectorAll('[data-sf]').forEach(el => el.addEventListener('input', () => dirtyTracker.markDirty()));
             return card;
         }
 
@@ -688,11 +835,33 @@
         function collectClientSections() {
             return [...clientSectionsEl.querySelectorAll('[data-client-section]')].map((card, sIndex) => {
                 const original = clientSectionsData[sIndex] || {};
+                const title = card.querySelector('[data-sf="title"]').value.trim();
+                const sectionSlug = original.slug || AdminUX.slugify(title) || `secao-${sIndex}`;
                 return {
                     ...original,
-                    title: card.querySelector('[data-sf="title"]').value.trim(),
-                    slug: original.slug || AdminUX.slugify(card.querySelector('[data-sf="title"]').value.trim()),
-                    documents: [...card.querySelectorAll('[data-docs] > div')].map((row, dIndex) => {
+                    title,
+                    slug: sectionSlug,
+                    documents: [...card.querySelectorAll('[data-doc-row], [data-docs] > div')].map((row, dIndex) => {
+                        if (row.dataset.docRow !== undefined) {
+                            const origDoc = (original.documents || [])[dIndex] || {};
+                            const docType = row.dataset.docType || inferDocType(
+                                row.querySelector('[data-df="title"]')?.value,
+                                row.querySelector('[data-df="href"]')?.value
+                            );
+                            const children = isManualEditor
+                                ? [...row.querySelectorAll('[data-chapter-row]')].map(ch => ({
+                                    title: ch.querySelector('[data-cf="title"]').value.trim(),
+                                    href: ch.querySelector('[data-cf="href"]').value.trim()
+                                })).filter(c => c.title && c.href)
+                                : (origDoc.children || []);
+                            return {
+                                ...origDoc,
+                                title: row.querySelector('[data-df="title"]').value.trim(),
+                                href: row.querySelector('[data-df="href"]').value.trim(),
+                                type: docType,
+                                children
+                            };
+                        }
                         const origDoc = (original.documents || [])[dIndex] || JSON.parse(row.dataset.docJson || '{}');
                         return {
                             ...origDoc,
