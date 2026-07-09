@@ -1,4 +1,17 @@
 (function () {
+  function syncSiteLayoutVars() {
+    const header = document.querySelector('.navbar');
+    const projectNav = document.querySelector('.project-section-nav');
+    const root = document.documentElement;
+
+    if (header) {
+      root.style.setProperty('--site-header-height', header.offsetHeight + 'px');
+    }
+    if (projectNav) {
+      root.style.setProperty('--project-nav-height', projectNav.offsetHeight + 'px');
+    }
+  }
+
   function initMobileNav() {
     const toggleBtn = document.querySelector('.menu-toggle');
     const navMenu = document.querySelector('.nav-menu');
@@ -8,6 +21,7 @@
       const isOpen = navMenu.classList.toggle('active');
       toggleBtn.classList.toggle('active');
       toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      requestAnimationFrame(syncSiteLayoutVars);
     });
 
     document.querySelectorAll('.nav-dropdown-item, .nav-link:not(.nav-dropdown-toggle)').forEach(function (link) {
@@ -69,7 +83,7 @@
 
     function getScrollOffset() {
       const header = document.querySelector('.navbar');
-      return (header ? header.offsetHeight : 72) + nav.offsetHeight + 16;
+      return (header ? header.offsetHeight : 80) + nav.offsetHeight + 12;
     }
 
     function setActive(activeLink) {
@@ -117,6 +131,7 @@
 
     window.addEventListener('resize', resolveActiveLink);
     resolveActiveLink();
+    syncSiteLayoutVars();
   }
 
   function initContactForm() {
@@ -240,10 +255,15 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    syncSiteLayoutVars();
     initMobileNav();
     initNavDropdown();
     initProjectAnchors();
     initContactForm();
     initProjectsFilter();
+  });
+
+  window.addEventListener('resize', function () {
+    requestAnimationFrame(syncSiteLayoutVars);
   });
 })();

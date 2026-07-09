@@ -75,7 +75,7 @@
 
     <% if (sectionsNav && sectionsNav.length > 1) { %>
     <nav class="project-section-nav" aria-label="Navegação da página do empreendimento">
-        <div class="container project-section-nav-scroll">
+        <div class="project-section-nav-scroll">
             <div class="project-section-nav-inner" role="tablist">
                 <% sectionsNav.forEach(function(sec, idx) { %>
                     <a href="#<%= sec.id %>" class="project-section-nav-link<%= idx === 0 ? ' active' : '' %>" role="tab" aria-selected="<%= idx === 0 ? 'true' : 'false' %>"><%= sec.label %></a>
