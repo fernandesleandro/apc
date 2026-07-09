@@ -53,18 +53,70 @@
     const nav = document.querySelector('.project-section-nav');
     if (!nav) return;
 
-    const links = nav.querySelectorAll('a[href^="#"]');
+    const links = Array.from(nav.querySelectorAll('.project-section-nav-link[href^="#"]'));
+    if (!links.length) return;
+
+    const sectionPairs = links.map(function (link) {
+      const id = link.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      return el ? { link: link, el: el } : null;
+    }).filter(Boolean);
+
+    if (!sectionPairs.length) return;
+
+    let scrollLockUntil = 0;
+    let scrollRaf = 0;
+
+    function getScrollOffset() {
+      const header = document.querySelector('.navbar');
+      return (header ? header.offsetHeight : 72) + nav.offsetHeight + 16;
+    }
+
+    function setActive(activeLink) {
+      links.forEach(function (link) {
+        const isActive = link === activeLink;
+        link.classList.toggle('active', isActive);
+        link.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      if (activeLink && window.innerWidth < 900) {
+        activeLink.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    function resolveActiveLink() {
+      if (Date.now() < scrollLockUntil) return;
+
+      const marker = window.scrollY + getScrollOffset() + 2;
+      let active = sectionPairs[0].link;
+
+      sectionPairs.forEach(function (pair) {
+        const top = pair.el.getBoundingClientRect().top + window.scrollY;
+        if (top <= marker) active = pair.link;
+      });
+
+      setActive(active);
+    }
+
     links.forEach(function (link) {
       link.addEventListener('click', function (e) {
         const id = link.getAttribute('href').slice(1);
         const target = document.getElementById(id);
         if (!target) return;
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        links.forEach(function (l) { l.classList.remove('active'); });
-        link.classList.add('active');
+        scrollLockUntil = Date.now() + 1000;
+        setActive(link);
+        const top = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
       });
     });
+
+    window.addEventListener('scroll', function () {
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      scrollRaf = requestAnimationFrame(resolveActiveLink);
+    }, { passive: true });
+
+    window.addEventListener('resize', resolveActiveLink);
+    resolveActiveLink();
   }
 
   function initContactForm() {

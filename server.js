@@ -640,7 +640,6 @@ function normalizeDetailData(detailData, page, project) {
 
 function buildProjectSections(detailData) {
   const sections = [];
-  if (detailData.summaryItems?.length) sections.push({ id: 'ficha', label: 'Ficha Técnica' });
   sections.push({ id: 'detalhes', label: 'Detalhes' });
   if ((detailData.plantaGallery?.length) || detailData.plantaImage) sections.push({ id: 'plantas', label: 'Plantas' });
   if (detailData.commonAreas?.length) sections.push({ id: 'areas', label: 'Áreas Comuns' });

@@ -46,8 +46,9 @@
 
     <% if (detailData.summaryItems && detailData.summaryItems.length) { %>
     <div class="detail-nav-summary" id="ficha">
-        <div class="container summary-flex">
-            <% detailData.summaryItems.forEach(item => {
+        <div class="container">
+            <div class="summary-strip">
+            <% detailData.summaryItems.forEach((item, index) => {
                 const label = (item.label || '').toLowerCase();
                 let iconClass = 'fas fa-info-circle';
                 if (label.includes('metr') || label.includes('m²') || label.includes('m2')) iconClass = 'fas fa-ruler-combined';
@@ -61,20 +62,25 @@
             %>
                 <div class="summary-item">
                     <i class="<%= iconClass %> summary-icon" aria-hidden="true"></i>
-                    <h5><%= item.label %></h5>
-                    <p><%= item.value %></p>
+                    <div class="summary-item-body">
+                        <span class="summary-item-label"><%= item.label %></span>
+                        <p class="summary-item-value"><%= item.value %></p>
+                    </div>
                 </div>
             <% }) %>
+            </div>
         </div>
     </div>
     <% } %>
 
     <% if (sectionsNav && sectionsNav.length > 1) { %>
     <nav class="project-section-nav" aria-label="Navegação da página do empreendimento">
-        <div class="container project-section-nav-inner">
-            <% sectionsNav.forEach(function(sec, idx) { %>
-                <a href="#<%= sec.id %>" class="<%= idx === 0 ? 'active' : '' %>"><%= sec.label %></a>
-            <% }) %>
+        <div class="container project-section-nav-scroll">
+            <div class="project-section-nav-inner" role="tablist">
+                <% sectionsNav.forEach(function(sec, idx) { %>
+                    <a href="#<%= sec.id %>" class="project-section-nav-link<%= idx === 0 ? ' active' : '' %>" role="tab" aria-selected="<%= idx === 0 ? 'true' : 'false' %>"><%= sec.label %></a>
+                <% }) %>
+            </div>
         </div>
     </nav>
     <% } %>
